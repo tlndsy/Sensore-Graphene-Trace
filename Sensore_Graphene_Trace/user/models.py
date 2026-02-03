@@ -102,7 +102,11 @@ class ReadingEquipment(models.Model):
 
 class PressureMapReading(models.Model):
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
-    reading = models.FileField(upload_to=f'pressure_maps/{reading_equipment.user.id}', blank=True, null=True) # change pending on needs
+
+    def pressure_map_path(self, filename):
+        return f"pressure_maps/{self.reading_equipment.user.id}/{filename}"
+
+    reading = models.FileField(upload_to=pressure_map_path, blank=True, null=True) # change pending on needs
     timestamp = models.DateTimeField(auto_now_add=True)
     peak_pressure = models.PositiveSmallIntegerField()
     contact_area = models.PositiveSmallIntegerField()
@@ -129,7 +133,11 @@ class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='sender')
     recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='recipient')
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, blank=True, null=True)
-    attachment = models.ImageField(upload_to=f'conversations/{sender.id}', blank=True, null=True)
+
+    def attachment_path(self, filename):
+        return f"conversations/{self.sender.id}/{filename}"
+
+    attachment = models.ImageField(upload_to=attachment_path, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     read_receipt = models.BooleanField(default=False)
     content = models.TextField()
