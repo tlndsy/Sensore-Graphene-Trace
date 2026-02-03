@@ -31,6 +31,7 @@ class UserAdmin(BaseUserAdmin):
                 "last_name",
                 "phone_number",
                 "address",
+                "date_of_birth",
             )
         }),
         (_("Permissions"), {
