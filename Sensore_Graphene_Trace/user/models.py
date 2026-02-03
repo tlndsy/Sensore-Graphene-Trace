@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -25,6 +26,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
         extra_fields.setdefault("role", "ADMIN")
+        extra_fields.setdefault("date_of_birth", datetime.date.today())
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
