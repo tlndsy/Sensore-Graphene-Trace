@@ -4,6 +4,7 @@ import uuid
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin, BaseUserManager
 from django.db import models
+from django_resized import ResizedImageField
 
 
 class UserManager(BaseUserManager):
@@ -69,7 +70,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def profile_picture_path(self, filename):
         return f"users/{self.id}/profile_picture/{filename}"
 
-    profile_picture = models.ImageField(upload_to=profile_picture_path, default='users/default_pfp.png', blank=True)
+    profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, default='users/default_pfp.png', blank=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
