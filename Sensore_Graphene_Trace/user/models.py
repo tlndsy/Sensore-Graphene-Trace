@@ -66,6 +66,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
     role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT)
 
+    def profile_picture_path(self, filename):
+        return f"users/{self.id}/profile_picture/{filename}"
+
+    profile_picture = models.ImageField(upload_to=profile_picture_path, default='users/default_pfp.png', blank=True)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -85,7 +90,7 @@ class NotificationType(models.Model):
     def __str__(self):
         return f"{self.type}"
 
-class DeviceInfo(models.Model):
+class ProductInfo(models.Model):
     model = models.CharField(max_length=255)
     manufacturer = models.CharField(max_length=255)
     resolution_width = models.PositiveIntegerField(default=0)
@@ -95,20 +100,20 @@ class DeviceInfo(models.Model):
         return self.model
 
 class ReadingEquipment(models.Model):
-    product = models.ForeignKey(DeviceInfo, on_delete=models.SET_NULL, null=True)
+    product_info = models.ForeignKey(ProductInfo, on_delete=models.SET_NULL, null=True)
     serial_number = models.CharField(max_length=255)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.product.model}, Serial Number: {self.serial_number}, Belonging To: {self.user}"
+        return f"{self.product_info.model}, Serial Number: {self.serial_number}, Belonging To: {self.user}"
 
 class PressureMapReading(models.Model):
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
 
-    def pressure_map_path(self, filename):
-        return f"pressure_maps/{self.reading_equipment.user.id}/{filename}"
+    def pressure_reading_path(self, filename):
+        return f"users/{self.reading_equipment.user.id}/pressure_maps/{filename}"
 
-    reading = models.FileField(upload_to=pressure_map_path, blank=True, null=True) # change pending on needs
+    pressure_reading = models.FileField(upload_to=pressure_reading_path, blank=True, null=True) # change pending on needs
     timestamp = models.DateTimeField(auto_now_add=True)
     peak_pressure = models.PositiveSmallIntegerField()
     contact_area = models.PositiveSmallIntegerField()
@@ -137,7 +142,7 @@ class Message(models.Model):
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, blank=True, null=True)
 
     def attachment_path(self, filename):
-        return f"conversations/{self.sender.id}/{filename}"
+        return f"users/{self.sender.id}/conversation_{self.conversation.id}/sent_items/{filename}"
 
     attachment = models.ImageField(upload_to=attachment_path, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
