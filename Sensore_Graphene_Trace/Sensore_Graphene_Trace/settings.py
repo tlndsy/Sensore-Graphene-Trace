@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'clinician',
     'patient',
     'user',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
