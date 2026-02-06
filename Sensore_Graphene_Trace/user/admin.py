@@ -32,6 +32,7 @@ class UserAdmin(BaseUserAdmin):
                 "phone_number",
                 "address",
                 "date_of_birth",
+                "profile_picture",
             )
         }),
         (_("Permissions"), {
