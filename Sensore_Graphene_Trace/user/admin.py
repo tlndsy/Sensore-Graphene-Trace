@@ -68,7 +68,7 @@ class UserAdmin(BaseUserAdmin):
 
 admin.site.register(Address)
 admin.site.register(NotificationType)
-admin.site.register(DeviceInfo)
+admin.site.register(ProductInfo)
 admin.site.register(ReadingEquipment)
 admin.site.register(PressureMapReading)
 admin.site.register(Report)
