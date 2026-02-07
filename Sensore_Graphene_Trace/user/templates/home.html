@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensore Graphene Trace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {%  load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+<nav>
+    <h3 class="nav-title"> Sensore Graphene Trace </h3>
+    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
+</nav>
+    <div class="wrapper">
+        <div class="main">
+            <h1> About the company </h1>
+            <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <article class="img-info">
+                <h2> Company image </h2>
+                <img class="img-company" src="https://media.tenor.com/63bGPPTu_8MAAAAe/uncanny-cat-smirk.png" alt="cat smirk">
+                <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            </article>
+        </div>
+        <div class="side-panel">
+            <h1> Login </h1>
+            <form method='post' class="login-form">
+                {% csrf_token %}
+                <div class="field">
+                    <label for="{{ form.username.id_for_label }}"> Email </label>
+                    {{ form.username }}
+                </div>
+                <div class="field">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    {{ form.password }}
+                </div>
+                <div class="options">
+                    <label>
+                        <input type="checkbox" id="showPassword">
+                        Show password
+                    </label>
+                    <a href="www.google.com">Forgot Password? </a>
+                </div>
+                <button type="submit">Login</button> <!-- Will update later when page exists -->
+                <button type="button" class="btn" onclick="window.location.href='{% url 'register' %}'">Register</button>
+            </form>
+
+        </div>
+    </div>
+<!-- Opens and closes side panel -->
+    <script>
+        document.querySelector(".side-panel-toggle").addEventListener("click", () => {
+            document.querySelector(".wrapper").classList.toggle("side-panel-open");
+        })
+    </script>
+<!-- Shows password text when box is checked -->
+    <script>
+        const toggle = document.getElementById("showPassword");
+        const password = document.getElementById("id_password");
+        toggle.addEventListener("change", () => {
+            password.type = toggle.checked ? "text" : "password";
+        })
+    </script>
+</body>
+</html>

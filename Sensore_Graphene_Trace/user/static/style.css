@@ -1,0 +1,161 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+/* Font settings */
+html {
+    font-size: 24px;
+}
+
+body {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: darkslategrey;
+}
+
+h1 {
+    font-size: 2rem;
+    line-height: 1.25;
+}
+
+h2 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+}
+
+h3 {
+    font-size: 1.25rem;
+}
+
+p {
+    font-size: 1rem;
+}
+
+label, .small,.options {
+    font-size: 0.875rem;
+}
+
+/* Navigation panel settings */
+nav{
+    background-color: darkgrey;
+    position: relative;
+    align-items: center;
+    display: flex;
+    height: 75px;
+}
+
+.nav-title{
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Wrapper settings */
+.wrapper {
+    width: 100%;
+    display: flex;
+    height: calc(100vh - 100px);
+}
+
+.wrapper:not(.side-panel-open) .side-panel{
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Main page content settings */
+.main{
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.img-company {
+    width: 100%;
+    max-width: 1000px;
+}
+
+/*Side panel settings */
+.side-panel{
+    width: 33.333vw;
+    max-width: 1000px;
+    height: 100%;
+    padding: 16px;
+    box-sizing: border-box;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+    flex-shrink: 0;
+    transform: translateX(100%);
+    transition: trasnform 0.3s ease;
+    overflow-y: auto;
+}
+
+.side-panel h1 {
+    margin-bottom: 8px;
+}
+
+.side-panel-toggle{
+    width: 48px;
+    height: 48px;
+    font-size: 36px;
+    margin-left: auto;
+    margin-right: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.side-panel-open .side-panel{
+    right: 0;
+    transform: translateX(0);
+}
+
+.side-panel-toggle:hover {
+    background: darkgrey;
+}
+
+/* Login form settings */
+.login-form{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.field{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field label{
+    font-weight: 600;
+}
+
+.field input{
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.login-form button {
+    margin-top: 8px;
+    padding: 12px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: black;
+    color: white;
+}
+
+.login-form button:hover {
+    background: darkgrey;
+}
