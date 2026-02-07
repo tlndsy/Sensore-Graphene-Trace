@@ -24,21 +24,22 @@
         </div>
         <div class="side-panel">
             <h1> Login </h1>
-            <form class="login-form">
+            <form method='post' class="login-form">
+                {% csrf_token %}
                 <div class="field">
-                    <label for="email"> Email </label>
-                    <input id="email" type="email" name="email" required>
+                    <label for="{{ form.username.id_for_label }}"> Email </label>
+                    {{ form.username }}
                 </div>
                 <div class="field">
-                    <label for="password">Password</label>
-                    <input id="password" type="password" name="password" required>
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    {{ form.password }}
                 </div>
                 <div class="options">
                     <label>
                         <input type="checkbox" id="showPassword">
                         Show password
                     </label>
-                    <a href="https://google.com"> Forgot Password? </a>
+                    <a href="www.google.com">Forgot Password? </a>
                 </div>
                 <button type="submit">Login</button> <!-- Will update later when page exists -->
                 <button type="button" class="btn" onclick="window.location.href='{% url 'register' %}'">Register</button>
@@ -55,7 +56,7 @@
 <!-- Shows password text when box is checked -->
     <script>
         const toggle = document.getElementById("showPassword");
-        const password = document.getElementById("password");
+        const password = document.getElementById("id_password");
         toggle.addEventListener("change", () => {
             password.type = toggle.checked ? "text" : "password";
         })
