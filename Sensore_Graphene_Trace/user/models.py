@@ -1,6 +1,8 @@
 import datetime
 import uuid
 
+import Sensore_Graphene_Trace.global_constants as constants
+
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin, BaseUserManager
 from django.db import models
@@ -57,6 +59,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         CLINICIAN = "CLINICIAN", "Clinician"
         PATIENT = "PATIENT", "Patient"
 
+    class FontSize(models.IntegerChoices):
+        SMALL = constants.SMALL_FONT_SIZE, "Small"
+        MEDIUM = constants.MEDIUM_FONT_SIZE, "Medium"
+        LARGE = constants.LARGE_FONT_SIZE, "Large"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
@@ -64,6 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=255)
     date_of_birth = models.DateField()
 
+    font_size_preference = models.IntegerField(choices=FontSize.choices, default=FontSize.MEDIUM)
     address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
     role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT)
 

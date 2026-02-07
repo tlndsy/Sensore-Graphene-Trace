@@ -10,6 +10,7 @@ def home(request):
         if form.is_valid():
             login(request, form.get_user())
             print("Login success")"""
+
     form = AuthenticationForm(request=request)
     return render(request, "home.html", {"form":form})
 
