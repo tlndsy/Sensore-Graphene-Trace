@@ -92,6 +92,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+class PatientClinicians(models.Model):
+    Patient_ID = models.ForeignKey(User, related_name='patient', on_delete=models.CASCADE)
+    Clinician_ID = models.ForeignKey(User, related_name='clinician', on_delete=models.CASCADE)
+
 class NotificationType(models.Model):
     type = models.CharField(max_length=25)
     users = models.ManyToManyField(User)
@@ -104,6 +108,7 @@ class ProductInfo(models.Model):
     manufacturer = models.CharField(max_length=255)
     resolution_width = models.PositiveIntegerField(default=0)
     resolution_height = models.PositiveIntegerField(default=0)
+    refresh_rate = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.model
