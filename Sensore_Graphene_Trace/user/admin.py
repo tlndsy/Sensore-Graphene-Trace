@@ -57,6 +57,10 @@ class UserAdmin(BaseUserAdmin):
                 "password2",
                 "first_name",
                 "last_name",
+                "phone_number",
+                "date_of_birth",
+                "address",
+                "profile_picture",
                 "role",
                 "is_staff",
                 "is_superuser",
@@ -66,7 +70,7 @@ class UserAdmin(BaseUserAdmin):
 
     readonly_fields = ("last_login", "date_joined")
 
-
+admin.site.register(PatientClinician)
 admin.site.register(Address)
 admin.site.register(NotificationType)
 admin.site.register(ProductInfo)

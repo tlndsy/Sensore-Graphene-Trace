@@ -92,9 +92,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-class PatientClinicians(models.Model):
+class PatientClinician(models.Model):
     Patient_ID = models.ForeignKey(User, related_name='patient', on_delete=models.CASCADE)
     Clinician_ID = models.ForeignKey(User, related_name='clinician', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Patient: {self.Patient_ID}, Clinician: {self.Clinician_ID}"
 
 class NotificationType(models.Model):
     type = models.CharField(max_length=25)
