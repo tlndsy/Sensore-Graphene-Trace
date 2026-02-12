@@ -1,6 +1,8 @@
 import datetime
 import uuid
 
+import Sensore_Graphene_Trace.global_constants as constants
+
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin, BaseUserManager
 from django.db import models
@@ -57,6 +59,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         CLINICIAN = "CLINICIAN", "Clinician"
         PATIENT = "PATIENT", "Patient"
 
+    class FontSize(models.IntegerChoices):
+        SMALL = constants.SMALL_FONT_SIZE, "Small"
+        MEDIUM = constants.MEDIUM_FONT_SIZE, "Medium"
+        LARGE = constants.LARGE_FONT_SIZE, "Large"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
@@ -64,6 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=255)
     date_of_birth = models.DateField()
 
+    font_size_preference = models.IntegerField(choices=FontSize.choices, default=FontSize.MEDIUM)
     address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
     role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT)
 
@@ -84,6 +92,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+class PatientClinician(models.Model):
+    Patient_ID = models.ForeignKey(User, related_name='patient', on_delete=models.CASCADE)
+    Clinician_ID = models.ForeignKey(User, related_name='clinician', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Patient: {self.Patient_ID}, Clinician: {self.Clinician_ID}"
+
 class NotificationType(models.Model):
     type = models.CharField(max_length=25)
     users = models.ManyToManyField(User)
@@ -92,18 +107,30 @@ class NotificationType(models.Model):
         return f"{self.type}"
 
 class ProductInfo(models.Model):
-    model = models.CharField(max_length=255)
+    model = models.CharField(max_length=100)
     manufacturer = models.CharField(max_length=255)
     resolution_width = models.PositiveIntegerField(default=0)
     resolution_height = models.PositiveIntegerField(default=0)
+    refresh_rate = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.model
 
 class ReadingEquipment(models.Model):
     product_info = models.ForeignKey(ProductInfo, on_delete=models.SET_NULL, null=True)
-    serial_number = models.CharField(max_length=255)
+    serial_number = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+    custom_name = models.CharField(max_length=255, blank=True)
+
+    def get_default_device_name(self):
+        return f"{self.product_info.model} - {self.serial_number}"
+
+    def save(self, *args, **kwargs):
+        if not self.custom_name:
+            self.customer_name = self.get_default_device_name()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product_info.model}, Serial Number: {self.serial_number}, Belonging To: {self.user}"
