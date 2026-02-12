@@ -23,27 +23,60 @@
             </article>
         </div>
         <div class="side-panel">
-            <h1> Login </h1>
-            <form method='post' class="login-form">
-                {% csrf_token %}
-                <div class="field">
-                    <label for="{{ form.username.id_for_label }}"> Email </label>
-                    {{ form.username }}
-                </div>
-                <div class="field">
-                    <label for="{{ form.password.id_for_label }}">Password</label>
-                    {{ form.password }}
-                </div>
-                <div class="options">
-                    <label>
-                        <input type="checkbox" id="showPassword">
-                        Show password
-                    </label>
-                    <a href="www.google.com">Forgot Password? </a>
-                </div>
-                <button type="submit">Login</button> <!-- Will update later when page exists -->
-                <button type="button" class="btn" onclick="window.location.href='{% url 'register' %}'">Register</button>
-            </form>
+
+            <!-- Login Form -->
+            <div id="login-panel">
+                <form method='post' class="login-form">
+                    {% csrf_token %}
+                    <h1> Login </h1>
+                    <div class="field">
+                        <label for="{{ form.username.id_for_label }}"> Email </label>
+                        {{ form.username }}
+                    </div>
+                    <div class="field">
+                        <label for="{{ form.password.id_for_label }}">Password</label>
+                        {{ form.password }}
+                    </div>
+                    <div class="options">
+                        <label>
+                            <input type="checkbox" id="showPassword">
+                            Show password
+                        </label>
+                        <a href="www.google.com">Forgot Password? </a>
+                    </div>
+                    <button type="submit">Login</button> <!-- Will update later when page exists -->
+                    <button type="button" class="btn" id="open-register">Register</button>
+                </form>
+            </div>
+
+            <!-- Registration Form -->
+             <div id="register-panel" class="hidden">
+                 <form method="post" class="login-form">
+                     {% csrf_token %}
+                     <h1> Register </h1>
+                     <div class="field">
+                        <label for="{{ register_form.username.id_for_label }}"> Email </label>
+                        {{ register_form.username }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ register_form.phone_number.id_for_label }}"> Phone Number </label>
+                    </div>
+                     <div class="field">
+                        <label for="{{ register_form.password1.id_for_label }}">Password</label>
+                        {{ register_form.password1 }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ register_form.password2.id_for_label }}">Confirm Password</label>
+                        {{ register_form.password2 }}
+                    </div>
+
+                     <button type="submit"> Create account ></button>
+                     <button type="button" class="btn" id="open-login"> Return to login </button>
+
+                 </form>
+
+             </div>
+
 
         </div>
     </div>
@@ -60,6 +93,28 @@
         toggle.addEventListener("change", () => {
             password.type = toggle.checked ? "text" : "password";
         })
+    </script>
+
+<!-- Switch side panel views -->
+    <script>
+        const loginPanel = document.getElementById("login-panel");
+        const registerPanel = document.getElementById("register-panel");
+        const wrapper = document.querySelector(".wrapper");
+
+        //Open registration panel
+        document.getElementById("open-register").addEventListener("click", () => {
+            wrapper.classList.add("side-panel-open");
+            loginPanel.classList.add("hidden");
+            registerPanel.classList.remove("hidden");
+        })
+
+        // Open login panel
+        document.getElementById("open-login").addEventListener("click", () => {
+            wrapper.classList.add("side-panel-open");
+            registerPanel.classList.add("hidden");
+            loginPanel.classList.remove("hidden");
+        })
+
     </script>
 </body>
 </html>
