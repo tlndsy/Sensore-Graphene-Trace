@@ -19,6 +19,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.views.static import serve
+from user import views
 
 urlpatterns = [
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
@@ -26,5 +27,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include("user.urls")),
     path('patient/', include("patient.urls")),
-    path('', auth_views.LoginView.as_view(template_name='home.html'), name='login'),
+    path('', views.home, name='home'),
 ]

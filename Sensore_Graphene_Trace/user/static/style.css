@@ -3,6 +3,10 @@
     padding: 0;
 }
 
+.hidden{
+    display: none !important;
+}
+
 /* Font settings */
 html {
     font-size: 24px;
@@ -87,7 +91,7 @@ nav{
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
     flex-shrink: 0;
     transform: translateX(100%);
-    transition: trasnform 0.3s ease;
+    transition: transform 0.3s ease;
     overflow-y: auto;
 }
 
