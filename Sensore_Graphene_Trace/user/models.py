@@ -107,7 +107,7 @@ class NotificationType(models.Model):
         return f"{self.type}"
 
 class ProductInfo(models.Model):
-    model = models.CharField(max_length=255)
+    model = models.CharField(max_length=100)
     manufacturer = models.CharField(max_length=255)
     resolution_width = models.PositiveIntegerField(default=0)
     resolution_height = models.PositiveIntegerField(default=0)
@@ -118,8 +118,19 @@ class ProductInfo(models.Model):
 
 class ReadingEquipment(models.Model):
     product_info = models.ForeignKey(ProductInfo, on_delete=models.SET_NULL, null=True)
-    serial_number = models.CharField(max_length=255)
+    serial_number = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+    custom_name = models.CharField(max_length=255, blank=True)
+
+    def get_default_device_name(self):
+        return f"{self.product_info.model} - {self.serial_number}"
+
+    def save(self, *args, **kwargs):
+        if not self.custom_name:
+            self.customer_name = self.get_default_device_name()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product_info.model}, Serial Number: {self.serial_number}, Belonging To: {self.user}"
