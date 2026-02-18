@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% block title %}
+            Sensore App
+        {% endblock %}
+    </title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+      <div class="logo">Logo</div>
+
+      <div class="nav-right">
+        <button class="profile-container">
+          <img src="{{ user.profile_picture }}" alt="User profile picture" class="profile-pic">
+          <span class="notification-badge">{{ notifications }}</span>
+        </button>
+        <button class="logout">Log out</button>
+
+        <div class="dropdown">
+          <button class="menu-btn">☰</button>
+          <div class="dropdown-menu">
+            <a href="#">Settings</a>
+            <a href="#">Profile</a>
+            <a href="#">Support</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <script>
+      const menuBtn = document.querySelector(".menu-btn");
+      const dropdown = document.querySelector(".dropdown");
+
+      menuBtn.addEventListener("click", () => {
+        dropdown.classList.toggle("open");
+      });
+
+      // close when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove("open");
+        }
+      });
+    </script>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>
