@@ -13,14 +13,31 @@
 </head>
 <body>
     <nav class="navbar">
-      <div class="logo">Logo</div>
+      <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">
+
 
       <div class="nav-right">
         <button class="profile-container">
-          <img src="{{ user.profile_picture }}" alt="User profile picture" class="profile-pic">
+          <img src="{{ user.profile_picture.url }}" alt="User profile picture" class="profile-pic">
           <span class="notification-badge">{{ notifications }}</span>
         </button>
-        <button class="logout">Log out</button>
+        <script>
+            // Set notification badge count
+            const notificationCount = {{ notifications }};
+            const badge = document.querySelector(".notification-badge");
+
+            badge.textContent = notificationCount;
+
+            // Hide badge if count is zero
+            if (notificationCount === 0) {
+            badge.style.display = "none";
+            }
+        </script>
+
+        <form action="{% url 'user:patient:logout' %}" method="post">
+            {% csrf_token %}
+            <button class="logout" aria-label="User Logout" title="User Logout">Log out</button>
+        </form>
 
         <div class="dropdown">
           <button class="menu-btn">☰</button>

@@ -36,8 +36,12 @@ body {
 }
 
 .logo {
-  font-size: clamp(1.5rem, 3vw, 3rem);
+  position: relative;
+  width: 13.5rem;
+  height: 3rem;
+  cursor: pointer;
 }
+
 
 
 .help {
@@ -118,6 +122,9 @@ body {
   width: 3.5rem;
   height: 3.5rem;
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 .profile-pic {
@@ -125,10 +132,10 @@ body {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
   border: 2px solid white;
 }
 
-/* red notification bubble */
 .notification-badge {
   position: absolute;
   top: -6px;
@@ -170,7 +177,6 @@ body {
   background: #eee;
 }
 
-/* show when active */
 .dropdown.open .dropdown-menu {
   display: flex;
 }
