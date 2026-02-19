@@ -121,7 +121,6 @@ class ReadingEquipment(models.Model):
     serial_number = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-
     custom_name = models.CharField(max_length=255, blank=True)
 
     def get_default_device_name(self):
@@ -129,7 +128,7 @@ class ReadingEquipment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.custom_name:
-            self.customer_name = self.get_default_device_name()
+            self.custom_name = self.get_default_device_name()
         super().save(*args, **kwargs)
 
     def __str__(self):

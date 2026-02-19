@@ -3,7 +3,8 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 
-from user.models import User, Message
+from user.models import User, Message, PressureMapReading, ReadingEquipment
+
 
 # Create your views here.
 @login_required(login_url='/user/home/')
