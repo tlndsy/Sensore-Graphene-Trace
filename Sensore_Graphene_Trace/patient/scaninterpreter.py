@@ -12,9 +12,6 @@ class ScanInterpreter():
 
             return scan
 
-    def getDataFile(self):
-        return PressureMapReading.object.all()
-
     def getTestData(self, testNo, scannedData):
         testScan = []
         i = testNo * 32
@@ -72,12 +69,14 @@ class ScanInterpreter():
     def createReport(self, pressureValue, xCoord, yCoord):
         location = self.locateArea(xCoord, yCoord)
         severity = self.checkSeverity(int(pressureValue))
-        print("An area of " + severity + " pressure is detected in the " + location + " area.")
-        print("The pressure value is " + str(pressureValue) + ".")
-        print("The exact coordinates of the pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ").")
+        report = ["", "", ""]
+        report[0] = "An area of " + severity + " pressure is detected in the " + location + " area."
+        report[1] = "The pressure value is " + str(pressureValue) + "."
+        report[2] = "The exact coordinates of the pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
+        return report
 
-    def runInterpreter(self):
-        scannedData = self.getDataFile()
+    def runInterpreter(self, fileAddress):
+        scannedData = self.scanDataFile(fileAddress)
         testScan = self.getTestData(0, scannedData)
         self.showScan(testScan)
 
@@ -87,4 +86,5 @@ class ScanInterpreter():
         highestXCoord = highestValueRow.index(highestValue)
         highestYCoord = testScan.index(highestValueRow)
 
-        self.createReport(highestValue, highestXCoord, highestYCoord)
+        report = self.createReport(highestValue, highestXCoord, highestYCoord)
+        return report
