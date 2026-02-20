@@ -1,0 +1,23 @@
+{%  extends 'layout.html' %}
+
+{% block title %}
+    Home
+{%  endblock %}
+
+{% block content %}
+<div class="patient-splash">
+
+  <h1 class="greeting">{{ user.first_name }}'s Devices</h1>
+
+  <div class="middle-box">
+        <form class="form-with-validation" action="{% url 'user:patient:registerDevice' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form }}
+            <button class="form-submit">Register Device</button>
+        </form>
+
+  </div>
+
+</div>
+
+{% endblock %}

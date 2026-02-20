@@ -118,7 +118,7 @@ class ProductInfo(models.Model):
 
 class ReadingEquipment(models.Model):
     product_info = models.ForeignKey(ProductInfo, on_delete=models.SET_NULL, null=True)
-    serial_number = models.CharField(max_length=100)
+    serial_number = models.CharField(max_length=100, unique=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     custom_name = models.CharField(max_length=255, blank=True)

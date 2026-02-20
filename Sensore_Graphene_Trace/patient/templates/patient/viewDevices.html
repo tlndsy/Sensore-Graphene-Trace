@@ -1,0 +1,30 @@
+{%  extends 'layout.html' %}
+
+{% block title %}
+    Home
+{%  endblock %}
+
+{% block content %}
+<div class="patient-splash">
+
+  <h1 class="greeting">{{ user.first_name }}'s Devices</h1>
+
+  <div class="middle-box">
+      {% for device in devices %}
+        <div class="device-card">
+          <div class="device-name">Pressure Mat: {{ device.custom_name}}</div>
+          <div class="device-details">Device Type: {{ device.product_info }},<br>Serial Number: {{ device.serial_number }}</div>
+          <div class="device-bar"></div>
+         <div class="device-action"></div>
+
+        </div>
+      {% endfor %}
+      <div class="new-device-wrapper">
+        <button class="new-device-button">Register New Device</button>
+      </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
