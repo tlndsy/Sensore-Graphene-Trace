@@ -9,5 +9,7 @@ urlpatterns = [
     path("view-devices/", views.viewDevices, name="viewDevices"),
     path("register-device/", views.registerDevice, name="registerDevice"),
     path("stats/", views.stats, name="stats"),
+    path("notifications/", views.notifications, name="stats"),
+    path("messages/", views.messages, name="stats"),
     path("logout/", views.temp_logout, name="logout"),
 ]

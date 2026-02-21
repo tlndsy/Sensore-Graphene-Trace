@@ -62,6 +62,13 @@ def stats(request):
 def profile(request):
     return HttpResponse("This is the patients profile page")
 
+def notifications(request):
+    return HttpResponse("This is the patients notification page")
+
+def messages(request):
+    return HttpResponse("This is the patients messaging page")
+
+
 def temp_logout(request):
     if request.method == 'POST':
         logout(request)
