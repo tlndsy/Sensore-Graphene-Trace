@@ -43,16 +43,16 @@ def registerDevice(request):
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
 
     if request.method == 'POST':
-        form = forms.RegisterDevice(request.POST)
+        form = forms.RegisterDevice(request.POST, request.FILES)
         if form.is_valid():
             new_device = form.save(commit=False)
             new_device.user = user
             new_device.save()
             return redirect('user:patient:viewDevices')
+    else:
+        form = forms.RegisterDevice()
 
     num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
-    form = forms.RegisterDevice()
-
     context = {"form": form, "user": user, "num_notifications": num_notifications}
     return render(request, 'patient/registerDevice.html', context)
 
