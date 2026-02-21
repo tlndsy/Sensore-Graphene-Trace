@@ -59,6 +59,9 @@ def registerDevice(request):
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
+def profile(request):
+    return HttpResponse("This is the patients profile page")
+
 def temp_logout(request):
     if request.method == 'POST':
         logout(request)

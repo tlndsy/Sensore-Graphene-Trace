@@ -13,7 +13,9 @@
 </head>
 <body>
     <nav class="navbar">
-      <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">
+      <a href="/user/patient/">
+        <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">
+      </a>
 
 
       <div class="nav-right">
@@ -42,8 +44,10 @@
         <div class="dropdown">
           <button class="menu-btn">☰</button>
           <div class="dropdown-menu">
+            <a href="/user/patient/profile">Profile</a>
+            <a href="/user/patient/view-devices/">View Devices</a>
+            <a href="#">Notifications</a>
             <a href="#">Settings</a>
-            <a href="#">Profile</a>
             <a href="#">Support</a>
           </div>
         </div>
