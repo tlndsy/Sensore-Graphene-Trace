@@ -16,9 +16,9 @@ def home(request):
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
 
     # Get number of notifications for the user
-    notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
+    num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
 
-    context = {"user": user, "notifications": notifications}
+    context = {"user": user, "notifications": num_notifications}
 
     return render(request,'patient/home.html', context)
 
@@ -30,10 +30,10 @@ def viewDevices(request):
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
 
     # Get number of notifications for the user
-    notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
+    num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
 
     devices = ReadingEquipment.objects.filter(user=user)
-    context = {"devices": devices, "notifications": notifications}
+    context = {"devices": devices, "num_notifications": num_notifications}
     return render(request, 'patient/viewDevices.html', context)
 
 @login_required(login_url='/user/home/')
@@ -50,10 +50,10 @@ def registerDevice(request):
             new_device.save()
             return redirect('user:patient:viewDevices')
 
-    notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
+    num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
     form = forms.RegisterDevice()
 
-    context = {"form": form, "user": user, "notifications": notifications}
+    context = {"form": form, "user": user, "num_notifications": num_notifications}
     return render(request, 'patient/registerDevice.html', context)
 
 def stats(request):
