@@ -1,36 +1,42 @@
-{%  extends 'layout.html' %}
+{% extends 'layout.html' %}
 
 {% block title %}
     Home
-{%  endblock %}
+{% endblock %}
 
 {% block content %}
-<div class="patient-splash">
+    <div class="patient-splash">
 
-  <h1 class="greeting">Welcome {{ user.first_name }}</h1>
+        <h1 class="greeting">Welcome {{ user.first_name }}</h1>
 
-  <div class="middle-box">
-    <div class="action-card">
-      <div class="icon"></div>
-      <span>My profile</span>
+        <div class="middle-box">
+
+            <a href="/user/patient/profile" class="action-card">
+                <div class="icon"></div>
+                <span>My profile</span>
+            </a>
+
+            <a href="/user/patient/view-devices/" class="action-card">
+                <div class="icon"></div>
+                <span>View Devices</span>
+            </a>
+
+            <a href="/user/patient/stats/" class="action-card">
+                <div class="icon"></div>
+                <span>View Pressure Data</span>
+            </a>
+
+            <a href="/user/patient/notifications/" class="action-card">
+                <div class="icon"></div>
+                <span>Notifications</span>
+            </a>
+
+            <a href="/user/patient/messages/" class="action-card">
+                <div class="icon"></div>
+                <span>Contact Clinician</span>
+            </a>
+        </div>
+
     </div>
-
-    <div class="action-card">
-      <div class="icon"></div>
-      <span>View Pressure Data</span>
-    </div>
-
-    <div class="action-card">
-      <div class="icon"></div>
-      <span>Notifications</span>
-    </div>
-
-    <div class="action-card">
-      <div class="icon"></div>
-      <span>Contact Clinician</span>
-    </div>
-  </div>
-
-</div>
 
 {% endblock %}
