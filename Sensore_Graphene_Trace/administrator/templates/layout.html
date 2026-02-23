@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% block title %}
+            Sensore App
+        {% endblock %}
+    </title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<nav class="navbar">
+    <a href="/user/administrator/">
+        <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">
+    </a>
+
+
+    <div class="nav-right">
+        <a href="/user/administrator/" class="profile-container">
+            <img src="{{ user.profile_picture.url }}" alt="User profile picture" class="profile-pic">
+            <span class="notification-badge">{{ num_notifications }}</span>
+        </a>
+        <script>
+            // Set notification badge count
+            const notificationCount = {{ num_notifications }};
+            const badge = document.querySelector(".notification-badge");
+
+            badge.textContent = notificationCount;
+
+            // Hide badge if count is zero
+            if (notificationCount === 0) {
+                badge.style.display = "none";
+            }
+        </script>
+
+        <form action="{% url 'user:patient:logout' %}" method="post">
+            {% csrf_token %}
+            <button class="logout" aria-label="User Logout" title="User Logout">Log out</button>
+        </form>
+
+        <div class="dropdown">
+            <button class="menu-btn">☰</button>
+            <div class="dropdown-menu">
+                <a href="#">Profile</a>
+                <a href="#">View Devices</a>
+                <a href="#">Notifications</a>
+                <a href="#">Settings</a>
+                <a href="#">Support</a>
+            </div>
+        </div>
+    </div>
+</nav>
+<script>
+    const menuBtn = document.querySelector(".menu-btn");
+    const dropdown = document.querySelector(".dropdown");
+
+    menuBtn.addEventListener("click", () => {
+        dropdown.classList.toggle("open");
+    });
+
+    // close when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target)) {
+            dropdown.classList.remove("open");
+        }
+    });
+</script>
+
+<main>
+    {% block content %}
+    {% endblock %}
+</main>
+</body>
+</html>

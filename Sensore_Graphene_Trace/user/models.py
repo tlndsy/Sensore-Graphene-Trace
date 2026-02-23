@@ -146,6 +146,15 @@ class PressureMapReading(models.Model):
     contact_area = models.PositiveSmallIntegerField()
     # New metrics go here
 
+    def save(self, *args, **kwargs):
+        """
+        Calculations for new metrics go here, example:
+        if not self.peak_pressure:
+            self.peak_pressure = max(...)
+        """
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Reading of: {self.reading_equipment.user}, taken at {self.timestamp}"
 

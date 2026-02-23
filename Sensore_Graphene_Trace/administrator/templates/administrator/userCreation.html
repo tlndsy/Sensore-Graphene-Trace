@@ -1,14 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<form>
+{% extends 'layout.html' %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'user:administrator:createUser' %}" method="post"
+      enctype="multipart/form-data">
     {% csrf_token %}
     {{ form }}
+    <button class="form-submit">Create User</button>
 </form>
 
-</body>
-</html>
+{% endblock %}
