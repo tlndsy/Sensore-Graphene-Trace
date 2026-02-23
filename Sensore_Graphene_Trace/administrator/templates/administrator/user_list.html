@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>User Management</h2>
+
+<form method="get">
+    {{ form.as_p }}
+    <button type="submit">Filter</button>
+</form>
+
+<hr>
+
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            {% for field, label in columns %}
+                <th>
+                    {% if current_sort == field %}
+                        {% if current_direction == "asc" %}
+                            <a href="?sort={{ field }}&direction=desc">
+                                {{ label }} ↑
+                            </a>
+                        {% else %}
+                            <a href="?sort={{ field }}&direction=asc">
+                                {{ label }} ↓
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="?sort={{ field }}&direction=asc">
+                            {{ label }}
+                        </a>
+                    {% endif %}
+                </th>
+            {% endfor %}
+            <th>Account Age</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>
+                <a href="{% url 'user:administrator:user_edit' user.pk %}">
+                    {{ user.email }}
+                </a>
+            </td>
+            <td>{{ user.first_name }}</td>
+            <td>{{ user.last_name }}</td>
+            <td>{{ user.get_role_display }}</td>
+            <td>{{ user.is_active }}</td>
+            <td>{{ user.date_joined }}</td>
+            <td>{{ user.date_joined|timesince }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No users found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if is_paginated %}
+<div>
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

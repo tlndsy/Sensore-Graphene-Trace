@@ -57,3 +57,48 @@ class AdminUserCreationForm(forms.ModelForm):
             user.groups.set([group])
 
         return user
+
+class AdminUserFilterForm(forms.Form):
+    email = forms.CharField(required=False)
+    first_name = forms.CharField(required=False)
+    last_name = forms.CharField(required=False)
+
+    role = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All')] + list(User.Roles.choices)
+    )
+
+    is_active = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('', 'All'),
+            ('true', 'Active'),
+            ('false', 'Inactive'),
+        ]
+    )
+
+    joined_after = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    joined_before = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+
+    ordering = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('newest', 'Newest Accounts'),
+            ('oldest', 'Oldest Accounts'),
+        ]
+    )
+class AdminUserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "date_of_birth",
+            "role",
+            "is_active",
+            "is_staff",
+            "font_size_preference",
+            "address",
+        ]
