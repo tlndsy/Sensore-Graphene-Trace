@@ -18,7 +18,7 @@ def home(request):
     # Get number of notifications for the user
     num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
 
-    context = {"user": user, "notifications": num_notifications}
+    context = {"user": user, "num_notifications": num_notifications}
 
     return render(request,'patient/home.html', context)
 
