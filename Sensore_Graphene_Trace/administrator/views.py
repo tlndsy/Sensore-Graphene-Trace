@@ -133,7 +133,7 @@ class AdminUserUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
 
     def get_success_url(self):
         messages.success(self.request, "User updated successfully.")
-        return reverse_lazy("user:administrator:admin_user_list")
+        return reverse_lazy("user:administrator:user_list")
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
