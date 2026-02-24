@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse
 
 from user.models import PressureMapReading, ReadingEquipment
+from patient.scaninterpreter import ScanInterpreter
 
 
 # Create your views here.
@@ -16,7 +17,7 @@ def interpreterDisplay(request):
     except (Exception):
         file = " "
 
-    report = interpreterDisplay(file)
+    report = ScanInterpreter.runInterpreter(ScanInterpreter, file)
 
-    context = {"report", report}
-    return render (request, "interpreterDisplay.html", context)
+    context = {"report_0": report[0], "report_1": report[1], "report_2": report[2]}
+    return render (request, "patient\interpreterDisplay.html", context)

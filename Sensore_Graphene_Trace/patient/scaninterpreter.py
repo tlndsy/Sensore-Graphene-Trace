@@ -1,15 +1,24 @@
 from user.models import *
 import csv
+import numpy as np
 
 class ScanInterpreter():
 
     def scanDataFile(self, fileName):
-        with open(fileName, mode = 'r') as file:
-            dataFile = csv.reader(file)
-            scan = []
-            for line in dataFile:
-                scan.append(line)
+        try:
+            with open(fileName, mode = 'r') as file:
+                dataFile = csv.reader(file)
+                scan = []
+                for line in dataFile:
+                    scan.append(line)
 
+                return scan
+        except FileNotFoundError:
+            scan = []
+            i = 0
+            while i < 32:
+                scan.append(["0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0", "0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0"])
+                i = i + 1
             return scan
 
     def getTestData(self, testNo, scannedData):
@@ -67,8 +76,8 @@ class ScanInterpreter():
             i += 1
 
     def createReport(self, pressureValue, xCoord, yCoord):
-        location = self.locateArea(xCoord, yCoord)
-        severity = self.checkSeverity(int(pressureValue))
+        location = self.locateArea(self, xCoord, yCoord)
+        severity = self.checkSeverity(self, int(pressureValue))
         report = ["", "", ""]
         report[0] = "An area of " + severity + " pressure is detected in the " + location + " area."
         report[1] = "The pressure value is " + str(pressureValue) + "."
@@ -76,9 +85,9 @@ class ScanInterpreter():
         return report
 
     def runInterpreter(self, fileAddress):
-        scannedData = self.scanDataFile(fileAddress)
-        testScan = self.getTestData(0, scannedData)
-        self.showScan(testScan)
+        scannedData = self.scanDataFile(self, fileAddress)
+        testScan = self.getTestData(self,0, scannedData)
+        self.showScan(self, testScan)
 
         highestValueRow = max(testScan)
         highestValue = max(highestValueRow)
@@ -86,5 +95,5 @@ class ScanInterpreter():
         highestXCoord = highestValueRow.index(highestValue)
         highestYCoord = testScan.index(highestValueRow)
 
-        report = self.createReport(highestValue, highestXCoord, highestYCoord)
+        report = self.createReport(self, highestValue, highestXCoord, highestYCoord)
         return report

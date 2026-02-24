@@ -129,7 +129,7 @@ class ReadingEquipment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.custom_name:
-            self.customer_name = self.get_default_device_name()
+            self.custom_name = self.get_default_device_name()
         super().save(*args, **kwargs)
 
     def __str__(self):
