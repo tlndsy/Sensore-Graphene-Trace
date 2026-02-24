@@ -3,8 +3,9 @@ from django.core.exceptions import PermissionDenied
 
 
 class GroupRequiredMixin(UserPassesTestMixin):
-    group_required = None  # string or list of group names
+    group_required = None
 
+    # Override the test_func method to check if the user belongs to the required group(s)
     def test_func(self):
         user = self.request.user
 
@@ -21,5 +22,6 @@ class GroupRequiredMixin(UserPassesTestMixin):
 
         return user.groups.filter(name__in=groups).exists()
 
+    # Raise 403 Forbidden if the user does not have permission to access the page
     def handle_no_permission(self):
         raise PermissionDenied("You do not have permission to access this page.")

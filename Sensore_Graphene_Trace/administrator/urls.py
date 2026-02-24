@@ -1,12 +1,28 @@
 from django.urls import path
-from . import views
-from .views import AdminUserListView, AdminUserUpdateView
+from .views import GenericCreateView, GenericListView, GenericUpdateView, GenericDeleteView, AdminHomeView
 
 app_name = 'administrator'
 
 urlpatterns = [
-    path("", views.home, name="home"),
-    path("createUser", views.create_user, name="createUser"),
-    path('users/', AdminUserListView.as_view(), name='user_list'),
-    path("users/<uuid:pk>/edit/", AdminUserUpdateView.as_view(), name="user_edit"),
+    path("", AdminHomeView.as_view(), name="home"),
+    path(
+        "create/<str:app_label>/<str:model_name>/",
+        GenericCreateView.as_view(),
+        name="generic_create",
+    ),
+    path(
+        "list/<str:app_label>/<str:model_name>/",
+        GenericListView.as_view(),
+        name="generic_list",
+    ),
+    path(
+        "update/<str:app_label>/<str:model_name>/<str:pk>/",
+        GenericUpdateView.as_view(),
+        name="generic_update",
+    ),
+    path(
+        "delete/<str:app_label>/<str:model_name>/<str:pk>/",
+        GenericDeleteView.as_view(),
+        name="generic_delete",
+    ),
 ]

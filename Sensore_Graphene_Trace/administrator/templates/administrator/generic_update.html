@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% load model_extras %}
+
+{% block title %}
+    Edit {{ model_verbose_name }}
+{% endblock %}
+
+{% block content %}
+<h1>Edit {{ model_verbose_name }}</h1>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save changes</button>
+</form>
+
+<a href="{% url 'user:administrator:generic_list' app_label model_name %}">Back to list</a>
+{% endblock %}

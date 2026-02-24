@@ -1,143 +1,182 @@
-from django.views.generic import ListView, UpdateView
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseForbidden
+from django.forms import modelform_factory
+from django.http import Http404
+from django.urls import reverse_lazy, reverse, NoReverseMatch
+from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DeleteView
 
-from django.urls import reverse_lazy
-
-from user.models import Message, User
-from .forms import AdminUserFilterForm, AdminUserCreationForm, AdminUserUpdateForm
 from .mixins import GroupRequiredMixin
 
 
-# Create your views here.
-@login_required(login_url='/user/home/')
-def home(request):
-    user = request.user
-    # Check if the user belongs to the 'Patient' group
-    if not user.groups.filter(name='Admin').exists():
-        return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
-
-    # Get number of notifications for the user
-    num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
-
-    context = {"user": user, "num_notifications": num_notifications}
-
-    return render(request,'administrator/home.html', context)
-
-@login_required(login_url='/user/home/')
-def create_user(request):
-    user = request.user
-    if not user.groups.filter(name='Admin').exists():
-        return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
-
-    if request.method == 'POST':
-        form = AdminUserCreationForm(request.POST)
-        if form.is_valid():
-            new_user = form.save(commit=True)
-            return redirect('user:administrator')
-    else:
-        form = AdminUserCreationForm()
-
-    # Get number of notifications for the user
-    num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
-
-    context = {"form": form, "user": user, "num_notifications": num_notifications}
-    return render(request, 'administrator/userCreation.html', context)
-
-
-class AdminUserListView(LoginRequiredMixin,GroupRequiredMixin,ListView):
-    model = User
-    template_name = "administrator/user_list.html"
-    context_object_name = "users"
-    paginate_by = 20
-
-    group_required = ['Admin']
-
-    SORTABLE_FIELDS = {
-        "email": "email",
-        "first_name": "first_name",
-        "last_name": "last_name",
-        "role": "role",
-        "is_active": "is_active",
-        "date_joined": "date_joined",
-    }
-
-    def get_queryset(self):
-        queryset = User.objects.all()
-        self.form = AdminUserFilterForm(self.request.GET or None)
-
-        if self.form.is_valid():
-            cd = self.form.cleaned_data
-
-            if cd.get("email"):
-                queryset = queryset.filter(email__icontains=cd["email"])
-
-            if cd.get("first_name"):
-                queryset = queryset.filter(first_name__icontains=cd["first_name"])
-
-            if cd.get("last_name"):
-                queryset = queryset.filter(last_name__icontains=cd["last_name"])
-
-            if cd.get("role"):
-                queryset = queryset.filter(role=cd["role"])
-
-            if cd.get("is_active") == "true":
-                queryset = queryset.filter(is_active=True)
-            elif cd.get("is_active") == "false":
-                queryset = queryset.filter(is_active=False)
-
-            if cd.get("joined_after"):
-                queryset = queryset.filter(date_joined__gte=cd["joined_after"])
-
-            if cd.get("joined_before"):
-                queryset = queryset.filter(date_joined__lte=cd["joined_before"])
-
-        sort = self.request.GET.get("sort")
-        direction = self.request.GET.get("direction", "asc")
-
-        if sort in self.SORTABLE_FIELDS:
-            field = self.SORTABLE_FIELDS[sort]
-            if direction == "desc":
-                field = f"-{field}"
-            queryset = queryset.order_by(field)
-        else:
-            queryset = queryset.order_by("-date_joined")  # default
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["form"] = self.form
-        context["columns"] = [
-            ("email", "Email"),
-            ("first_name", "First Name"),
-            ("last_name", "Last Name"),
-            ("role", "Role"),
-            ("is_active", "Active"),
-            ("date_joined", "Date Joined"),
-        ]
-        context["current_sort"] = self.request.GET.get("sort", "")
-        context["current_direction"] = self.request.GET.get("direction", "asc")
-        return context
-
-class AdminUserUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
-    model = User
-    form_class = AdminUserUpdateForm
-    template_name = "administrator/user_edit.html"
-    context_object_name = "edit_user"
+class AdminHomeView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
+    template_name = "administrator/home.html"
 
     group_required = ["Admin"]
 
-    def get_success_url(self):
-        messages.success(self.request, "User updated successfully.")
-        return reverse_lazy("user:administrator:user_list")
+
+    def get_context_data(self, **kwargs):
+
+        ALLOWED_APPS = ["user"]
+
+        def safe_reverse(name, *args):
+            try:
+                return reverse(name, args=args)
+            except NoReverseMatch:
+                return None
+
+        context = super().get_context_data(**kwargs)
+        models_data = []
+
+        for model in apps.get_models():
+            app_label = model._meta.app_label
+
+            if app_label not in ALLOWED_APPS:
+                continue
+
+            model_name = model._meta.model_name
+            verbose_name = model._meta.verbose_name_plural.title()
+
+            models_data.append({
+                "name": verbose_name,
+                "list_url": safe_reverse(f"{app_label}:{model_name}_list"),
+                "create_url": reverse("user:administrator:generic_create", args=[app_label, model_name]),
+                "update_url": safe_reverse(f"{app_label}:{model_name}_update", 1),
+                "delete_url": safe_reverse(f"{app_label}:{model_name}_delete", 1),
+                "app_label": app_label,
+                "model_name": model_name,
+            })
+
+        context["models"] = models_data
+        return context
+
+
+class GenericCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
+    template_name = "administrator/generic_create.html"
+
+    group_required = ["Admin"]
 
     def dispatch(self, request, *args, **kwargs):
-        obj = self.get_object()
-        if obj.is_superuser and not request.user.is_superuser:
-            from django.core.exceptions import PermissionDenied
-            raise PermissionDenied("You cannot edit a superuser.")
+        self.model = self.get_model()
+        self.form_class = modelform_factory(self.model, fields="__all__")
         return super().dispatch(request, *args, **kwargs)
+
+    def get_model(self):
+        app_label = self.kwargs.get("app_label")
+        model_name = self.kwargs.get("model_name")
+
+        model = apps.get_model(app_label, model_name)
+        if model is None:
+            raise Http404("Model not found")
+
+        return model
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["model_verbose_name"] = self.model._meta.verbose_name.title()
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("model_dashboard")
+
+class GenericListView(LoginRequiredMixin, GroupRequiredMixin, ListView):
+    template_name = "administrator/generic_list.html"
+    context_object_name = "objects"
+    paginate_by = 25
+
+    group_required = ["Admin"]
+
+    def dispatch(self, request, *args, **kwargs):
+        self.model = self.get_model()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_model(self):
+        app_label = self.kwargs.get("app_label")
+        model_name = self.kwargs.get("model_name")
+
+        model = apps.get_model(app_label, model_name)
+        if model is None:
+            raise Http404("Model not found")
+
+        return model
+
+    def get_queryset(self):
+        return self.model.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["model_verbose_name"] = self.model._meta.verbose_name_plural.title()
+        context["app_label"] = self.model._meta.app_label
+        context["model_name"] = self.model._meta.model_name
+        context["fields"] = self.model._meta.fields
+        return context
+
+class GenericUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+    template_name = "administrator/generic_update.html"
+
+    group_required = ["Admin"]
+
+    def dispatch(self, request, *args, **kwargs):
+        self.model = self.get_model()
+
+        self.form_class = modelform_factory(self.model, fields="__all__")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_model(self):
+        app_label = self.kwargs.get("app_label")
+        model_name = self.kwargs.get("model_name")
+
+        model = apps.get_model(app_label, model_name)
+        if model is None:
+            raise Http404("Model not found")
+
+        return model
+
+    def get_queryset(self):
+        return self.model.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["model_verbose_name"] = self.model._meta.verbose_name.title()
+        context["app_label"] = self.model._meta.app_label
+        context["model_name"] = self.model._meta.model_name
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "generic_list",
+            args=[self.model._meta.app_label, self.model._meta.model_name],
+        )
+
+class GenericDeleteView(LoginRequiredMixin, GroupRequiredMixin, DeleteView):
+    template_name = "administrator/generic_delete.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.model = self.get_model()
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_model(self):
+        app_label = self.kwargs.get("app_label")
+        model_name = self.kwargs.get("model_name")
+
+        model = apps.get_model(app_label, model_name)
+        if model is None:
+            raise Http404("Model not found")
+
+        return model
+
+    def get_queryset(self):
+        return self.model.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["model_verbose_name"] = self.model._meta.verbose_name.title()
+        context["app_label"] = self.model._meta.app_label
+        context["model_name"] = self.model._meta.model_name
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "generic_list",
+            args=[self.model._meta.app_label, self.model._meta.model_name],
+        )

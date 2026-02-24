@@ -1,10 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>IM THE ADMIN PAGE!</title>
-</head>
-<body>
+{% extends "layout.html" %}
 
-</body>
-</html>
+{% block title %}
+    Admin Home Page
+{% endblock %}
+
+{% block content %}
+    <h1>Admin Dashboard</h1>
+
+    <ul>
+        {% for model in models %}
+            <li>
+                <strong>{{ model.name }}</strong> —
+                <a href={% url 'user:administrator:generic_list' model.app_label model.model_name %}>View Records</a> |
+                <a href="{%  url 'user:administrator:generic_create' model.app_label model.model_name %}">Add New</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+
+{% endblock %}
