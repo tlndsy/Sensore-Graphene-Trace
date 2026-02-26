@@ -163,3 +163,49 @@ nav{
 .login-form button:hover {
     background: darkgrey;
 }
+
+/* Register form settings */
+.register-form p{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+    font-size: 12px;
+}
+
+.register-form button {
+    margin-top: 8px;
+    padding: 12px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: black;
+    color: white;
+}
+
+.register-form button:hover {
+    background: darkgrey;
+}
+
+.field{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field label{
+    font-weight: 600;
+}
+
+.register-form p input{
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

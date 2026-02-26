@@ -18,13 +18,12 @@ def home(request):
                 print("Login success") # Will adapt when the home page exists
 
         if request.POST.get("form_type") == "register":
-            register_form = UserCreationForm(request.POST)
+            register_form = RegisterForm(request.POST)
             if register_form.is_valid():
                 user = register_form.save()
                 print("Registration success")
                 return redirect('home')
+            else:
+                print("Registration failed")
 
     return render(request, "home.html", {"form":login_form, "register_form":register_form})
-
-def register(request):
-    return render(request, "register.html", {})
