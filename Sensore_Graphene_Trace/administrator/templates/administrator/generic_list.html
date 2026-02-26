@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% load model_extras %}
+
+{% block title %}
+    View {{ model_verbose_name }} List
+{% endblock %}
+
+{% block content %}
+
+<h1>{{ model_verbose_name }} records</h1>
+
+<table border="1">
+  <thead>
+    <tr>
+      {% for field in fields %}
+        <th>{{ field.verbose_name }}</th>
+      {% endfor %}
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for obj in objects %}
+      <tr>
+        {% for field in fields %}
+          <td>{{ obj|attr:field.name }}</td>
+        {% endfor %}
+        <td>
+          <a href="{% url 'user:administrator:generic_update' app_label model_name obj.pk %}">Edit</a> |
+          <a href="{% url 'user:administrator:generic_delete' app_label model_name obj.pk %}">Delete</a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{% url 'user:administrator:generic_create' app_label model_name %}">Create new</a>
+
+{% endblock %}
