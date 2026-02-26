@@ -4,14 +4,17 @@ from django.forms import modelform_factory
 from django.http import Http404
 from django.urls import reverse_lazy, reverse, NoReverseMatch
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DeleteView
+from django.core.exceptions import PermissionDenied
 
 from .mixins import GroupRequiredMixin
+
+import Sensore_Graphene_Trace.global_constants as constants
 
 
 class AdminHomeView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = "administrator/home.html"
 
-    group_required = ["Admin"]
+    group_required = [constants.ADMIN]
 
 
     def get_context_data(self, **kwargs):
@@ -50,15 +53,19 @@ class AdminHomeView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
         return context
 
 
-class GenericCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
-    template_name = "administrator/generic_create.html"
+class BaseGenericModelMixin(LoginRequiredMixin, GroupRequiredMixin):
+    """
+    Shared logic for generic CRUD views.
+    """
 
-    group_required = ["Admin"]
+    # "add", "change", "delete", "view"
+    permission_action = None
 
-    def dispatch(self, request, *args, **kwargs):
-        self.model = self.get_model()
-        self.form_class = modelform_factory(self.model, fields="__all__")
-        return super().dispatch(request, *args, **kwargs)
+    # restrict which apps are allowed
+    allowed_apps = ["user"]
+
+    # restrict which user groups can access
+    group_required = None
 
     def get_model(self):
         app_label = self.kwargs.get("app_label")
@@ -68,115 +75,82 @@ class GenericCreateView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
         if model is None:
             raise Http404("Model not found")
 
+        if self.allowed_apps and model._meta.app_label not in self.allowed_apps:
+            raise Http404("App not allowed")
+
         return model
+
+    def check_permissions(self):
+        if not self.permission_action:
+            return
+
+        perm = f"{self.model._meta.app_label}.{self.permission_action}_{self.model._meta.model_name}"
+        if not self.request.user.has_perm(perm):
+            raise PermissionDenied
+
+    def dispatch(self, request, *args, **kwargs):
+        self.model = self.get_model()
+        self.check_permissions()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return self.model.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["model_verbose_name"] = self.model._meta.verbose_name.title()
+        context["app_label"] = self.model._meta.app_label
+        context["model_name"] = self.model._meta.model_name
         return context
 
-    def get_success_url(self):
-        return reverse_lazy("model_dashboard")
-
-class GenericListView(LoginRequiredMixin, GroupRequiredMixin, ListView):
+class GenericListView(BaseGenericModelMixin, ListView):
     template_name = "administrator/generic_list.html"
     context_object_name = "objects"
     paginate_by = 25
-
-    group_required = ["Admin"]
-
-    def dispatch(self, request, *args, **kwargs):
-        self.model = self.get_model()
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_model(self):
-        app_label = self.kwargs.get("app_label")
-        model_name = self.kwargs.get("model_name")
-
-        model = apps.get_model(app_label, model_name)
-        if model is None:
-            raise Http404("Model not found")
-
-        return model
-
-    def get_queryset(self):
-        return self.model.objects.all()
+    permission_action = "view"
+    group_required = [constants.ADMIN]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["model_verbose_name"] = self.model._meta.verbose_name_plural.title()
-        context["app_label"] = self.model._meta.app_label
-        context["model_name"] = self.model._meta.model_name
         context["fields"] = self.model._meta.fields
         return context
 
-class GenericUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+class GenericCreateView(BaseGenericModelMixin, CreateView):
+    template_name = "administrator/generic_create.html"
+    permission_action = "add"
+    group_required = [constants.ADMIN]
+
+    def get_form_class(self):
+        return modelform_factory(self.model, fields="__all__")
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "user:administrator:generic_list",
+            args=[self.model._meta.app_label, self.model._meta.model_name],
+        )
+
+class GenericUpdateView(BaseGenericModelMixin, UpdateView):
     template_name = "administrator/generic_update.html"
+    permission_action = "change"
+    group_required = [constants.ADMIN]
 
-    group_required = ["Admin"]
-
-    def dispatch(self, request, *args, **kwargs):
-        self.model = self.get_model()
-
-        self.form_class = modelform_factory(self.model, fields="__all__")
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_model(self):
-        app_label = self.kwargs.get("app_label")
-        model_name = self.kwargs.get("model_name")
-
-        model = apps.get_model(app_label, model_name)
-        if model is None:
-            raise Http404("Model not found")
-
-        return model
-
-    def get_queryset(self):
-        return self.model.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["model_verbose_name"] = self.model._meta.verbose_name.title()
-        context["app_label"] = self.model._meta.app_label
-        context["model_name"] = self.model._meta.model_name
-        return context
+    def get_form_class(self):
+        return modelform_factory(self.model, fields="__all__")
 
     def get_success_url(self):
         return reverse_lazy(
-            "generic_list",
+            "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
 
-class GenericDeleteView(LoginRequiredMixin, GroupRequiredMixin, DeleteView):
+class GenericDeleteView(BaseGenericModelMixin, DeleteView):
     template_name = "administrator/generic_delete.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        self.model = self.get_model()
-
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_model(self):
-        app_label = self.kwargs.get("app_label")
-        model_name = self.kwargs.get("model_name")
-
-        model = apps.get_model(app_label, model_name)
-        if model is None:
-            raise Http404("Model not found")
-
-        return model
-
-    def get_queryset(self):
-        return self.model.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["model_verbose_name"] = self.model._meta.verbose_name.title()
-        context["app_label"] = self.model._meta.app_label
-        context["model_name"] = self.model._meta.model_name
-        return context
+    permission_action = "delete"
+    group_required = [constants.ADMIN]
 
     def get_success_url(self):
         return reverse_lazy(
-            "generic_list",
+            "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
+
