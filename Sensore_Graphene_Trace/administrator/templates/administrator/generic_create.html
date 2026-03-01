@@ -11,6 +11,6 @@
   {% csrf_token %}
   {{ form.as_p }}
   <button type="submit">Save</button>
+  <a href="{% url 'user:administrator:generic_list' app_label model_name %}">Cancel</a>
 </form>
-
 {% endblock %}

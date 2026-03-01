@@ -6,7 +6,6 @@
 {% endblock %}
 
 {% block content %}
-
     <h1>{{ model_verbose_name }}</h1>
 
     <form method="get">
@@ -24,12 +23,7 @@
                     {% endfor %}
                 </select>
             {% else %}
-                <input
-                        type="text"
-                        name="{{ f.name }}"
-                        placeholder="Filter by {{ f.label }}"
-                        value="{{ f.value }}"
-                >
+                <input type="text" name="{{ f.name }}" placeholder="Filter by {{ f.label }}" value="{{ f.value }}">
             {% endif %}
         {% endfor %}
 
@@ -37,38 +31,81 @@
         <a href="{% url 'user:administrator:generic_list' app_label model_name %}">Clear</a>
     </form>
 
-    <table border="1">
-        <thead>
-        <tr>
-            {% for field in fields %}
-                <th>
-                    <a href="?{{ querystring }}&sort={{ field.name }}">
-                        {{ field.verbose_name }}
-                    </a>
-                </th>
-            {% endfor %}
-            <th>Actions</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        {% for obj in objects %}
+    <div class="table-wrapper">
+        <table id="resizable-table">
+            <thead>
             <tr>
                 {% for field in fields %}
-                    <td>{{ obj|attr:field.name }}</td>
+                    <th class="resizable">
+                        <div class="th-content">
+                            <a class="table-header" href="?{{ querystring }}&sort={{ field.name }}">
+                                {{ field.verbose_name }}
+                            </a>
+                            <span class="resize-handle"></span>
+                        </div>
+                    </th>
                 {% endfor %}
-                <td>
-                    <a href="{% url 'user:administrator:generic_update' app_label model_name obj.pk %}">Edit</a>
-                    <a href="{% url 'user:administrator:generic_delete' app_label model_name obj.pk %}">Delete</a>
-                </td>
+                <th class="resizable">
+                    <div class="th-content">
+                        Actions
+                        <span class="resize-handle"></span>
+                    </div>
+                </th>
             </tr>
-        {% empty %}
-            <tr>
-                <td colspan="{{ fields|length|add:1 }}">No results found.</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
 
-    <a href="{% url 'user:administrator:generic_create' app_label model_name %}">Create new</a>
+            <tbody>
+            {% for obj in objects %}
+                <tr>
+                    {% for field in fields %}
+                        <td>{{ obj|attr:field.name }}</td>
+                    {% endfor %}
+                    <td class="actions">
+                        <a href="{% url 'user:administrator:generic_update' app_label model_name obj.pk %}">Edit</a>
+                        <a href="{% url 'user:administrator:generic_delete' app_label model_name obj.pk %}">Delete</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="{{ fields|length|add:1 }}">No results</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer-links">
+        <a href="{% url 'user:administrator:generic_create' app_label model_name %}">+ Create new</a>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const table = document.getElementById("resizable-table");
+            if (!table) return;
+
+            let startX, startWidth, currentTh;
+
+            table.querySelectorAll(".resize-handle").forEach(handle => {
+                handle.addEventListener("mousedown", e => {
+                    currentTh = e.target.closest("th");
+                    startX = e.pageX;
+                    startWidth = currentTh.offsetWidth;
+
+                    document.addEventListener("mousemove", resize);
+                    document.addEventListener("mouseup", stopResize);
+                });
+            });
+
+            function resize(e) {
+                if (!currentTh) return;
+                const newWidth = startWidth + (e.pageX - startX);
+                currentTh.style.width = newWidth + "px";
+            }
+
+            function stopResize() {
+                document.removeEventListener("mousemove", resize);
+                document.removeEventListener("mouseup", stopResize);
+                currentTh = null;
+            }
+        });
+    </script>
 {% endblock %}
