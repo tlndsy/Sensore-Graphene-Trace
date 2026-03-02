@@ -1,11 +1,12 @@
 # patient/views.py
+from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 
-import tempfile, os
+import tempfile, os, csv, io
 
 from user.models import User, Message, PressureMapReading, ReadingEquipment
 from patient.utils.pressure_calculations import load_csv_frames, process_frame
@@ -87,35 +88,62 @@ def notifications(request):
 def messages(request):
     return HttpResponse("This is the patients messaging page")
   
-  
-def upload_csv(request):
-  if request.method == 'POST' and request.FILES.get('csv_file'):
-      csv_file = request.FILES['csv_file']
-      equipment = ReadingEquipment.objects.first()  # adjust as needed
-
-      with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp:
-          for chunk in csv_file.chunks():
-              tmp.write(chunk)
-          tmp_path = tmp.name
-
-      frames = load_csv_frames(tmp_path)
-
-      for frame in frames:
-          peak, contact = process_frame(frame)
-          PressureMapReading.objects.create(
-              pressure_reading=csv_file.name,
-              peak_pressure=peak,
-              contact_area=contact,  # ← note: it's contact_area not contact_area_percent in their model
-              reading_equipment=equipment,
-          )
-
-      os.unlink(tmp_path)
-      return render(request, 'success.html', {'count': len(frames)})
-
-  return render(request, 'upload.html')
-
-
-def temp_logout(request):
+ def temp_logout(request):
     if request.method == 'POST':
         logout(request)
         return redirect("user:home")
+      
+      
+      
+def upload_csv(request):
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        csv_file = request.FILES['csv_file']
+        print(f"File received: {csv_file.name}")
+
+        equipment = ReadingEquipment.objects.first()
+        print(f"Equipment: {equipment}")
+
+        if not equipment:
+            return render(request, 'patient/upload.html', {'error': 'No equipment found.'})
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp:
+            for chunk in csv_file.chunks():
+                tmp.write(chunk)
+            tmp_path = tmp.name
+
+        frames = load_csv_frames(tmp_path)
+        print(f"Frames loaded: {len(frames)}")
+        os.unlink(tmp_path)
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['frame', 'peak_pressure', 'contact_area'])
+
+        results = []
+        for i, frame in enumerate(frames):
+            peak, contact = process_frame(frame)
+            writer.writerow([i + 1, peak, contact])
+            results.append((peak, contact))
+
+        csv_content = output.getvalue().encode('utf-8')
+        csv_filename = f"results_{csv_file.name}"
+
+        try:
+            reading = PressureMapReading(
+                reading_equipment=equipment,
+                peak_pressure=max(r[0] for r in results),
+                contact_area=max(r[1] for r in results),
+            )
+            reading.pressure_reading.save(
+                csv_filename,
+                ContentFile(csv_content),
+                save=True
+            )
+            print(f"Saved reading ID: {reading.id}")
+        except Exception as e:
+            print(f"ERROR saving: {e}")
+            return render(request, 'patient/upload.html', {'error': str(e)})
+
+        return render(request, 'patient/success.html', {'count': len(frames)})
+
+    return render(request, 'patient/upload.html')
