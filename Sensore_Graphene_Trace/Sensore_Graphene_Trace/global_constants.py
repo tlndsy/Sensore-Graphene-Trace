@@ -4,9 +4,9 @@ MEDIUM_FONT_SIZE = 16
 LARGE_FONT_SIZE = 20
 
 # Group Definitions
-ADMIN = "Admin"
-CLINICIAN = "Clinician"
-PATIENT = "Patient"
+ADMIN = "ADMIN"
+CLINICIAN = "CLINICIAN"
+PATIENT = "PATIENT"
 
 # Colour palette (temporary)
 DARK_BLUE = 0x1065AB

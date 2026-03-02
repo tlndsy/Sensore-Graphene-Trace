@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 
 from user.models import User, Message, PressureMapReading, ReadingEquipment
+from Sensore_Graphene_Trace import global_constants as constants
 from . import forms
 
 
@@ -26,7 +27,7 @@ def home(request):
 @login_required(login_url='/user/home/')
 def viewDevices(request):
     user = request.user
-    if not user.groups.filter(name='Patient').exists():
+    if not user.groups.filter(name=constants.PATIENT).exists():
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
 
     # Get number of notifications for the user
@@ -39,7 +40,7 @@ def viewDevices(request):
 @login_required(login_url='/user/home/')
 def registerDevice(request):
     user = request.user
-    if not user.groups.filter(name='Patient').exists():
+    if not user.groups.filter(name=constants.PATIENT).exists():
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
 
     if request.method == 'POST':
