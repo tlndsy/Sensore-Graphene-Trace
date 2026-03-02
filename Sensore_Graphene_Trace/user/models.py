@@ -146,13 +146,12 @@ class PressureMapReading(models.Model):
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
 
     def pressure_reading_path(self, filename):
-        return f"users/{self.reading_equipment.user.id}/pressure_maps/{filename}"
+        return f"users/{self.reading_equipment.user.id}/pressure_maps/{self.timestamp}/{filename}"
 
     pressure_reading = models.FileField(upload_to=pressure_reading_path, blank=True, null=True) # change pending on needs
+    metrics = models.FileField(upload_to=pressure_reading_path, blank=True, null=True)
+
     timestamp = models.DateTimeField(auto_now_add=True)
-    peak_pressure = models.PositiveSmallIntegerField()
-    contact_area = models.PositiveSmallIntegerField()
-    # New metrics go here
 
     def save(self, *args, **kwargs):
         """
