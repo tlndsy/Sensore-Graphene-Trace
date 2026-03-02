@@ -8,7 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.db.models.fields.related import ForeignKey
 
-from .mixins import GroupRequiredMixin
+from user.mixins import GroupRequiredMixin
 
 import Sensore_Graphene_Trace.global_constants as constants
 
