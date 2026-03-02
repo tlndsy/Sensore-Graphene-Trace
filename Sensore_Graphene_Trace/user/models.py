@@ -79,7 +79,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def profile_picture_path(self, filename):
         return f"users/{self.id}/profile_picture/{filename}"
 
-    profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, default='users/default_pfp.png', blank=True)
+    profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, max_length=512, default='users/default_pfp.png', blank=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -92,10 +92,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         super().save(*args, **kwargs)
 
-        group, _ = Group.objects.get_or_create(name=self.role)
-        self.groups.add(group)
+        if is_new:
+            group, _ = Group.objects.get_or_create(name=self.role)
+            self.groups.add(group)
 
     def __str__(self):
         return self.email
@@ -146,10 +148,12 @@ class PressureMapReading(models.Model):
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
 
     def pressure_reading_path(self, filename):
-        return f"users/{self.reading_equipment.user.id}/pressure_maps/{self.timestamp}/{filename}"
+        # Remove colons to create valid filepath
+        safe_timestamp = self.timestamp.strftime("%Y%m%d_%H%M%S")
+        return f"users/{self.reading_equipment.user.id}/pressure_maps/{safe_timestamp}/{filename}"
 
-    pressure_reading = models.FileField(upload_to=pressure_reading_path, blank=True, null=True) # change pending on needs
-    metrics = models.FileField(upload_to=pressure_reading_path, blank=True, null=True)
+    pressure_reading = models.FileField(upload_to=pressure_reading_path, max_length=512, blank=True, null=True) # change pending on needs
+    metrics = models.FileField(upload_to=pressure_reading_path, max_length=512, blank=True, null=True)
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
