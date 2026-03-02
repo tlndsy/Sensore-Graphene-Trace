@@ -1,13 +1,14 @@
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, HttpResponse, redirect
+from .forms import RegisterForm, LoginForm
 
 
 # Create your views here.
 def home(request):
 
-    login_form = AuthenticationForm(request)
-    register_form = UserCreationForm()
+    login_form = LoginForm(request)
+    register_form = RegisterForm()
     if request.method == 'POST':
 
         if request.POST.get("form_type") == "login":

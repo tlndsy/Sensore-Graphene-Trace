@@ -30,8 +30,8 @@
                     {% csrf_token %}
                     <h1> Login </h1>
                     <div class="field">
-                        <label for="{{ form.username.id_for_label }}"> Email </label>
-                        {{ form.username }}
+                        <label for="{{ form.email.id_for_label }}"> Email </label>
+                        {{ form.email }}
                     </div>
                     <div class="field">
                         <label for="{{ form.password.id_for_label }}">Password</label>
@@ -55,11 +55,12 @@
                      {% csrf_token %}
                      <h1> Register </h1>
                      <div class="field">
-                        <label for="{{ register_form.username.id_for_label }}"> Email </label>
-                        {{ register_form.username }}
+                        <label for="{{ register_form.email.id_for_label }}"> Email </label>
+                        {{ register_form.email }}
                     </div>
                      <div class="field">
                         <label for="{{ register_form.phone_number.id_for_label }}"> Phone Number </label>
+                         {{ register_form.phone_number }}
                     </div>
                      <div class="field">
                         <label for="{{ register_form.password1.id_for_label }}">Password</label>
@@ -68,6 +69,18 @@
                      <div class="field">
                         <label for="{{ register_form.password2.id_for_label }}">Confirm Password</label>
                         {{ register_form.password2 }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ register_form.first_name.id_for_label }}">First Name</label>
+                        {{ register_form.first_name }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ register_form.last_name.id_for_label }}">Last Name</label>
+                        {{ register_form.last_name }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ register_form.date_of_birth.id_for_label }}">Date of Birth</label>
+                        {{ register_form.date_of_birth }}
                     </div>
 
                      <button type="submit"> Create account ></button>
