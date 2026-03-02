@@ -2,17 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Sensor Report Display</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {%  load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
 <body>
-<h2>
-    {{ report_0 }}
-</h2>
-<h2>
-    {{ report_1 }}
-</h2>
-<h2>
-    {{ report_2 }}
-</h2>
+<nav>
+    <h3 class="nav-title"> Sensore Graphene Trace </h3>
+    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
+</nav>
+<div class="main">
+    <h1> Report Breakdown </h1>
+    <p>
+        {{ report_0 }}
+    </p>
+    <p>
+        {{ report_1 }}
+    </p>
+    <p>
+        {{ report_2 }}
+    </p>
+</div>
 </body>
 </html>

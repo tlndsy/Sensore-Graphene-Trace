@@ -4,10 +4,10 @@ import numpy as np
 
 class ScanInterpreter():
 
-    def scanDataFile(self, fileName):
+    def scanDataFile(self, file):
         try:
-            with open(fileName, mode = 'r') as file:
-                dataFile = csv.reader(file)
+            with file.open(mode = 'r') as f:
+                dataFile = csv.reader(f)
                 scan = []
                 for line in dataFile:
                     scan.append(line)
@@ -84,8 +84,8 @@ class ScanInterpreter():
         report[2] = "The exact coordinates of the pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
         return report
 
-    def runInterpreter(self, fileAddress):
-        scannedData = self.scanDataFile(self, fileAddress)
+    def runInterpreter(self, file):
+        scannedData = self.scanDataFile(self, file)
         testScan = self.getTestData(self,0, scannedData)
         self.showScan(self, testScan)
 

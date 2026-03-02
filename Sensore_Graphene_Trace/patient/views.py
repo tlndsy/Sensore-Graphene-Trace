@@ -11,11 +11,9 @@ def stats(request):
 def interpreterDisplay(request):
     user = request.user
 
-    scanData = PressureMapReading.objects.filter(reading_equipment__user=user)
-    try:
-        file = scanData.pressure_reading.url
-    except (Exception):
-        file = " "
+    latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).latest('timestamp'))
+
+    file = latest_reading.pressure_reading
 
     report = ScanInterpreter.runInterpreter(ScanInterpreter, file)
 
