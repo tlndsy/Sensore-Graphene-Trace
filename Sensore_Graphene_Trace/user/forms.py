@@ -20,7 +20,7 @@ class RegisterForm(UserCreationForm):
         fields = ('email', 'first_name', 'last_name', 'phone_number', 'date_of_birth')
 
 class LoginForm(AuthenticationForm):
-    email = forms.EmailField(max_length=255, required=True)
+    username = forms.EmailField(label ="Email", max_length=255, required=True)
 
     class Meta:
         model = User

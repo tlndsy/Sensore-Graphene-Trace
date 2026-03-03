@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensore Graphene Trace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {%  load static %}
+    <link rel="stylesheet" href="{% static 'style2.css' %}">
+</head>
+<body>
+<nav>
+    <h3 class="nav-title"> Sensore Graphene Trace </h3>
+    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
+</nav>
+    <div class="wrapper">
+
+        <!-- Main page content -->
+        <div class="main">
+
+            <!-- Displays pressure mat graph -->
+            <h1> Graph Data </h1>
+            <div id="graph" style="height:500px;"></div>
+
+            <!-- Contains key metrics from the patients pressure mat data -->
+            <div class="graph-info">
+                <h3> Current metrics </h3>
+                <p> Contact area percentage </p>
+                <p> Peak pressure </p>
+            </div>
+
+            <!-- Displays a box to the side of the graph allowing them to contact a clinician if there's an area of concern -->
+            <form method='post' class="graph-comment">
+                {% csrf_token %}
+                <h3> Report Concern </h3>
+                <textarea placeholder="Describe concern..."></textarea>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+
+        <!-- Side panel -->
+        <div class="side-panel">
+            <!-- Menu Options -->
+            <div id="menu-options">
+                <form method='post' class="menu-options">
+                    {% csrf_token %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+<!-- Retrieve graphs x and y data -->
+{{ x|json_script:"x" }}
+{{ y|json_script:"y" }}
+
+<!-- Plot graph -->
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+    window.onload = function(){
+        const x = JSON.parse(document.getElementById('x').textContent);
+        const y = JSON.parse(document.getElementById('y').textContent);
+        const trace = {x:x, y:y, name:'Pressure Map'};
+        const layout = {xaxis:{title:"Time"}, yaxis:{title:"y axis"}};
+        Plotly.newPlot('graph',[trace],layout,{responsive: false});
+    };
+</script>
+
+<!-- Opens and closes side panel -->
+    <script>
+        document.querySelector(".side-panel-toggle").addEventListener("click", () => {
+            document.querySelector(".wrapper").classList.toggle("side-panel-open");
+        })
+    </script>
+</body>
+</html>
