@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
+import pandas as pd
 from django.utils import timezone
 
 import tempfile, os, csv, io
@@ -94,6 +95,21 @@ def notifications(request):
 def messages(request):
     return HttpResponse("This is the patients messaging page")
 
+def view_graph(request):
+    x = []; y = []
+    try: # Try read the latest pressure mat data
+        user = request.user
+        latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).latest('timestamp'))
+        if latest_reading and latest_reading.pressure_reading: # If the latest reading exists
+            with latest_reading.pressure_reading.open(mode='r') as f:
+                df = pd.read_csv(f)
+
+                # Temporary x and y values until the graph metrics are calculated
+                x = df.iloc[:,0].tolist() # X data
+                y = df.iloc[:,1].tolist() # Y data
+    except Exception as e: # Error reading pressure mat data
+        print("Error reading patient csv:", e)
+    return render(request, "patientGraph.html",{"x":x,"y":y})
 
 def temp_logout(request):
     if request.method == 'POST':
