@@ -20,7 +20,7 @@ from . import forms
 def home(request):
     user = request.user
     # Check if the user belongs to the 'Patient' group
-    if not user.groups.filter(name='Patient').exists():
+    if not user.groups.filter(name=constants.PATIENT).exists():
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
 
     # Get number of notifications for the user
