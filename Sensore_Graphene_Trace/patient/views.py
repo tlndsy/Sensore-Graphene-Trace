@@ -28,7 +28,7 @@ def home(request):
 
     context = {"user": user, "num_notifications": num_notifications}
 
-    return render(request,'patient/home.html', context)
+    return render(request, 'patient/home.html', context)
 
 
 @login_required(login_url='/user/home/')
@@ -43,6 +43,7 @@ def viewDevices(request):
     devices = ReadingEquipment.objects.filter(user=user)
     context = {"devices": devices, "num_notifications": num_notifications}
     return render(request, 'patient/viewDevices.html', context)
+
 
 @login_required(login_url='/user/home/')
 def registerDevice(request):
@@ -64,8 +65,10 @@ def registerDevice(request):
     context = {"form": form, "user": user, "num_notifications": num_notifications}
     return render(request, 'patient/registerDevice.html', context)
 
+
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
+
 
 def interpreterDisplay(request):
     user = request.user
@@ -77,24 +80,27 @@ def interpreterDisplay(request):
     report = ScanInterpreter.runInterpreter(ScanInterpreter, file)
 
     context = {"report_0": report[0], "report_1": report[1], "report_2": report[2]}
-    return render (request, "patient\interpreterDisplay.html", context)
-  
+    return render(request, "patient\interpreterDisplay.html", context)
+
+
 def profile(request):
     return HttpResponse("This is the patients profile page")
+
 
 def notifications(request):
     return HttpResponse("This is the patients notification page")
 
+
 def messages(request):
     return HttpResponse("This is the patients messaging page")
-  
- def temp_logout(request):
+
+
+def temp_logout(request):
     if request.method == 'POST':
         logout(request)
         return redirect("user:home")
-      
-      
-      
+
+
 def upload_csv(request):
     if request.method == 'POST' and request.FILES.get('csv_file'):
         csv_file = request.FILES['csv_file']
