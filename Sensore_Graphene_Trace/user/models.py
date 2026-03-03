@@ -3,6 +3,7 @@ import uuid
 
 import Sensore_Graphene_Trace.global_constants as constants
 
+from django.contrib.auth.models import Group
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin, BaseUserManager
 from django.db import models
@@ -77,7 +78,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def profile_picture_path(self, filename):
         return f"users/{self.id}/profile_picture/{filename}"
 
-    profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, default='users/default_pfp.png', blank=True)
+    profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, max_length=512, default='users/default_pfp.png', blank=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -88,6 +89,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
     def __str__(self):
         return self.email
 
@@ -137,13 +139,23 @@ class PressureMapReading(models.Model):
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
 
     def pressure_reading_path(self, filename):
-        return f"users/{self.reading_equipment.user.id}/pressure_maps/{filename}"
+        # Remove colons to create valid filepath
+        safe_timestamp = self.timestamp.strftime("%Y%m%d_%H%M%S")
+        return f"users/{self.reading_equipment.user.id}/pressure_maps/{safe_timestamp}/{filename}"
 
-    pressure_reading = models.FileField(upload_to=pressure_reading_path, blank=True, null=True) # change pending on needs
+    pressure_reading = models.FileField(upload_to=pressure_reading_path, max_length=512, blank=True, null=True) # change pending on needs
+    metrics = models.FileField(upload_to=pressure_reading_path, max_length=512, blank=True, null=True)
+
     timestamp = models.DateTimeField(auto_now_add=True)
-    peak_pressure = models.PositiveSmallIntegerField()
-    contact_area = models.PositiveSmallIntegerField()
-    # New metrics go here
+
+    def save(self, *args, **kwargs):
+        """
+        Calculations for new metrics go here, example:
+        if not self.peak_pressure:
+            self.peak_pressure = max(...)
+        """
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Reading of: {self.reading_equipment.user}, taken at {self.timestamp}"
