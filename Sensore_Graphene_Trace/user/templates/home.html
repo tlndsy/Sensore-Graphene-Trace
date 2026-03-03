@@ -31,8 +31,8 @@
                     <input type="hidden" name="form_type" value="login">
                     <h1> Login </h1>
                     <div class="field">
-                        <label for="{{ form.email.id_for_label }}"> Email </label>
-                        {{ form.email }}
+                        <label for="{{ form.username.id_for_label }}"> Email </label>
+                        {{ form.username }}
                     </div>
                     <div class="field">
                         <label for="{{ form.password.id_for_label }}">Password</label>
@@ -56,16 +56,47 @@
                      {% csrf_token %}
                      <input type="hidden" name="form_type" value="register">
                      <h1> Register </h1>
-
-                     {{  register_form.as_p }}
-
-                     <button type="submit"> Create account ></button>
+                     <div class="field">
+                        <label for="{{ form.email.id_for_label }}"> Email </label>
+                        {{ register_form.email }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ form.phone_number.id_for_label }}"> Phone Number </label>
+                        {{ register_form.phone_number }}
+                    </div>
+                    <div class="field">
+                        <label for="{{ form.password1.id_for_label }}">Password</label>
+                        {{ register_form.password1 }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                        {{ register_form.password2 }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                        {{ register_form.first_name }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                        {{ register_form.last_name }}
+                    </div>
+                     <div class="field">
+                        <label for="{{ form.date_of_birth.id_for_label }}">Date of Birth</label>
+                        {{ register_form.date_of_birth }}
+                    </div>
+                     <button type="submit"> Create account </button>
                      <button type="button" class="btn" id="open-login"> Return to login </button>
-
                  </form>
-
              </div>
 
+            <!-- Password Reset Form -->
+            <div id="password-reset-panel" class="hidden">
+                <form method="post" class="password-reset">
+                    {% csrf_token %}
+                    <h1> Reset Password </h1>
+
+                </form>
+            </div>
 
         </div>
     </div>

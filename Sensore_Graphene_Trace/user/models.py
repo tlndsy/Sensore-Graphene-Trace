@@ -42,7 +42,6 @@ class UserManager(BaseUserManager):
             **extra_fields,
         )
 
-
 # Create your models here.
 class Address(models.Model):
     fist_line = models.CharField(max_length=100)
