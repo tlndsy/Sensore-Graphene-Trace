@@ -14,7 +14,7 @@ import Sensore_Graphene_Trace.global_constants as constants
 
 
 class AdminHomeView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
-    template_name = "administrator/home.html"
+    template_name = "administrator/administrator_home.html"
 
     group_required = [constants.ADMIN]
 
