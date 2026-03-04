@@ -14,8 +14,10 @@ body {font-size: 1rem;line-height: 1.6;color: darkslategrey;}
 h1 {font-size: 2rem; line-height: 1.25;}
 h2 {font-size: 1.5rem;line-height: 1.3;}
 h3 {font-size: 1.25rem;}
+h4 {font-size: 1rem;}
 p {font-size: 1rem;}
 label, .small,.options {font-size: 0.875rem;}
+img{object-fit: contain; width: 100%; height: auto;}
 
 /* Navigation panel settings */
 nav{
@@ -49,12 +51,26 @@ nav{
 .main{
     flex-grow: 1;
     overflow-y: auto;
-    padding: 10px;
+    flex-direction: column;
+    display: flex;
 }
 
-.img-company {
-    width: 100%;
-    max-width: 1000px;
+.graphs{
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+}
+
+.graph-metrics{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.metric{
+    background: var(--PALE_BLUE);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
 }
 
 /*Side panel settings */
@@ -116,7 +132,7 @@ nav{
 
 .side-panel button {
     width: 100%;
-    margin-top: 8px;
+    margin-top: 20px;
     padding: 12px;
     font-weight: 600;
     border: none;
