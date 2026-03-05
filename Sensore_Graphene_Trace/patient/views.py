@@ -80,7 +80,7 @@ def interpreterDisplay(request):
 
     report = ScanInterpreter.runInterpreter(ScanInterpreter, file)
 
-    context = {"report_0": report[0], "report_1": report[1], "report_2": report[2]}
+    context = {"report_0": report[0], "report_1": report[1], "report_2": report[2], "report_3": report[3]}
     return render(request, "patient\interpreterDisplay.html", context)
 
 

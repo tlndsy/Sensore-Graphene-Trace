@@ -6,23 +6,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {%  load static %}
     <link rel="stylesheet" href="{% static 'style.css' %}">
+
+    <style>
+        .main_page_element {
+            position: relative;
+            height: 0;
+            width: 0;
+        }
+
+        .graph_box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 750px;
+            height: 350px;
+            border: 2px solid black;
+        }
+
+        .report_box {
+            position: absolute;
+            top: 370px;
+            left: 10px;
+            width: 750px;
+            height: 250px;
+            border: 2px solid black;
+        }
+    </style>
 </head>
 <body>
 <nav>
     <h3 class="nav-title"> Sensore Graphene Trace </h3>
     <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
 </nav>
-<div class="main">
-    <h1> Report Breakdown </h1>
-    <p>
-        {{ report_0 }}
-    </p>
-    <p>
-        {{ report_1 }}
-    </p>
-    <p>
-        {{ report_2 }}
-    </p>
+<div class="main_page_element">
+    <div class="graph_box">
+
+    </div>
+
+    <div class="report_box">
+        <h1> Report Breakdown </h1>
+        <p>
+            {{ report_0 }}
+        </p>
+        <p>
+            {{ report_1 }}
+        </p>
+        <p>
+            {{ report_2 }}
+        </p>
+        <p>
+            {{ report_3}}
+        </p>
+    </div>
 </div>
 </body>
 </html>

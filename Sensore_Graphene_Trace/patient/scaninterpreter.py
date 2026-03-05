@@ -1,3 +1,5 @@
+from django.utils.text import re_camel_case
+
 from user.models import *
 import csv
 import numpy as np
@@ -75,13 +77,27 @@ class ScanInterpreter():
             print(line)
             i += 1
 
+    def makeRecommendation(self, severity):
+        recommendation = " "
+        if severity == "Normal":
+            recommendation = "no action needs to be taken, and you are not at significant risk of ulcers"
+        elif severity == "High":
+            recommendation = "this area should be monitored for possible issues, as you may be at risk of developing ulcers"
+        elif severity == "Very High":
+            recommendation = "this area should be monitored closely, as you are at risk of developing ulcers"
+        elif severity == "Extremely High":
+            recommendation = "preventative action should be taken to prevent issues, as you will likely develop ulcers in this area if not corrected"
+        return recommendation
+
     def createReport(self, pressureValue, xCoord, yCoord):
         location = self.locateArea(self, xCoord, yCoord)
         severity = self.checkSeverity(self, int(pressureValue))
-        report = ["", "", ""]
-        report[0] = "An area of " + severity + " pressure is detected in the " + location + " area."
-        report[1] = "The pressure value is " + str(pressureValue) + "."
-        report[2] = "The exact coordinates of the pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
+        recommendation = self.makeRecommendation(self, severity)
+        report = ["", "", "", ""]
+        report[0] = "The highest point of pressure on your scan is detected in the " + location + " area."
+        report[1] = "This is a value of " + str(pressureValue) + ", which is a " + severity + " pressure reading."
+        report[2] = "This pressure value means that " + recommendation + "."
+        report[3] = "The exact coordinates of the pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
         return report
 
     def runInterpreter(self, file):
