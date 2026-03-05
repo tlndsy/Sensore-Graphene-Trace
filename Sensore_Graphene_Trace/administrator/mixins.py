@@ -1,28 +1,32 @@
 from django.apps import apps
 from django.http import Http404
 
+from Sensore_Graphene_Trace import global_constants as constants
 from user.mixins import GroupRequiredMixin
 
+class BaseAdminMixin(GroupRequiredMixin):
+    """
+    Base admin access rules shared by all administrator views.
+    """
 
-class BaseGenericModelMixin(GroupRequiredMixin):
+    # Login redirects
+    login_url = "user:home"
+    redirect_field_name = "next"
+
+    # restrict which user groups can access
+    group_required = [constants.ADMIN]
+
+    # restrict which apps are allowed
+    allowed_apps = ["user"]
+
+
+class BaseGenericModelMixin(BaseAdminMixin):
     """
     Shared logic for generic CRUD views.
     """
 
     # "add", "change", "delete", "view"
     permission_action = None
-
-    # restrict which apps are allowed
-    allowed_apps = ["user"]
-
-    # GroupRequiredMixin Overrides
-
-    # Login redirects
-    login_url = "user:home"
-    redirect_field_name = "user:administrator"
-
-    # restrict which user groups can access
-    group_required = None
 
     def get_model(self):
         app_label = self.kwargs.get("app_label")

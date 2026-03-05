@@ -5,23 +5,15 @@ from django.views.generic import ListView, UpdateView, CreateView, TemplateView,
 from django.db.models import Q
 from django.db.models.fields.related import ForeignKey
 
-from user.mixins import GroupRequiredMixin
-from .mixins import BaseGenericModelMixin
+from .mixins import BaseGenericModelMixin, BaseAdminMixin
 
 import Sensore_Graphene_Trace.global_constants as constants
 
 
-class AdminHomeView(GroupRequiredMixin, TemplateView):
+class AdminHomeView(BaseAdminMixin, TemplateView):
     template_name = "administrator/administrator_home.html"
 
-    login_url = "user:home"
-    redirect_field_name = "user:administrator"
-    group_required = [constants.ADMIN]
-
-
     def get_context_data(self, **kwargs):
-
-        ALLOWED_APPS = ["user"]
 
         def safe_reverse(name, *args):
             try:
@@ -35,7 +27,7 @@ class AdminHomeView(GroupRequiredMixin, TemplateView):
         for model in apps.get_models():
             app_label = model._meta.app_label
 
-            if app_label not in ALLOWED_APPS:
+            if app_label not in self.allowed_apps:
                 continue
 
             model_name = model._meta.model_name
@@ -43,10 +35,6 @@ class AdminHomeView(GroupRequiredMixin, TemplateView):
 
             models_data.append({
                 "name": verbose_name,
-                "list_url": safe_reverse(f"{app_label}:{model_name}_list"),
-                "create_url": reverse("user:administrator:generic_create", args=[app_label, model_name]),
-                "update_url": safe_reverse(f"{app_label}:{model_name}_update", 1),
-                "delete_url": safe_reverse(f"{app_label}:{model_name}_delete", 1),
                 "app_label": app_label,
                 "model_name": model_name,
             })
@@ -128,7 +116,6 @@ class GenericListView(BaseGenericModelMixin, ListView):
         context["querystring"] = self.request.GET.urlencode()
 
         return context
-
 
 class GenericCreateView(BaseGenericModelMixin, CreateView):
     template_name = "administrator/generic_create.html"
