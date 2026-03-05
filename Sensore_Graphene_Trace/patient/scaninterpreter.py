@@ -50,13 +50,13 @@ class ScanInterpreter():
 
     def checkSeverity(self, pressure):
         if pressure > 400:
-            severity = "Extremely High"
-        elif pressure > 250:
             severity = "Very High"
-        elif pressure > 150:
+        elif pressure > 250:
             severity = "High"
+        elif pressure > 150:
+            severity = "Moderate"
         else:
-            severity = "Normal"
+            severity = "Low"
 
         return severity
 
@@ -79,13 +79,13 @@ class ScanInterpreter():
 
     def makeRecommendation(self, severity):
         recommendation = " "
-        if severity == "Normal":
+        if severity == "Low":
             recommendation = "no action needs to be taken, and you are not at significant risk of ulcers"
-        elif severity == "High":
+        elif severity == "Moderate":
             recommendation = "this area should be monitored for possible issues, as you may be at risk of developing ulcers"
-        elif severity == "Very High":
+        elif severity == "High":
             recommendation = "this area should be monitored closely, as you are at risk of developing ulcers"
-        elif severity == "Extremely High":
+        elif severity == "Very High":
             recommendation = "preventative action should be taken to prevent issues, as you will likely develop ulcers in this area if not corrected"
         return recommendation
 
@@ -95,9 +95,9 @@ class ScanInterpreter():
         recommendation = self.makeRecommendation(self, severity)
         report = ["", "", "", ""]
         report[0] = "The highest point of pressure on your scan is detected in the " + location + " area."
-        report[1] = "This is a value of " + str(pressureValue) + ", which is a " + severity + " pressure reading."
+        report[1] = "This is a pressure value of " + str(pressureValue) + ", which is a " + severity + " reading."
         report[2] = "This pressure value means that " + recommendation + "."
-        report[3] = "The exact coordinates of the pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
+        report[3] = "The exact coordinates of this pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
         return report
 
     def runInterpreter(self, file):

@@ -14,13 +14,14 @@
             width: 0;
         }
 
-        .graph_box {
+        .heatmap_box {
             position: absolute;
             top: 10px;
             left: 10px;
             width: 750px;
             height: 350px;
             border: 2px solid black;
+            text-align: center;
         }
 
         .report_box {
@@ -30,6 +31,7 @@
             width: 750px;
             height: 250px;
             border: 2px solid black;
+            padding: 5px
         }
     </style>
 </head>
@@ -39,12 +41,12 @@
     <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
 </nav>
 <div class="main_page_element">
-    <div class="graph_box">
-
+    <div class="heatmap_box">
+        <h1> A heatmap will go here </h1>
     </div>
 
     <div class="report_box">
-        <h1> Report Breakdown </h1>
+        <h1> Scan Analysis Report </h1>
         <p>
             {{ report_0 }}
         </p>
