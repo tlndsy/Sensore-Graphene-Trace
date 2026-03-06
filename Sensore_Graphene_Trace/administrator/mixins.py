@@ -46,7 +46,7 @@ class BaseGenericModelMixin(BaseAdminMixin):
         return super().dispatch(request, *args, **kwargs)
 
     def test_func(self):
-        # Run GroupRequiredMixin
+        # Run BaseAdminMixin test first to check group membership
         if not super().test_func():
             return False
 

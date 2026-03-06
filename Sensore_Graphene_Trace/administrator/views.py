@@ -1,26 +1,17 @@
 from django.apps import apps
 from django.forms import modelform_factory
-from django.urls import reverse_lazy, reverse, NoReverseMatch
+from django.urls import reverse_lazy
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DeleteView
 from django.db.models import Q
 from django.db.models.fields.related import ForeignKey
 
 from .mixins import BaseGenericModelMixin, BaseAdminMixin
 
-import Sensore_Graphene_Trace.global_constants as constants
-
 
 class AdminHomeView(BaseAdminMixin, TemplateView):
     template_name = "administrator/administrator_home.html"
 
     def get_context_data(self, **kwargs):
-
-        def safe_reverse(name, *args):
-            try:
-                return reverse(name, args=args)
-            except NoReverseMatch:
-                return None
-
         context = super().get_context_data(**kwargs)
         models_data = []
 
@@ -48,8 +39,6 @@ class GenericListView(BaseGenericModelMixin, ListView):
     context_object_name = "objects"
     paginate_by = 25
     permission_action = "view"
-    group_required = [constants.ADMIN]
-    redirect_field_name = "user:administrator:generic_list"
 
     SEARCH_FIELD_TYPES = ("CharField", "TextField", "EmailField")
 
@@ -120,7 +109,6 @@ class GenericListView(BaseGenericModelMixin, ListView):
 class GenericCreateView(BaseGenericModelMixin, CreateView):
     template_name = "administrator/generic_create.html"
     permission_action = "add"
-    group_required = [constants.ADMIN]
 
     def get_form_class(self):
         return modelform_factory(self.model, fields="__all__")
@@ -134,7 +122,6 @@ class GenericCreateView(BaseGenericModelMixin, CreateView):
 class GenericUpdateView(BaseGenericModelMixin, UpdateView):
     template_name = "administrator/generic_update.html"
     permission_action = "change"
-    group_required = [constants.ADMIN]
 
     def get_form_class(self):
         return modelform_factory(self.model, fields="__all__")
@@ -148,7 +135,6 @@ class GenericUpdateView(BaseGenericModelMixin, UpdateView):
 class GenericDeleteView(BaseGenericModelMixin, DeleteView):
     template_name = "administrator/generic_delete.html"
     permission_action = "delete"
-    group_required = [constants.ADMIN]
 
     def get_success_url(self):
         return reverse_lazy(
