@@ -3,6 +3,7 @@ from django.http import Http404
 
 from Sensore_Graphene_Trace import global_constants as constants
 from user.mixins import GroupRequiredMixin
+from user.utils import notifications
 
 class BaseAdminMixin(GroupRequiredMixin):
     """
@@ -18,6 +19,13 @@ class BaseAdminMixin(GroupRequiredMixin):
 
     # restrict which apps are allowed
     allowed_apps = ["user"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["num_notifications"] = notifications.get_notification_count(self.request.user)
+
+        return context
 
 
 class BaseGenericModelMixin(BaseAdminMixin):
