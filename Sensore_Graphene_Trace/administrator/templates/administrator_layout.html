@@ -21,8 +21,20 @@
     <div class="nav-right">
         <a href="/user/administrator/" class="profile-container">
             <img src="{{ user.profile_picture.url }}" alt="User profile picture" class="profile-pic">
+            <span class="notification-badge">{{ num_notifications }}</span>
         </a>
+        <script>
+            // Set notification badge count
+            const notificationCount = {{ num_notifications }};
+            const badge = document.querySelector(".notification-badge");
 
+            badge.textContent = notificationCount;
+
+            // Hide badge if count is zero
+            if (notificationCount === 0) {
+                badge.style.display = "none";
+            }
+        </script>
 
         <form action="{% url 'user:patient:logout' %}" method="post">
             {% csrf_token %}
@@ -33,7 +45,6 @@
             <button class="menu-btn">☰</button>
             <div class="dropdown-menu">
                 <a href="#">Profile</a>
-                <a href="#">View Devices</a>
                 <a href="#">Notifications</a>
                 <a href="#">Settings</a>
                 <a href="#">Support</a>

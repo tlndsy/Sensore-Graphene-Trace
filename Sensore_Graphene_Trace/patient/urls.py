@@ -8,11 +8,11 @@ from . import views
 app_name = 'patient'
 
 urlpatterns = [
-    path("", views.home, name="home"),
+    path("", views.PatientHomeView.as_view(), name="home"),
     path('upload/', views.upload_csv, name='upload_csv'),
     path("profile/", views.profile, name="profile"),
-    path("view-devices/", views.viewDevices, name="viewDevices"),
-    path("register-device/", views.registerDevice, name="registerDevice"),
+    path("view-devices/", views.PatientViewDevices.as_view(), name="viewDevices"),
+    path("register-device/", views.PatientRegisterDeviceView.as_view(), name="registerDevice"),
     path("stats/", views.stats, name="stats"),
     path("report/", views.interpreterDisplay, name="report"),
     path("notifications/", views.notifications, name="stats"),
