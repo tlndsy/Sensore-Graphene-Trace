@@ -1,23 +1,29 @@
 # patient/views.py
 from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, HttpResponse
-from django.contrib.auth import login, logout
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 import pandas as pd
 import numpy as np
 from django.utils import timezone
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, TemplateView
+
+import pandas as pd
 import tempfile, os, csv, io
+
+from Sensore_Graphene_Trace import global_constants as constants
 
 from user.models import User, Message, PressureMapReading, ReadingEquipment
 from patient.utils.pressure_calculations import load_csv_frames, process_frame, calculate_contact_area_percent
 from patient.scaninterpreter import ScanInterpreter
-from Sensore_Graphene_Trace import global_constants as constants
+from .mixins import BasePatientMixin
 from . import forms
 
 # Create your views here.
 @login_required(login_url='/user/home/')
-def home(request):
+def patient_home_OLD(request):
     user = request.user
     # Check if the user belongs to the 'Patient' group
     if not user.groups.filter(name=constants.PATIENT).exists():
@@ -28,10 +34,13 @@ def home(request):
 
     context = {"user": user, "num_notifications": num_notifications}
 
-    return render(request, 'patient/home.html', context)
+    return render(request, 'patient/patient_home.html', context)
+
+class PatientHomeView(BasePatientMixin, TemplateView):
+    template_name = "patient/patient_home.html"
 
 @login_required(login_url='/user/home/')
-def viewDevices(request):
+def view_devices_OLD(request):
     user = request.user
     if not user.groups.filter(name=constants.PATIENT).exists():
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
@@ -41,10 +50,20 @@ def viewDevices(request):
 
     devices = ReadingEquipment.objects.filter(user=user)
     context = {"devices": devices, "num_notifications": num_notifications}
-    return render(request, 'patient/viewDevices.html', context)
+    return render(request, 'patient/patient_view_devices.html', context)
+
+class PatientViewDevices(BasePatientMixin, TemplateView):
+    template_name = "patient/patient_view_devices.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["devices"] = ReadingEquipment.objects.filter(user=self.request.user)
+
+        return context
 
 @login_required(login_url='/user/home/')
-def registerDevice(request):
+def register_device_OLD(request):
     user = request.user
     if not user.groups.filter(name=constants.PATIENT).exists():
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
@@ -61,7 +80,16 @@ def registerDevice(request):
 
     num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
     context = {"form": form, "user": user, "num_notifications": num_notifications}
-    return render(request, 'patient/registerDevice.html', context)
+    return render(request, 'patient/patient_register_device.html', context)
+
+class PatientRegisterDeviceView(BasePatientMixin, CreateView):
+    form_class = forms.RegisterDevice
+    template_name = "patient/patient_register_device.html"
+    success_url = reverse_lazy("user:patient:viewDevices")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
