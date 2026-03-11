@@ -33,6 +33,53 @@
             border: 2px solid black;
             padding: 5px
         }
+
+        .index_box {
+            position: absolute;
+            top: 50px;
+            left: 1050px;
+            width: 200px;
+            height: 120px;
+            border: 2px solid black;
+            padding: 5px
+            text-align: center;
+        }
+
+        .button {
+            border: 2px solid black;
+            text_align: center;
+            padding: 16px 32px;
+            width: 200px;
+            height: 120px;
+            font-size: 30px;
+            color: white;
+            background-color: #008CBA;
+            cursor: pointer;
+            transition-duration: 0.4s;
+        }
+
+        .button:hover {
+            background-color: white;
+            color: black;
+        }
+
+        .button1 {
+            position: absolute;
+            top: 200px;
+            left: 1050px;
+        }
+
+        .button2 {
+            position: absolute;
+            top: 350px;
+            left: 1050px;
+        }
+
+        .button3 {
+            position: absolute;
+            top: 500px;
+            left: 1050px;
+        }
     </style>
 </head>
 <body>
@@ -47,19 +94,32 @@
 
     <div class="report_box">
         <h1> Scan Analysis Report </h1>
-        <p>
+        <p style="font-size:24px">
             {{ report_0 }}
         </p>
-        <p>
+        <p style="font-size:24px">
             {{ report_1 }}
         </p>
-        <p>
+        <p style="font-size:24px">
             {{ report_2 }}
         </p>
-        <p>
-            {{ report_3}}
+    </div>
+
+    <div class="index_box">
+        <p style="font-size:24px; text-align: center">
+            This report is X out of X.
         </p>
     </div>
+
+    <button class="button button1">
+        Earlier Report
+    </button>
+    <button class="button button2">
+        Later Report
+    </button>
+    <button class="button button3">
+        Newest Report
+    </button>
 </div>
 </body>
 </html>
