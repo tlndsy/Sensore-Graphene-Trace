@@ -73,14 +73,23 @@ def stats(request):
 
 def interpreterDisplay(request):
     user = request.user
+    from user.models import Report
 
     latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).latest('timestamp'))
+    if not Report.objects.filter(pressure_map_reading=latest_reading).exists():
+        report = Report(pressure_map_reading=latest_reading)
+        file = latest_reading.pressure_reading
+        reportContents = ScanInterpreter.runInterpreter(ScanInterpreter, file)
+        report.reportContents = reportContents
+    else:
+        report = Report.objects.filter(pressure_map_reading=latest_reading).last()
 
-    file = latest_reading.pressure_reading
 
-    report = ScanInterpreter.runInterpreter(ScanInterpreter, file)
+    reportContents = report.reportContents
 
-    context = {"report_0": report[0], "report_1": report[1], "report_2": report[2], "report_3": report[3]}
+
+
+    context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2], "report_3": reportContents[3]}
     return render(request, "patient\interpreterDisplay.html", context)
 
 
