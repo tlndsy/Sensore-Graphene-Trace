@@ -1,48 +1,25 @@
-* {
-    margin: 0;
-    padding: 0;
-}
+* {margin: 0; padding: 0; box-sizing: border-box;}
+.hidden{display: none !important;}
 
-.hidden{
-    display: none !important;
+:root {
+    --DARK_BLUE: #1065AB;
+    --MEDIUM_BLUE: #3A93C3;
+    --LIGHT_BLUE: #8EC4DE;
+    --PALE_BLUE: #D1E5F0;
 }
 
 /* Font settings */
-html {
-    font-size: 24px;
-}
-
-body {
-    font-size: 1rem;
-    line-height: 1.6;
-    color: darkslategrey;
-}
-
-h1 {
-    font-size: 2rem;
-    line-height: 1.25;
-}
-
-h2 {
-    font-size: 1.5rem;
-    line-height: 1.3;
-}
-
-h3 {
-    font-size: 1.25rem;
-}
-
-p {
-    font-size: 1rem;
-}
-
-label, .small,.options {
-    font-size: 0.875rem;
-}
+html {font-size: 20px;}
+body {font-size: 1rem;line-height: 1.6;color: darkslategrey;}
+h1 {font-size: 2rem; line-height: 1.25;}
+h2 {font-size: 1.5rem;line-height: 1.3;}
+h3 {font-size: 1.25rem;}
+p {font-size: 1rem;}
+label, .small,.options {font-size: 0.875rem;}
 
 /* Navigation panel settings */
 nav{
-    background-color: darkgrey;
+    background-color: var(--DARK_BLUE);
     position: relative;
     align-items: center;
     display: flex;
@@ -53,11 +30,11 @@ nav{
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    color: white;
 }
 
 /* Wrapper settings */
 .wrapper {
-    width: 100%;
     display: flex;
     height: calc(100vh - 100px);
 }
@@ -86,17 +63,12 @@ nav{
     max-width: 1000px;
     height: 100%;
     padding: 16px;
-    box-sizing: border-box;
     background: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
     flex-shrink: 0;
     transform: translateX(100%);
     transition: transform 0.3s ease;
     overflow-y: auto;
-}
-
-.side-panel h1 {
-    margin-bottom: 8px;
 }
 
 .side-panel-toggle{
@@ -119,25 +91,18 @@ nav{
     background: darkgrey;
 }
 
-/* Login form settings */
-.login-form{
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 24px;
-}
-
-.field{
+/* Side panel forms */
+.side-panel .field{
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-.field label{
+.side-panel .field label{
     font-weight: 600;
 }
 
-.field input{
+.side-panel .field input{
     padding: 10px 12px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -149,17 +114,24 @@ nav{
     align-items: center;
 }
 
-.login-form button {
+.side-panel button {
+    width: 100%;
     margin-top: 8px;
     padding: 12px;
     font-weight: 600;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    background: black;
+    background: var(--DARK_BLUE);
     color: white;
 }
 
 .login-form button:hover {
     background: darkgrey;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
