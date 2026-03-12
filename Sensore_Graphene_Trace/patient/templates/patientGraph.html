@@ -17,15 +17,34 @@
         <!-- Main page content -->
         <div class="main">
 
-            <!-- Displays pressure mat graph -->
-            <h1> Graph Data </h1>
-            <div id="graph" style="height:500px;"></div>
+            <div class="graphs">
+                <!-- Contains key metrics from the patients pressure mat data -->
+                <div class="graph">
+                    <!-- Displays pressure mat graph -->
+                    <h1> Graph Data </h1>
+                    <div id="graph"></div>
+                </div>
 
-            <!-- Contains key metrics from the patients pressure mat data -->
-            <div class="graph-info">
-                <h3> Current metrics </h3>
-                <p> Contact area percentage </p>
-                <p> Peak pressure </p>
+                <div class="heatmap">
+                    <h1> Pressure Map</h1>
+                    <img src="https://img.freepik.com/free-vector/gradient-heat-map-background_23-2149528520.jpg?semt=ais_rp_progressive&w=740&q=80">
+                </div>
+            </div>
+
+            <h3> Current metrics </h3>
+            <div class="graph-metrics">
+                <div class="metric">
+                    <h4> Contact area percentage </h4>
+                </div>
+                <div class="metric">
+                    <h4> Peak pressure </h4>
+                </div>
+                <div class="metric">
+                    <h4> Extra metric </h4>
+                </div>
+                <div class="metric">
+                    <h4> Extra metric </h4>
+                </div>
             </div>
 
             <!-- Displays a box to the side of the graph allowing them to contact a clinician if there's an area of concern -->
@@ -43,6 +62,10 @@
             <div id="menu-options">
                 <form method='post' class="menu-options">
                     {% csrf_token %}
+                    <button type="submit"> Home </button>
+                    <button type="submit"> Notifications </button>
+                    <button type="submit"> Support </button>
+                    <button type="submit"> Logout </button>
                 </form>
             </div>
         </div>

@@ -1,24 +1,29 @@
 # patient/views.py
 from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, HttpResponse
-from django.contrib.auth import login, logout
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 import pandas as pd
+import numpy as np
 from django.utils import timezone
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, TemplateView
 
+import pandas as pd
 import tempfile, os, csv, io
 
-from user.models import User, Message, PressureMapReading, ReadingEquipment
-from patient.utils.pressure_calculations import load_csv_frames, process_frame
-from patient.scaninterpreter import ScanInterpreter
 from Sensore_Graphene_Trace import global_constants as constants
-from . import forms
 
+from user.models import User, Message, PressureMapReading, ReadingEquipment
+from patient.utils.pressure_calculations import load_csv_frames, process_frame, calculate_contact_area_percent
+from patient.scaninterpreter import ScanInterpreter
+from .mixins import BasePatientMixin
+from . import forms
 
 # Create your views here.
 @login_required(login_url='/user/home/')
-def home(request):
+def patient_home_OLD(request):
     user = request.user
     # Check if the user belongs to the 'Patient' group
     if not user.groups.filter(name=constants.PATIENT).exists():
@@ -29,11 +34,13 @@ def home(request):
 
     context = {"user": user, "num_notifications": num_notifications}
 
-    return render(request, 'patient/home.html', context)
+    return render(request, 'patient/patient_home.html', context)
 
+class PatientHomeView(BasePatientMixin, TemplateView):
+    template_name = "patient/patient_home.html"
 
 @login_required(login_url='/user/home/')
-def viewDevices(request):
+def view_devices_OLD(request):
     user = request.user
     if not user.groups.filter(name=constants.PATIENT).exists():
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
@@ -43,11 +50,20 @@ def viewDevices(request):
 
     devices = ReadingEquipment.objects.filter(user=user)
     context = {"devices": devices, "num_notifications": num_notifications}
-    return render(request, 'patient/viewDevices.html', context)
+    return render(request, 'patient/patient_view_devices.html', context)
 
+class PatientViewDevices(BasePatientMixin, TemplateView):
+    template_name = "patient/patient_view_devices.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["devices"] = ReadingEquipment.objects.filter(user=self.request.user)
+
+        return context
 
 @login_required(login_url='/user/home/')
-def registerDevice(request):
+def register_device_OLD(request):
     user = request.user
     if not user.groups.filter(name=constants.PATIENT).exists():
         return HttpResponseForbidden("403 Forbidden: You do not have permission to access this page.")
@@ -64,12 +80,19 @@ def registerDevice(request):
 
     num_notifications = len(Message.objects.filter(recipient=user, read_receipt=False))
     context = {"form": form, "user": user, "num_notifications": num_notifications}
-    return render(request, 'patient/registerDevice.html', context)
+    return render(request, 'patient/patient_register_device.html', context)
 
+class PatientRegisterDeviceView(BasePatientMixin, CreateView):
+    form_class = forms.RegisterDevice
+    template_name = "patient/patient_register_device.html"
+    success_url = reverse_lazy("user:patient:viewDevices")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
-
 
 def interpreterDisplay(request):
     user = request.user
@@ -83,39 +106,42 @@ def interpreterDisplay(request):
     context = {"report_0": report[0], "report_1": report[1], "report_2": report[2]}
     return render(request, "patient\interpreterDisplay.html", context)
 
-
 def profile(request):
     return HttpResponse("This is the patients profile page")
 
-
 def notifications(request):
     return HttpResponse("This is the patients notification page")
-
 
 def messages(request):
     return HttpResponse("This is the patients messaging page")
 
 def view_graph(request):
-    x = []; y = []
     try: # Try read the latest pressure mat data
-        user = request.user
+        user = request.user # Request the correct user
         latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).latest('timestamp'))
-        if latest_reading and latest_reading.pressure_reading: # If the latest reading exists
-            with latest_reading.pressure_reading.open(mode='r') as f:
-                df = pd.read_csv(f)
+        fps = latest_reading.reading_equipment.product_info.refresh_rate # Frames per second
 
-                # Temporary x and y values until the graph metrics are calculated
-                x = df.iloc[:,0].tolist() # X data
-                y = df.iloc[:,1].tolist() # Y data
+        if latest_reading and latest_reading.metrics: # If the latest reading exists
+            with latest_reading.metrics.open(mode='r') as f: # Open metrics csv
+                df = pd.read_csv(f) # Copy csv to pandas dataframe
+
+            # Calculate values to display per second
+            df['second'] = np.floor((df['frame'] / fps)).astype(int) # approx. 15 fps
+            peak_pressure_per_s = df.groupby('second')['peak_pressure'].max()
+            contact_area_per_s = df.groupby('second')['contact_area'].mean()
+
+            #Convert to lists for the graph
+            seconds = peak_pressure_per_s.index.tolist() # Each index represents a second
+            peak_pressure = peak_pressure_per_s.values.tolist()
+            contact_area = contact_area_per_s.values.tolist()
     except Exception as e: # Error reading pressure mat data
         print("Error reading patient csv:", e)
-    return render(request, "patientGraph.html",{"x":x,"y":y})
-
+    return render(request, "patientGraph.html",
+                  {"seconds":seconds,"peak_pressure":peak_pressure,"contact_area":contact_area})
 def temp_logout(request):
     if request.method == 'POST':
         logout(request)
         return redirect("user:home")
-
 
 def upload_csv(request):
     if request.method == 'POST' and request.FILES.get('csv_file'):
