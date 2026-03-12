@@ -80,12 +80,12 @@ def interpreterDisplay(request):
         report = Report(pressure_map_reading=latest_reading)
         file = latest_reading.pressure_reading
         reportContents = ScanInterpreter.runInterpreter(ScanInterpreter, file)
-        report.reportContents = reportContents
+        report.content = "@".join(reportContents)
+        report.save()
     else:
         report = Report.objects.filter(pressure_map_reading=latest_reading).last()
 
-
-    reportContents = report.reportContents
+    reportContents = report.content.split("@")
 
 
 
