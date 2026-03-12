@@ -208,3 +208,4 @@ __marimo__/
 
 # Individual User Media Files
 Sensore_Graphene_Trace/media/users/*/
+/.idea/dataSources.xml
