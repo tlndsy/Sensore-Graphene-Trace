@@ -23,7 +23,8 @@ class ScanInterpreter():
                 i = i + 1
             return scan
 
-    def getTestData(self, testNo, scannedData):
+    def getData(self, testNo, scannedData):
+        # Retrieve a scan from the scan file. Only gives one file.
         testScan = []
         i = testNo * 32
         endTest = (testNo + 1) * 32
@@ -49,6 +50,7 @@ class ScanInterpreter():
         return area
 
     def checkSeverity(self, pressure):
+        # Determine the severity of the highest pressure point detected
         if pressure > 400:
             severity = "Very High"
         elif pressure > 250:
@@ -61,6 +63,7 @@ class ScanInterpreter():
         return severity
 
     def showScan(self, scan):
+        # Used for testing, currently not in usage
         i = 0
         while i < 32:
             j = 0
@@ -86,10 +89,11 @@ class ScanInterpreter():
         elif severity == "High":
             recommendation = "this area should be monitored closely, as you are at risk of developing ulcers"
         elif severity == "Very High":
-            recommendation = "preventative action should be taken to prevent issues, as you will likely develop ulcers in this area if not corrected"
+            recommendation = "preventative action should be taken to prevent issues, as you will likely develop ulcers in this area if not treated"
         return recommendation
 
     def createReport(self, pressureValue, xCoord, yCoord):
+        # Give a description of the pressure sensitivity
         location = self.locateArea(self, xCoord, yCoord)
         severity = self.checkSeverity(self, int(pressureValue))
         recommendation = self.makeRecommendation(self, severity)
@@ -102,8 +106,8 @@ class ScanInterpreter():
 
     def runInterpreter(self, file):
         scannedData = self.scanDataFile(self, file)
-        testScan = self.getTestData(self,0, scannedData)
-        self.showScan(self, testScan)
+        testScan = self.getData(self,0, scannedData) # Currently only gets the first scan in a file
+        #self.showScan(self, testScan) # Used for testing
 
         highestValueRow = max(testScan)
         highestValue = max(highestValueRow)
