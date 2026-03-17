@@ -70,17 +70,23 @@ def registerDevice(request):
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
-
+currentPage = 0
 def interpreterDisplay(request):
+    global currentPage
     user = request.user
     from user.models import Report
 
     all_readings = (PressureMapReading.objects.filter(reading_equipment__user=user).all())
     all_readings = all_readings.order_by('timestamp')
 
-    currentReadingNumber = 0 # This is set to the first reading in the list, so the latest/most current one
     noOfReadings = len(all_readings)
-    current_reading = all_readings[currentReadingNumber]
+
+    # Check if stated page is within limits
+    if currentPage < 0:
+        currentPage = 0
+    elif currentPage >= noOfReadings:
+        currentPage = noOfReadings
+    current_reading = all_readings[currentPage]
 
     if not Report.objects.filter(pressure_map_reading=current_reading).exists():
         # Make a new report only if one does not already exist
@@ -94,16 +100,23 @@ def interpreterDisplay(request):
 
     reportContents = report.content.split("@")
 
-
-
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-               "report_3": reportContents[3], "reportNumber": currentReadingNumber+1, "noOfReports": noOfReadings}
+               "report_3": reportContents[3], "reportNumber": currentPage+1, "noOfReports": noOfReadings}
     return render(request, "patient\interpreterDisplay.html", context)
+
+def interpreterButton(request):
+    global currentPage
+    if 'Older' in request.POST:
+        currentPage = currentPage + 1
+    elif 'Newer' in request.POST:
+        currentPage = currentPage - 1
+    elif 'Newest':
+        currentPage = 0
+    return redirect("/user/patient/report")
 
 
 def profile(request):
     return HttpResponse("This is the patients profile page")
-
 
 def notifications(request):
     return HttpResponse("This is the patients notification page")

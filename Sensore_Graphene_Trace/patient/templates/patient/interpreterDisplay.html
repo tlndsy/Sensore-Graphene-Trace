@@ -107,19 +107,22 @@
 
     <div class="index_box">
         <p style="font-size:24px; text-align: center">
-            This report is {{ reportNumber }} out of {{ noOfReports }} saved reports.
+            This report is report {{ reportNumber }} out of the {{ noOfReports }} saved reports.
         </p>
     </div>
 
-    <button class="button button1">
-        Earlier Report
-    </button>
-    <button class="button button2">
-        Later Report
-    </button>
-    <button class="button button3">
-        Newest Report
-    </button>
+    <form action="patient-button" method="POST">
+        {% csrf_token %}
+        <button name="Older" class="button button1">
+            Older Report
+        </button>
+        <button name="Newer" class="button button2">
+            Newer Report
+        </button>
+        <button name="Newest" class="button button3">
+            Newest Report
+        </button>
+    </form>
 </div>
 </body>
 </html>

@@ -99,7 +99,7 @@ class ScanInterpreter():
         recommendation = self.makeRecommendation(self, severity)
         report = ["", "", "", ""]
         report[0] = "The highest point of pressure on your scan is detected in the " + location + " area."
-        report[1] = "This is a pressure value of " + str(pressureValue) + ", which is a " + severity + " reading."
+        report[1] = "This is a pressure value of " + str(pressureValue) + ", which is a " + severity + " pressure reading."
         report[2] = "This pressure value means that " + recommendation + "."
         report[3] = "The exact coordinates of this pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
         return report
