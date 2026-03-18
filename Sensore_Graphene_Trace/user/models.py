@@ -1,6 +1,8 @@
 import datetime
 import uuid
 
+from django.utils import timezone
+
 import Sensore_Graphene_Trace.global_constants as constants
 
 from django.contrib.auth.models import Group

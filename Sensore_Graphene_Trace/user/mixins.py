@@ -20,6 +20,7 @@ class GroupRequiredMixin(UserPassesTestMixin):
         else:
             groups = self.group_required
 
+
         return user.groups.filter(name__in=groups).exists()
 
     # Raise 403 Forbidden if the user does not have permission to access the page
