@@ -10,7 +10,7 @@
 
 /* Font settings */
 html {font-size: 20px;}
-body {font-size: 1rem;line-height: 1.6;color: darkslategrey;}
+body {font-size: 1rem;line-height: 1.6;color: darkslategrey; background: #cccccc}
 h1 {font-size: 2rem; line-height: 1.25;}
 h2 {font-size: 1.5rem;line-height: 1.3;}
 h3 {font-size: 1.25rem;}
@@ -39,13 +39,9 @@ nav{
 .wrapper {
     display: flex;
     height: calc(100vh - 100px);
+    position: relative;
 }
 
-.wrapper:not(.side-panel-open) .side-panel{
-    width: 0;
-    padding: 0;
-    overflow: hidden;
-}
 
 /* Main page content settings */
 .main{
@@ -55,16 +51,34 @@ nav{
     display: flex;
 }
 
-.graphs{
-    display: grid;
-    grid-template-columns: 2fr 2fr;
-    padding: 10px;
+.graphs {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;}
+
+.graph {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 }
 
-.graph{
-    background: white;
-    padding: 10px;
-    border-radius: 12px;
+.graph-content {
+    display: flex;
+    gap: 20px;
+}
+
+.graph-plot {
+    flex: 2;
+}
+
+.graph-metrics {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 #graph {
@@ -85,7 +99,11 @@ nav{
     align-items: flex-start;
     width: 100%;
     max-width: 400px;
-    margin: 0;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 }
 
 #heatmap {
@@ -103,14 +121,33 @@ nav{
     border: 1px solid #ccc;
     border-bottom: none;
     border-radius: 5px 5px 0 0;
+    cursor: pointer;
 }
 
 .graph-metrics{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 20px;
-    padding-left: 49px;
+    padding: 5px;
+}
 
+.graph-metrics button{
+    font-size: 1rem;
+    font-weight: 500;
+    background: var(--PALE_BLUE);
+    padding: 5px 8px;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    margin: 10px;
+    cursor: pointer;
+}
+
+.graph-metrics button:hover {
+    background: #cce0ff;
+}
+
+.graph-metrics button.active {
+    background: var(--DARK_BLUE);
+    color: white;
 }
 
 .metric{
@@ -118,24 +155,22 @@ nav{
     padding: 5px 8px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    text-align: center;
 }
-
-
-
 
 /*Side panel settings */
 .side-panel{
     width: 33.333vw;
     max-width: 1000px;
+    right: 0;
     height: 100%;
     padding: 16px;
     background: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
-    flex-shrink: 0;
     transform: translateX(100%);
     transition: transform 0.3s ease;
     overflow-y: auto;
+    position: absolute;
+    z-index: 10;
 }
 
 .side-panel-toggle{
@@ -183,7 +218,7 @@ nav{
 
 .side-panel button {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 8px;
     padding: 12px;
     font-weight: 600;
     border: none;
