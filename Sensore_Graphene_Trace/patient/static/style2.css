@@ -124,20 +124,15 @@ nav{
     cursor: pointer;
 }
 
-.graph-metrics{
-    gap: 20px;
-    padding: 5px;
-}
 
 .graph-metrics button{
     font-size: 1rem;
     font-weight: 500;
     background: var(--PALE_BLUE);
-    padding: 5px 8px;
+    padding: 20px;
     border: none;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    margin: 10px;
     cursor: pointer;
 }
 

@@ -161,6 +161,7 @@ def process_metrics(latest_reading):
     times = peak_pressure.index.tolist()
 
     return {
+        "pressure_frames": get_all_pressure_matrix_frames(latest_reading),
         "peak_pressure":peak_pressure.tolist(),
         "contact_area":contact_area.tolist(),
         "mean_pressure":mean_pressure.tolist(),
@@ -175,7 +176,7 @@ def process_metrics(latest_reading):
     }
     
 def empty_context():
-    return {"peak_pressure":[],"contact_area":[],"times":[],"flat_pressure_matrix":[], "mean_pressure":[],"std_pressure":[],"contact_area_percent":[], "cop_x":[],"cop_y":[], "coefficient_of_variation":[] }
+    return {"pressure_frames":[], "peak_pressure":[],"contact_area":[],"times":[],"flat_pressure_matrix":[], "mean_pressure":[],"std_pressure":[],"contact_area_percent":[], "cop_x":[],"cop_y":[], "coefficient_of_variation":[] }
 
 # Takes the latest reading and converts the pressure data into a list
 def get_pressure_matrix(latest_reading):
@@ -187,6 +188,22 @@ def get_pressure_matrix(latest_reading):
         pressure_matrix += [0.0] * (1024 - len(pressure_matrix))
         pressure_matrix = pressure_matrix[:1024]
     return pressure_matrix
+
+# Gets all the pressure matrix frames from the most recent pressure reading file
+def get_all_pressure_matrix_frames(latest_reading):
+    frames = []
+    if not latest_reading.pressure_reading: return frames
+    with latest_reading.pressure_reading.open(mode='r') as f: df = pd.read_csv(f)
+    data = df.values.tolist()
+    FRAME_SIZE = 32  # Will fix
+
+    for i in range(0, len(data), FRAME_SIZE):
+        block = data[i:i + FRAME_SIZE]
+        if len(block) < FRAME_SIZE: break  # skip incomplete frame
+        frame = [val for row in block for val in row]
+        frames.append(frame)
+    return frames
+
 
 def temp_logout(request):
     if request.method == 'POST':

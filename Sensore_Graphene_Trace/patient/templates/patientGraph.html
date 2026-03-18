@@ -20,15 +20,14 @@
                 <!-- Contains key metrics from the patients pressure mat data -->
                 <div class="graph">
                     <h1>Graph Data</h1>
-                    <div class="tabs">
-                        <button onclick="showTimeRange('30')">30 sec</button>
-                        <button onclick="showTimeRange('60')">1 min</button>
-                        <button onclick="showTimeRange('150')">2.5 min</button>
-                        <button onclick="showTimeRange('300')">5 min</button>
-                    </div>
-
                     <div class="graph-content">
                         <div class="graph-plot">
+                            <div class="tabs">
+                            <button onclick="showTimeRange('30')">30 sec</button>
+                            <button onclick="showTimeRange('60')">1 min</button>
+                            <button onclick="showTimeRange('150')">2.5 min</button>
+                            <button onclick="showTimeRange('300')">5 min</button>
+                            </div>
                             <div id="graph"></div>
                             <button onclick="simulateGraphDisplay()">Live Mode</button>
                         </div>
@@ -78,6 +77,7 @@
 {{ coefficient_of_variation|json_script:"coefficient_of_variation" }}
 {{ cop_x|json_script:"cop_x" }}
 {{ cop_y|json_script:"cop_y" }}
+{{ pressure_frames|json_script:"pressure_frames" }}
 
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script>
@@ -94,23 +94,21 @@
     const peak_pressure_index = JSON.parse(document.getElementById('peak_pressure_index').textContent);
     const coefficient_of_variation = JSON.parse(document.getElementById('coefficient_of_variation').textContent);
     const contact_area_percent = JSON.parse(document.getElementById('contact_area_percent').textContent);
+    const pressure_frames = JSON.parse(document.getElementById('pressure_frames').textContent);
 
     // Convert the flat heatmap list back to a matrix
     function list_to_matrix(flat_pressure_matrix){
         const pressure_matrix = []; // Empty array for matrix
         let size = Math.sqrt(flat_pressure_matrix.length) // Defines matrix size
-
-        while(flat_pressure_matrix.length < size * size) flat_pressure_matrix.push(0); // Pad matrix with 0s
-            for(let i = 0; i < size; i++){pressure_matrix.push(flat_pressure_matrix.slice(i*size, i*size + size))}; // Fill matrix with list values
-    return pressure_matrix
-    }
+        for(let i = 0; i < size; i++){pressure_matrix.push(flat_pressure_matrix.slice(i*size, i*size + size))}; // Fill matrix with list values
+    return pressure_matrix}
 
     // Graph plotting function
     function plot_graph(y,metric){
         Plotly.react('graph', [{x:times, y:y, name:metric}],
             {margin: {t:1, l:50, r:1, b:50},
-                xaxis:{title:`Date: ${date}`, tickformat: "%H:%M", linecolor: "ccc", linewidth: 1, mirror: true},
-                yaxis:{title:metric, linecolor: "ccc", linewidth: 1, mirror: "allticks", showLine: true}},
+                xaxis:{title:`Date: ${date}`, tickformat: "%H:%M", showline:true, linecolor: "ccc", linewidth: 1, mirror: true},
+                yaxis:{title:metric,showline:true, linecolor: "ccc", linewidth: 1, mirror: "allticks", showLine: true}},
             {responsive: true, displayModeBar: false, staticPlot: false});
     }
 
@@ -124,17 +122,17 @@
 
     function showPeakPressureIndex(){
         current_metric = "peak_pressure_index";
-        Plotly.restyle('graph', {visible: [true, false, false]}); Plotly.relayout('graph', {yaxis: {title:"Peak Pressure Index"}});
+        Plotly.restyle('graph', {visible: [true, false, false]}); Plotly.relayout('graph', {margin: { t: 1, l: 1, r: 1, b: 1 },yaxis: {title:"Peak Pressure Index"}});
     }
 
     function showContactAreaPercent(){
         current_metric = "contact_area_percent";
-        Plotly.restyle('graph', {visible: [false, true, false]});Plotly.relayout('graph', {yaxis: {title:"Contact Area"}});
+        Plotly.restyle('graph', {visible: [false, true, false]});Plotly.relayout('graph', {margin: { t: 1, l: 1, r: 1, b: 1 },yaxis: {title:"Contact Area"}});
     }
 
     function showCoefficientOfVariation(){
         current_metric = "coefficient_of_variation";
-        Plotly.restyle('graph', {visible: [false, false, true]});Plotly.relayout('graph', {yaxis: {title:"coefficient_of_variation"}});
+        Plotly.restyle('graph', {visible: [false, false, true]});Plotly.relayout('graph', {margin: { t: 1, l: 1, r: 1, b: 1 },yaxis: {title:"coefficient_of_variation"}});
     }
 
     let index = 0; let live_data = {peak_pressure_index: [], contact_area_percent: []}; let current_metric = "peak_pressure_index" // default value
@@ -171,15 +169,30 @@
         }, 1000);
     }
 
+    // Simulates live heatmap
+    function simulateHeatMap() {
+        let frame = 0;
+        const interval = setInterval(() => {
+            if (frame >= pressure_frames.length) {clearInterval(interval);return;}
+
+            const matrix = list_to_matrix(pressure_frames[frame]);
+
+            Plotly.react('heatmap',[{z: matrix, type:'heatmap',showscale:false}],
+                { margin: { t: 1, l: 1, r: 1, b: 1 },xaxis: {visible: false}, yaxis: {visible:false, autorange: 'reversed'}},
+                {displayModeBar: false});
+            frame++;
+        }, 1000 / 15)};
+
     window.onload = function(){
         const pressure_matrix = list_to_matrix(flat_pressure_matrix); // Convert 1D list to 2D matrix
         plotHeatmap(pressure_matrix); // Plot heatmap
+        simulateHeatMap();
 
         // Plot graph
         Plotly.newPlot('graph', [{x: [], y: [], name: "Peak Pressure", mode: "lines", linecolor:'#ccc'},
                 {x: [], y: [], name: "Contact Area", mode: "lines", visible: false},
             {x: [], y: [], name: "Coefficient of variation", mode: "lines", visible: false}],
-            {margin: {t:1, l:50, r:1, b:50}, xaxis:{title:`Date: ${date}`}, yaxis:{title:"Peak Pressure"}},
+            {margin: {t:1, l:1, r:1, b:1}, xaxis:{title:`Date: ${date}`}, yaxis:{title:"Peak Pressure"}},
             {responsive: true, displayModeBar: false});
 
         showTimeRange('300')
@@ -192,7 +205,10 @@
     // Displays latest data within a specified timerange in seconds
     function showTimeRange(seconds) {
         index = 0; // Reset index
-        let time_range = [];let filtered_peak_pressure_index = [];let filtered_contact_area_percent = []; let filtered_coefficient_of_variation = [];
+        let time_range = [];
+        let filtered_peak_pressure_index = [];
+        let filtered_contact_area_percent = [];
+        let filtered_coefficient_of_variation = [];
         const latest_timestamp = new Date(times[times.length - 1]); // latest timestamp
 
         // For each time at the specified index, append to create the new timeframe
@@ -202,11 +218,19 @@
                 time_range.push(times[i]);
                 filtered_peak_pressure_index.push(peak_pressure_index[i]);
                 filtered_contact_area_percent.push(contact_area_percent[i]);
-                filtered_coefficient_of_variation.push(coefficient_of_variation[i]);}});
+                filtered_coefficient_of_variation.push(coefficient_of_variation[i]);
+            }
+        });
 
-        Plotly.react('graph', [{ x: time_range, y: filtered_peak_pressure_index, name: "Peak Pressure", mode: "lines" },
-            { x: time_range, y: filtered_contact_area_percent, name: "Contact Area", mode: "lines", visible: false },
-        { x: time_range, y: filtered_coefficient_of_variation, name: "Coefficient of Variation", mode: "lines", visible: false }]);
+        Plotly.react('graph', [{x: time_range, y: filtered_peak_pressure_index, name: "Peak Pressure", mode: "lines"},
+            {x: time_range, y: filtered_contact_area_percent, name: "Contact Area", mode: "lines", visible: false},
+            {
+                x: time_range,
+                y: filtered_coefficient_of_variation,
+                name: "Coefficient of Variation",
+                mode: "lines",
+                visible: false
+            }]);
 
         const last_index = filtered_peak_pressure_index.length - 1;
         if (last_index >= 0) {
