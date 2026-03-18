@@ -47,7 +47,7 @@ class UserManager(BaseUserManager):
 
 # Create your models here.
 class Address(models.Model):
-    fist_line = models.CharField(max_length=100)
+    first_line = models.CharField(max_length=100)
     second_line = models.CharField(max_length=100, blank=True)
     town = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
@@ -192,4 +192,3 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender}, to {self.recipient}, made at {self.timestamp}"
-    
