@@ -22,28 +22,35 @@
                 <div class="graph">
                     <!-- Displays pressure mat graph -->
                     <h1> Graph Data </h1>
+                    <div class="tabs">
+                        <button onclick="showPressure()">Peak Pressure</button>
+                        <button onclick="showContact()">Contact Area</button>
+                    </div>
                     <div id="graph"></div>
                 </div>
 
                 <div class="heatmap">
-                    <h1> Pressure Map</h1>
-                    <img src="https://img.freepik.com/free-vector/gradient-heat-map-background_23-2149528520.jpg?semt=ais_rp_progressive&w=740&q=80">
+                    <h1> Heatmap </h1>
+                    <div class="tabs">
+                        <button onclick="plotHeatmap()">Predicted Concerns</button>
+                    </div>
+                    <div id="heatmap"></div>
                 </div>
-            </div>
 
-            <h3> Current metrics </h3>
-            <div class="graph-metrics">
-                <div class="metric">
-                    <h4> Contact area percentage </h4>
-                </div>
-                <div class="metric">
-                    <h4> Peak pressure </h4>
-                </div>
-                <div class="metric">
-                    <h4> Extra metric </h4>
-                </div>
-                <div class="metric">
-                    <h4> Extra metric </h4>
+
+                <div class="graph-metrics">
+                    <div class="metric">
+                        <h5 id="contact-area"> Contact area percentage </h5>
+                    </div>
+                    <div class="metric">
+                        <h5 id="peak-pressure"> Peak pressure </h5>
+                    </div>
+                    <div class="metric">
+                        <h5> Extra metric </h5>
+                    </div>
+                    <div class="metric">
+                        <h5> Extra metric </h5>
+                    </div>
                 </div>
             </div>
 
@@ -72,19 +79,65 @@
     </div>
 
 <!-- Retrieve graphs x and y data -->
-{{ x|json_script:"x" }}
-{{ y|json_script:"y" }}
+{{ times|json_script:"times" }}
+{{ peak_pressure|json_script:"peak_pressure" }}
+{{ contact_area|json_script:"contact_area" }}
+{{ flat_pressure_matrix|json_script:"flat_pressure_matrix" }}
 
-<!-- Plot graph -->
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script>
+    const times = JSON.parse(document.getElementById('times').textContent);
+    const date = new Date(times[0]).toLocaleDateString();
+    const peak_pressure = JSON.parse(document.getElementById('peak_pressure').textContent);
+    const contact_area = JSON.parse(document.getElementById('contact_area').textContent);
+    const flat_pressure_matrix = JSON.parse(document.getElementById('flat_pressure_matrix').textContent);
+    const max_value = Math.max(...flat_pressure_matrix);
+
+    // Convert the flat heatmap list back to a matrix
+    function list_to_matrix(flat_pressure_matrix){
+        const pressure_matrix = []; // Empty array for matrix
+        let size = Math.sqrt(flat_pressure_matrix.length) // Defines matrix size
+
+        while(flat_pressure_matrix.length < size * size) flat_pressure_matrix.push(0); // Pad matrix with 0s
+            for(let i = 0; i < size; i++){pressure_matrix.push(flat_pressure_matrix.slice(i*size, i*size + size))}; // Fill matrix with list values
+    return pressure_matrix
+    }
+
+    // Graph plotting function
+    function plot_graph(y,metric){
+        Plotly.react('graph', [{x:times, y:y, name:metric}],
+            {margin: {t:1, l:50, r:1, b:50},
+                xaxis:{title:`Date: ${date}`, tickformat: "%H:%M", linecolor: "ccc", linewidth: 1, mirror: true},
+                yaxis:{title:metric, linecolor: "ccc", linewidth: 1, mirror: "allticks", showLine: true}},
+            {responsive: true, displayModeBar: false, staticPlot: true});
+    }
+
+    // For display the predicted regions of concern (currently just displays heatmap)
+    function plotHeatmap(pressure_matrix){
+        Plotly.newPlot('heatmap',[{ z: pressure_matrix, type:'heatmap', showscale: false}],
+            {margin: { t: 1, l: 1, r: 1, b: 1 }, xaxis: {visible:false}, yaxis:{visible: false, autorange:'reversed'},
+            linecolor: "ccc", linewidth: 1},
+            {staticPlot: true, displayModeBar: false, responsive: true});
+    }
+
+    // Plot initial graph and metrics (Peak pressure)
     window.onload = function(){
-        const x = JSON.parse(document.getElementById('x').textContent);
-        const y = JSON.parse(document.getElementById('y').textContent);
-        const trace = {x:x, y:y, name:'Pressure Map'};
-        const layout = {xaxis:{title:"Time"}, yaxis:{title:"y axis"}};
-        Plotly.newPlot('graph',[trace],layout,{responsive: false});
+        plot_graph(peak_pressure,"Peak Pressure");
+        const pressure_matrix = list_to_matrix(flat_pressure_matrix);
+        plotHeatmap(pressure_matrix);
+
+        // Display recent metrics
+        const lastPeak = peak_pressure[peak_pressure.length - 1];
+        const lastContact = contact_area[contact_area.length - 1];
+        document.getElementById("contact-area").textContent = `Contact area percentage: ${lastContact}`;
+        document.getElementById("peak-pressure").textContent = `Peak pressure: ${lastPeak}`
     };
+
+    // Switch to pressure graph
+    function showPressure(){plot_graph(peak_pressure,"Peak Pressure");}
+
+    // Switch to contact area graph
+    function showContact() {plot_graph(contact_area,"Contact Area");}
 </script>
 
 <!-- Opens and closes side panel -->
