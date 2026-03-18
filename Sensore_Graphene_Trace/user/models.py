@@ -192,6 +192,4 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender}, to {self.recipient}, made at {self.timestamp}"
-
-
-
+    
