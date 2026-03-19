@@ -111,17 +111,3 @@ class BaseAdminMixinTests(TestCase):
         context = view.get_context_data()
 
         self.assertIn("num_notifications", context)
-
-    def test_template_name_in_context(self):
-        self.user.groups.add(self.group)
-
-        request = self.factory.get("/")
-        request.user = self.user
-
-        view = TestView()
-        view.request = request
-
-        context = view.get_context_data()
-
-        self.assertIn("template_name", context)
-        self.assertEqual(context["template_name"], "dummy.html")

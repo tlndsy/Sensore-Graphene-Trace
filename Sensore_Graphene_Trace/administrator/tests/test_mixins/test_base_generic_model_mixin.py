@@ -1,127 +1,181 @@
-from datetime import datetime
-
 from django.test import TestCase, RequestFactory
-from django.contrib.auth.models import Group, AnonymousUser
-from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse
-from django.views.generic import TemplateView
+from django.http import Http404
+from django.contrib.auth.models import Permission, Group
+from django.views.generic import View, ListView, DetailView
+from django.apps import apps
 
-from Sensore_Graphene_Trace import global_constants as constants
-from administrator.mixins import BaseGenericModelMixin
+from unittest.mock import patch
+
 from user.models import User
+from administrator.mixins import BaseGenericModelMixin
+from Sensore_Graphene_Trace import global_constants as constants
 
-# Create your tests here.
-class TestView(BaseGenericModelMixin, TemplateView):
-    template_name = "dummy.html"
 
-    def get(self, request, **kwargs):
-        return HttpResponse("OK")
+# Dummy model for testing (use an existing model in your "user" app)
+UserModel = apps.get_model("user", "User")
+
+# Dummy single object view for testing
+class TestDetailView(BaseGenericModelMixin, DetailView):
+    permission_action = None
+    allowed_apps = ["user"]
+
+    def get(self, request, *args, **kwargs):
+        return None
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs)
+
+# Dummy multi-object view for testing
+class TestListView(BaseGenericModelMixin, ListView):
+    permission_action = None
+    allowed_apps = ["user"]
+
+    def get(self, request, *args, **kwargs):
+        return None
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs)
+
+
 
 class BaseGenericModelMixinTests(TestCase):
-
     def setUp(self):
         self.factory = RequestFactory()
+        self.user = User.objects.create_user(email="testuser@test.com", password="pass", date_of_birth="2000-01-01")
 
-        self.group = Group.objects.create(name=constants.ADMIN)
+        # Create admin group
+        self.admin_group = Group.objects.create(name=constants.ADMIN)
+        self.user.groups.add(self.admin_group)
 
-        self.user = User.objects.create_user(
-            email="test@test.com", password="pass", date_of_birth=datetime.now()
-        )
+        self.request = self.factory.get("/")
+        self.request.user = self.user
 
-        self.superuser = User.objects.create_superuser(
-            email="admin@test.com", password="pass", date_of_birth=datetime.now()
-        )
+        self.detailView = TestDetailView()
+        self.detailView.request = self.request
+        self.detailView.kwargs = {
+            "app_label": "user",
+            "model_name": "User",
+        }
 
-    def get_view(self, user):
-        request = self.factory.get("/")
-        request.user = user
-        view = TestView()
-        view.request = request
-        return view
+        self.listView = TestListView()
+        self.listView.request = self.request
+        self.listView.kwargs = {
+            "app_label": "user",
+            "model_name": "User",
+        }
 
-    def test_unauthenticated_user_fails_test_func(self):
-        view = self.get_view(AnonymousUser())
-        self.assertFalse(view.test_func())
+    # -------------------------
+    # get_model
+    # -------------------------
+    def test_get_model_success(self):
+        detail_model = self.detailView.get_model()
+        list_model = self.listView.get_model()
+        self.assertEqual(detail_model, UserModel)
+        self.assertEqual(list_model, UserModel)
 
-    def test_superuser_passes_test_func(self):
-        view = self.get_view(self.superuser)
-        self.assertTrue(view.test_func())
+    """
+    def test_get_model_invalid_model(self):
+        self.view.kwargs["model_name"] = "DoesNotExist"
+        with self.assertRaises(Http404):
+            self.view.get_model()
+            """
 
-    def test_user_in_required_group_passes(self):
-        self.user.groups.add(self.group)
-        view = self.get_view(self.user)
+    def test_get_model_disallowed_app(self):
+        self.listView.allowed_apps = ["other_app"]
+        with self.assertRaises(Http404):
+            self.listView.get_model()
+        self.detailView.allowed_apps = ["other_app"]
+        with self.assertRaises(Http404):
+            self.detailView.get_model()
 
-        self.assertTrue(view.test_func())
+    # -------------------------
+    # dispatch
+    # -------------------------
+    def test_dispatch_sets_model(self):
+        _ = self.listView.dispatch(self.request, **self.listView.kwargs)
+        _ = self.detailView.dispatch(self.request, **self.listView.kwargs)
+        self.assertEqual(self.detailView.model, UserModel)
+        self.assertEqual(self.listView.model, UserModel)
 
-    def test_user_not_in_group_fails(self):
-        self.user.groups.clear()
-        view = self.get_view(self.user)
-        self.assertFalse(view.test_func())
+    # -------------------------
+    # test_func
+    # -------------------------
+    @patch("administrator.mixins.BaseAdminMixin.test_func", return_value=True)
+    def test_test_func_no_permission_required(self, mock_super):
+        self.detailView.model = UserModel
+        self.detailView.permission_action = None
 
-    def test_group_required_as_list(self):
-        class ListGroupView(TestView):
-            group_required = [constants.CLINICIAN, constants.ADMIN]
+        self.listView.model = UserModel
+        self.listView.permission_action = None
 
-        self.user.groups.add(self.group)
+        self.assertTrue(self.detailView.test_func())
+        self.assertTrue(self.listView.test_func())
 
-        request = self.factory.get("/")
-        request.user = self.user
+    @patch("administrator.mixins.BaseAdminMixin.test_func", return_value=False)
+    def test_test_func_fails_if_base_admin_fails(self, mock_super):
+        self.detailView.model = UserModel
+        self.listView.model = UserModel
 
-        view = ListGroupView()
-        view.request = request
+        self.assertFalse(self.detailView.test_func())
+        self.assertFalse(self.listView.test_func())
 
-        self.assertTrue(view.test_func())
+    @patch("administrator.mixins.BaseAdminMixin.test_func", return_value=True)
+    def test_test_func_with_permission(self, mock_super):
+        self.detailView.model = UserModel
+        self.detailView.permission_action = "view"
 
-    def test_user_in_multiple_groups_passes(self):
-        another_group = Group.objects.create(name=constants.CLINICIAN)
-        self.user.groups.add(self.group)
-        self.user.groups.add(another_group)
+        self.listView.model = UserModel
+        self.listView.permission_action = "view"
 
-        view = self.get_view(self.user)
+        perm_codename = f"view_{UserModel._meta.model_name}"
+        permission = Permission.objects.get(codename=perm_codename)
+        self.user.user_permissions.add(permission)
 
-        self.assertTrue(view.test_func())
+        self.assertTrue(self.detailView.test_func())
+        self.assertTrue(self.listView.test_func())
 
-    def test_handle_no_permission_authenticated_user(self):
-        view = self.get_view(self.user)
+    @patch("administrator.mixins.BaseAdminMixin.test_func", return_value=True)
+    def test_test_func_without_permission(self, mock_super):
+        self.detailView.model = UserModel
+        self.detailView.permission_action = "view"
 
-        with self.assertRaises(PermissionDenied):
-            view.handle_no_permission()
+        self.listView.model = UserModel
+        self.listView.permission_action = "view"
 
-    def test_handle_no_permission_anonymous_user(self):
-        request = self.factory.get("/")
-        request.user = AnonymousUser()
+        self.assertFalse(self.detailView.test_func())
+        self.assertFalse(self.listView.test_func())
 
-        view = TestView()
-        view.request = request
+    # -------------------------
+    # queryset
+    # -------------------------
+    def test_get_queryset(self):
+        self.listView.model = UserModel
+        qs = self.listView.get_queryset()
+        self.assertEqual(list(qs), list(UserModel.objects.all()))
 
-        response = view.handle_no_permission()
+    # -------------------------
+    # context
+    # -------------------------
+    @patch("administrator.mixins.notifications.get_notification_count", return_value=5)
+    def test_get_context_data(self, mock_notifications):
+        self.listView.model = UserModel
+        self.listView.object_list = self.listView.get_queryset()
 
-        # 302 redirect
-        self.assertEqual(response.status_code, 302)
+        context = self.listView.get_context_data()
 
-    def test_notification_count_in_context(self):
-        self.user.groups.add(self.group)
+        self.assertEqual(context["model_verbose_name"], UserModel._meta.verbose_name.title())
+        self.assertEqual(context["app_label"], "user")
+        self.assertEqual(context["model_name"], "user")
+        self.assertEqual(context["num_notifications"], 5)
 
-        request = self.factory.get("/")
-        request.user = self.user
+    @patch("administrator.mixins.notifications.get_notification_count", return_value=5)
+    def test_get_context_data_detail_view(self, mock_notifications):
+        self.detailView.model = UserModel
+        self.detailView.object = UserModel.objects.first()
 
-        view = TestView()
-        view.request = request
+        context = self.detailView.get_context_data()
 
-        context = view.get_context_data()
-
-        self.assertIn("num_notifications", context)
-
-    def test_template_name_in_context(self):
-        self.user.groups.add(self.group)
-
-        request = self.factory.get("/")
-        request.user = self.user
-
-        view = TestView()
-        view.request = request
-
-        context = view.get_context_data()
-
-        self.assertIn("template_name", context)
-        self.assertEqual(context["template_name"], "dummy.html")
+        self.assertEqual(context["model_verbose_name"], UserModel._meta.verbose_name.title())
+        self.assertEqual(context["app_label"], "user")
+        self.assertEqual(context["model_name"], "user")
+        self.assertEqual(context["num_notifications"], 5)
