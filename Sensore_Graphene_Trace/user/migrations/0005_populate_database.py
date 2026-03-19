@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 email=email,
                 first_name=f"User{i}",
                 last_name="Test",
-                phone_number="1234567890",
+                phone_number=f"123456789{i}",
                 date_of_birth=datetime.date(1995, 1, 1),
                 address=address,
                 role="PATIENT",
