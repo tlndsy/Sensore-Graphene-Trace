@@ -73,13 +73,6 @@ class BaseGenericModelMixinTests(TestCase):
         self.assertEqual(detail_model, UserModel)
         self.assertEqual(list_model, UserModel)
 
-    """
-    def test_get_model_invalid_model(self):
-        self.view.kwargs["model_name"] = "DoesNotExist"
-        with self.assertRaises(Http404):
-            self.view.get_model()
-            """
-
     def test_get_model_disallowed_app(self):
         self.listView.allowed_apps = ["other_app"]
         with self.assertRaises(Http404):
@@ -157,7 +150,7 @@ class BaseGenericModelMixinTests(TestCase):
     # context
     # -------------------------
     @patch("administrator.mixins.notifications.get_notification_count", return_value=5)
-    def test_get_context_data(self, mock_notifications):
+    def test_get_context_data_list_view(self, mock_notifications):
         self.listView.model = UserModel
         self.listView.object_list = self.listView.get_queryset()
 
