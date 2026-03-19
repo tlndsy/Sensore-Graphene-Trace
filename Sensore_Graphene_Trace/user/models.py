@@ -1,36 +1,51 @@
 import datetime
 import uuid
 
+from django.utils import timezone
+
 import Sensore_Graphene_Trace.global_constants as constants
 
+from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth.models import Group
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin, BaseUserManager
-from django.db import models
+from django.db import models, transaction
 from django_resized import ResizedImageField
 
 
 class UserManager(BaseUserManager):
+    @transaction.atomic
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("The Email field must be set")
+        if not extra_fields.get("first_name"):
+            raise ValueError("Users must have a first name")
+        if not extra_fields.get("last_name"):
+            raise ValueError("Users must have a last name")
+        if not extra_fields.get("date_of_birth"):
+            raise ValueError("Users must have a date of birth")
+        if extra_fields.get("date_of_birth") >= datetime.date.today():
+            raise ValueError("Date of birth must be in the past")
 
-        email = self.normalize_email(email)
+        email = self.normalize_email(email).lower()
 
         user = self.model(
             email=email,
             **extra_fields,
         )
-        user.set_password(password)
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
         user.save(using=self._db)
         return user
 
+    @transaction.atomic
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
-        extra_fields.setdefault("role", "ADMIN")
-        extra_fields.setdefault("date_of_birth", datetime.date.today())
+        extra_fields["is_staff"] = True
+        extra_fields["is_superuser"] = True
+        extra_fields["is_active"] = True
+        extra_fields["role"] = self.model.Roles.ADMIN
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
@@ -51,7 +66,7 @@ class Address(models.Model):
     postal_code = models.CharField(max_length=20)
 
     def __str__(self):
-        return f"{self.fist_line}, {self.postal_code}"
+        return f"{self.first_line}, {self.postal_code}"
 
 class User(AbstractBaseUser, PermissionsMixin):
     class Roles(models.TextChoices):
@@ -64,34 +79,42 @@ class User(AbstractBaseUser, PermissionsMixin):
         MEDIUM = constants.MEDIUM_FONT_SIZE, "Medium"
         LARGE = constants.LARGE_FONT_SIZE, "Large"
 
+    class Meta:
+        ordering = ["-date_joined"]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=255)
+    phone_number = PhoneNumberField(blank=True, null=True, unique=True)
     date_of_birth = models.DateField()
 
     font_size_preference = models.IntegerField(choices=FontSize.choices, default=FontSize.MEDIUM)
-    address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
-    role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, blank=True, null=True, related_name="users")
+    role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT, db_index=True)
 
     def profile_picture_path(self, filename):
-        return f"users/{self.id}/profile_picture/{filename}"
+        return f"users/{self.pk}/profile_picture/{filename}"
 
     profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, max_length=512, default='users/default_pfp.png', blank=True)
 
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False, db_index=True)
+    is_superuser = models.BooleanField(default=False, db_index=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["first_name", "last_name", "date_of_birth"]
 
     def __str__(self):
-        return self.email
+        return f"{self.email} - ({self.get_full_name()})"
+
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
+    def get_short_name(self):
+        return self.first_name
 
 class PatientClinician(models.Model):
     Patient_ID = models.ForeignKey(User, related_name='patient', on_delete=models.CASCADE)
@@ -136,6 +159,9 @@ class ReadingEquipment(models.Model):
         return f"{self.product_info.model}, Serial Number: {self.serial_number}, Belonging To: {self.user}"
 
 class PressureMapReading(models.Model):
+    class Meta:
+        ordering = ["-timestamp"]
+
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
 
     # Remove colons to create valid filepath
@@ -162,6 +188,9 @@ class PressureMapReading(models.Model):
         return f"Reading of: {self.reading_equipment.user}, taken at {self.timestamp}"
 
 class Report(models.Model):
+    class Meta:
+        ordering = ["-pressure_map_reading__timestamp"]
+
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
 
@@ -175,6 +204,9 @@ class Conversation(models.Model):
         return self.subject
 
 class Message(models.Model):
+    class Meta:
+        ordering = ["-timestamp"]
+
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='sender')
     recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='recipient')
