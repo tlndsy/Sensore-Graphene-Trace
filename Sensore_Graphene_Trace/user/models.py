@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 import Sensore_Graphene_Trace.global_constants as constants
@@ -117,11 +118,27 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.first_name
 
 class PatientClinician(models.Model):
-    Patient_ID = models.ForeignKey(User, related_name='patient', on_delete=models.CASCADE)
-    Clinician_ID = models.ForeignKey(User, related_name='clinician', on_delete=models.CASCADE)
+    patient = models.ForeignKey(User, related_name='patient_relationships', on_delete=models.CASCADE)
+    clinician = models.ForeignKey(User, related_name='clinician_relationships', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['patient', 'clinician'], name='unique_patient_clinician')
+        ]
+
+    def clean(self):
+        if not self.patient.groups.filter(name=User.Roles.PATIENT).exists():
+            raise ValidationError("Selected patient is not a valid patient.")
+        if not self.clinician.groups.filter(name=User.Roles.PATIENT).exists():
+            raise ValidationError("Selected clinician is not a valid clinician.")
 
     def __str__(self):
         return f"Patient: {self.Patient_ID}, Clinician: {self.Clinician_ID}"
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Ensure validation is performed before saving
+        super().save(*args, **kwargs)
 
 class NotificationType(models.Model):
     type = models.CharField(max_length=25)
@@ -159,9 +176,6 @@ class ReadingEquipment(models.Model):
         return f"{self.product_info.model}, Serial Number: {self.serial_number}, Belonging To: {self.user}"
 
 class PressureMapReading(models.Model):
-    class Meta:
-        ordering = ["-timestamp"]
-
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
 
     # Remove colons to create valid filepath
@@ -175,50 +189,104 @@ class PressureMapReading(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        """
-        Calculations for new metrics go here, example:
-        if not self.peak_pressure:
-            self.peak_pressure = max(...)
-        """
-
-        super().save(*args, **kwargs)
+    class Meta:
+        ordering = ["-timestamp"]
 
     def __str__(self):
         return f"Reading of: {self.reading_equipment.user}, taken at {self.timestamp}"
 
 class Report(models.Model):
-    class Meta:
-        ordering = ["-pressure_map_reading__timestamp"]
-
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
+
+    class Meta:
+        ordering = ["-pressure_map_reading__timestamp"]
 
     def __str__(self):
         return f"Report belonging to {self.pressure_map_reading.reading_equipment.user}, made at {self.pressure_map_reading.timestamp}"
 
 class Conversation(models.Model):
     subject = models.CharField(max_length=255)
+    participants = models.ManyToManyField(User, related_name='conversations')
+    last_message = models.ForeignKey('Message', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def clean(self):
+        if self.pk:
+            participants = list(self.participants.all())
+
+            if len(participants) != 2:
+                raise ValidationError("Conversation must have exactly 2 participants.")
+
+            user1, user2 = participants
+
+            # Check PatientClinician relationship exists
+            valid = PatientClinician.objects.filter(
+                patient=user1, clinician=user2
+            ).exists() or PatientClinician.objects.filter(
+                patient=user2, clinician=user1
+            ).exists()
+
+            if not valid:
+                raise ValidationError("Participants must have a valid patient-clinician relationship.")
 
     def __str__(self):
-        return self.subject
+        return self.subject or f"Conversation {self.id}"
 
 class Message(models.Model):
-    class Meta:
-        ordering = ["-timestamp"]
-
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
-    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='sender')
-    recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='recipient')
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='received_messages')
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, blank=True, null=True)
 
     def attachment_path(self, filename):
-        return f"users/{self.sender.id}/conversation_{self.conversation.id}/sent_items/{filename}"
+        sender_id = self.sender.id if self.sender else "unknown"
+        conversation_id = self.conversation.id if self.conversation else "unknown"
+        return f"users/{sender_id}/conversation_{conversation_id}/sent_items/{filename}"
 
     attachment = models.ImageField(upload_to=attachment_path, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    read_receipt = models.BooleanField(default=False)
-    content = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+    is_read = models.BooleanField(default=False)
+    body = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+        indexes = [
+            models.Index(fields=["conversation", "-timestamp"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+
+        super().save(*args, **kwargs)
+
+        # Update conversation last_message + timestamp
+        self.conversation.last_message = self
+        self.conversation.save(update_fields=['last_message', 'updated_at'])
+
+    def clean(self):
+        if not self.conversation:
+            return
+
+        participants = self.conversation.participants.all()
+
+        # Sender must be in conversation
+        if self.sender not in participants:
+            raise ValidationError("Sender is not part of this conversation.")
+
+        # Recipient must be in conversation
+        if self.recipient not in participants:
+            raise ValidationError("Recipient is not part of this conversation.")
+
+        # Sender and recipient must be different
+        if self.sender == self.recipient:
+            raise ValidationError("Sender and recipient cannot be the same.")
 
     def __str__(self):
         return f"Message from {self.sender}, to {self.recipient}, made at {self.timestamp}"
