@@ -94,7 +94,7 @@ class UserModelAndManagerTests(TestCase):
             phone_number="123",
             date_of_birth="1990-01-01",
         )
-        self.assertEqual(user.email, "MiXeDCaSe@test.com")
+        self.assertEqual(user.email, "mixedcase@test.com")
 
     # -------------------------
     # User Model Tests

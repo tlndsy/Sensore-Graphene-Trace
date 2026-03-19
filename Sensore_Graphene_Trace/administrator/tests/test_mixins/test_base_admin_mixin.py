@@ -7,11 +7,11 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 
 from Sensore_Graphene_Trace import global_constants as constants
-from patient.mixins import BasePatientMixin
+from administrator.mixins import BaseAdminMixin
 from user.models import User
 
 # Create your tests here.
-class TestView(BasePatientMixin, TemplateView):
+class TestView(BaseAdminMixin, TemplateView):
     template_name = "dummy.html"
 
     def get(self, request, **kwargs):
@@ -22,7 +22,7 @@ class BasePatientMixinTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.group = Group.objects.create(name=constants.PATIENT)
+        self.group = Group.objects.create(name=constants.ADMIN)
 
         self.user = User.objects.create_user(
             email="test@test.com", password="pass", date_of_birth=datetime.now()
@@ -60,7 +60,7 @@ class BasePatientMixinTests(TestCase):
 
     def test_group_required_as_list(self):
         class ListGroupView(TestView):
-            group_required = [constants.PATIENT, constants.ADMIN]
+            group_required = [constants.CLINICIAN, constants.ADMIN]
 
         self.user.groups.add(self.group)
 
