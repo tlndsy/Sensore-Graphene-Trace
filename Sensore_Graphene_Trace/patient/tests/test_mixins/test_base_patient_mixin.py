@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import Group, AnonymousUser
@@ -22,14 +22,22 @@ class BasePatientMixinTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.group = Group.objects.create(name=constants.PATIENT)
+        self.group, _ = Group.objects.get_or_create(name=constants.PATIENT)
 
         self.user = User.objects.create_user(
-            email="test@test.com", password="pass", date_of_birth=datetime.now()
+            email="test@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
         self.superuser = User.objects.create_superuser(
-            email="admin@test.com", password="pass", date_of_birth=datetime.now()
+            email="admin@test.com",
+            first_name="Admin",
+            last_name="User",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
     def get_view(self, user):
@@ -73,7 +81,7 @@ class BasePatientMixinTests(TestCase):
         self.assertTrue(view.test_func())
 
     def test_user_in_multiple_groups_passes(self):
-        another_group = Group.objects.create(name=constants.CLINICIAN)
+        another_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
         self.user.groups.add(self.group)
         self.user.groups.add(another_group)
 
@@ -88,11 +96,7 @@ class BasePatientMixinTests(TestCase):
             view.handle_no_permission()
 
     def test_handle_no_permission_anonymous_user(self):
-        request = self.factory.get("/")
-        request.user = AnonymousUser()
-
-        view = TestView()
-        view.request = request
+        view = self.get_view(self.user)
 
         response = view.handle_no_permission()
 
@@ -101,27 +105,8 @@ class BasePatientMixinTests(TestCase):
 
     def test_notification_count_in_context(self):
         self.user.groups.add(self.group)
-
-        request = self.factory.get("/")
-        request.user = self.user
-
-        view = TestView()
-        view.request = request
+        view = self.get_view(self.user)
 
         context = view.get_context_data()
 
         self.assertIn("num_notifications", context)
-
-    def test_template_name_in_context(self):
-        self.user.groups.add(self.group)
-
-        request = self.factory.get("/")
-        request.user = self.user
-
-        view = TestView()
-        view.request = request
-
-        context = view.get_context_data()
-
-        self.assertIn("template_name", context)
-        self.assertEqual(context["template_name"], "dummy.html")

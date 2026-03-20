@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import Group, AnonymousUser
@@ -23,14 +23,22 @@ class GroupRequiredMixinTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.group = Group.objects.create(name=constants.CLINICIAN)
+        self.group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
 
         self.user = User.objects.create_user(
-            email="test@test.com", password="pass", date_of_birth=datetime.now()
+            email="test@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
         self.superuser = User.objects.create_superuser(
-            email="admin@test.com", password="pass", date_of_birth=datetime.now()
+            email="admin@test.com",
+            first_name="Admin",
+            last_name="User",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
     def get_view(self, user):

@@ -41,8 +41,8 @@ class UserManager(BaseUserManager):
 
     @transaction.atomic
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields["is_staff"] = True
-        extra_fields["is_superuser"] = True
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
         extra_fields["is_active"] = True
         extra_fields["role"] = self.model.Roles.ADMIN
 

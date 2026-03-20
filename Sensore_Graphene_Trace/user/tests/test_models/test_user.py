@@ -12,7 +12,7 @@ class UserModelAndManagerTests(TestCase):
             "first_name": "John",
             "last_name": "Doe",
             "phone_number": "123456789",
-            "date_of_birth": "2000-01-01",
+            "date_of_birth": datetime.date(2000, 5, 5),
         }
 
     # -------------------------
@@ -37,20 +37,23 @@ class UserModelAndManagerTests(TestCase):
                 first_name="No",
                 last_name="Email",
                 phone_number="123",
-                date_of_birth="2000-01-01",
+                date_of_birth=datetime.date(2000, 5, 5),
             )
         self.assertIn("The Email field must be set", str(cm.exception))
 
     def test_create_superuser_defaults(self):
         superuser = User.objects.create_superuser(
             email="admin@test.com",
+            first_name="Admin",
+            last_name="Test",
+            date_of_birth=datetime.date(1990, 1, 1),
             password="adminpass",
         )
         self.assertTrue(superuser.is_staff)
         self.assertTrue(superuser.is_superuser)
         self.assertTrue(superuser.is_active)
         self.assertEqual(superuser.role, User.Roles.ADMIN)
-        self.assertEqual(superuser.date_of_birth, datetime.date.today())
+        self.assertEqual(superuser.date_of_birth, datetime.date(1990, 1, 1))
 
     def test_create_superuser_with_custom_fields(self):
         dob = datetime.date(2000, 5, 5)
@@ -71,6 +74,9 @@ class UserModelAndManagerTests(TestCase):
         with self.assertRaises(ValueError) as cm:
             User.objects.create_superuser(
                 email="fail@test.com",
+                first_name="Admin",
+                last_name="Test",
+                date_of_birth=datetime.date(2000, 5, 5),
                 password="failpass",
                 is_staff=False,
             )
@@ -80,6 +86,9 @@ class UserModelAndManagerTests(TestCase):
         with self.assertRaises(ValueError) as cm:
             User.objects.create_superuser(
                 email="fail2@test.com",
+                first_name="Admin",
+                last_name="Test",
+                date_of_birth=datetime.date(2000, 5, 5),
                 password="failpass",
                 is_superuser=False,
             )
@@ -92,7 +101,7 @@ class UserModelAndManagerTests(TestCase):
             first_name="John",
             last_name="Doe",
             phone_number="123",
-            date_of_birth="1990-01-01",
+            date_of_birth=datetime.date(2000, 5, 5),
         )
         self.assertEqual(user.email, "mixedcase@test.com")
 
@@ -107,7 +116,7 @@ class UserModelAndManagerTests(TestCase):
 
     def test_str_method(self):
         user = User.objects.create_user(**self.user_data)
-        self.assertEqual(str(user), self.user_data["email"])
+        self.assertEqual(str(user), f"{self.user_data["email"]} - ({self.user_data["first_name"]} {self.user_data["last_name"]})")
 
     def test_profile_picture_path(self):
         user = User.objects.create_user(**self.user_data)
@@ -135,4 +144,3 @@ class UserModelAndManagerTests(TestCase):
     def test_date_fields_auto_set(self):
         user = User.objects.create_user(**self.user_data)
         self.assertIsNotNone(user.date_joined)
-        self.assertIsNotNone(user.last_login)

@@ -21,12 +21,19 @@ class PatientHomeViewTests(TestCase):
         self.admin_group = Group.objects.create(name=constants.ADMIN)
 
         self.user = User.objects.create_user(
-            email="user@test.com", password="pass", date_of_birth=datetime.now()
+            email="user@test.com",
+            first_name="Test",
+            last_name="User",
+            password="pass",
+            date_of_birth=datetime.now()
         )
         self.user.groups.clear()
 
         self.patient_user = User.objects.create_user(
-            email="patient_user@test.com", password="pass", date_of_birth=datetime.now(), role=constants.PATIENT
+            email="patient_user@test.com",
+            password="pass",
+            date_of_birth=datetime.now(),
+            role=constants.PATIENT
         )
 
         self.clinician_user = User.objects.create_user(

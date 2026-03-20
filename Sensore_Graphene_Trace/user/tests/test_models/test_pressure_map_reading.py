@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from django.test import TestCase
 from django.db import IntegrityError
@@ -10,7 +10,11 @@ class UserModelAndManagerTests(TestCase):
     def setUp(self):
 
         self.user = User.objects.create_user(
-            email="user@test.com", password="pass", date_of_birth=datetime.now()
+            email="user@test.com",
+            first_name="Test",
+            last_name="User",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
         self.product_info = ProductInfo.objects.create(

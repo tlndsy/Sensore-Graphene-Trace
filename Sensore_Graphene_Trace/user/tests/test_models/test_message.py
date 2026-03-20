@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from django.test import TestCase
 from django.db import IntegrityError
@@ -10,25 +10,35 @@ class UserModelAndManagerTests(TestCase):
     def setUp(self):
 
         self.test_user_1 = User.objects.create_user(
-            email="user@test.com", password="pass", date_of_birth=datetime.now()
+            email="user@test.com",
+            first_name="Test",
+            last_name="User1",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
         self.test_user_2 = User.objects.create_user(
-            email="user2@test.com", password="pass", date_of_birth=datetime.now()
+            email="user2@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
         self.conversation = Conversation.objects.create(subject="Test Conversation")
+        self.conversation.participants.add(self.test_user_1)
+        self.conversation.participants.add(self.test_user_2)
 
         self.test_message_1_data = {
             "conversation": self.conversation,
             "sender": self.test_user_1,
             "recipient": self.test_user_2,
-            "content": "Hello, this is a test message."
+            "body": "Hello, this is a test message."
         }
         self.test_message_2_data = {
             "conversation": self.conversation,
             "sender": self.test_user_2,
             "recipient": self.test_user_1,
-            "content": "Hello, this is a test reply."
+            "body": "Hello, this is a test reply."
         }
 
     def test_create_message(self):
@@ -36,24 +46,24 @@ class UserModelAndManagerTests(TestCase):
         self.assertEqual(message.conversation, self.conversation)
         self.assertEqual(message.sender, self.test_user_1)
         self.assertEqual(message.recipient, self.test_user_2)
-        self.assertEqual(message.content, "Hello, this is a test message.")
+        self.assertEqual(message.body, "Hello, this is a test message.")
         self.assertIsNotNone(message.timestamp)
 
     def test_message_conversation_relationship(self):
         message1 = Message.objects.create(**self.test_message_1_data)
         message2 = Message.objects.create(**self.test_message_2_data)
 
-        self.assertIn(message1, self.conversation.message_set.all())
-        self.assertIn(message2, self.conversation.message_set.all())
+        self.assertIn(message1, self.conversation.messages.all())
+        self.assertIn(message2, self.conversation.messages.all())
 
     def test_message_sender_recipient_relationship(self):
         message1 = Message.objects.create(**self.test_message_1_data)
         message2 = Message.objects.create(**self.test_message_2_data)
 
-        self.assertIn(message1, self.test_user_1.sender.all())
-        self.assertIn(message2, self.test_user_2.sender.all())
-        self.assertIn(message1, self.test_user_2.recipient.all())
-        self.assertIn(message2, self.test_user_1.recipient.all())
+        self.assertIn(message1, self.test_user_1.sent_messages.all())
+        self.assertIn(message2, self.test_user_2.sent_messages.all())
+        self.assertIn(message1, self.test_user_2.received_messages.all())
+        self.assertIn(message2, self.test_user_1.received_messages.all())
 
     def test_message_timestamp_auto_now_add(self):
         message = Message.objects.create(**self.test_message_1_data)
