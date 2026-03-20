@@ -20,6 +20,7 @@ class Migration(migrations.Migration):
         ProductInfo = apps.get_model("user", "ProductInfo")
         ReadingEquipment = apps.get_model("user", "ReadingEquipment")
         PressureMapReading = apps.get_model("user", "PressureMapReading")
+        Group = apps.get_model('auth', 'Group')
 
         users = []
         for i in range(10):
@@ -48,6 +49,8 @@ class Migration(migrations.Migration):
                 is_superuser=False,
                 password=make_password("password123"),
             )
+            group, _ = Group.objects.get_or_create(name=user.role)
+            user.groups.add(group)
             users.append(user)
 
         product_info = ProductInfo.objects.create(
@@ -112,6 +115,8 @@ class Migration(migrations.Migration):
                 is_superuser=False,
                 password=make_password("password123"),
             )
+            group, _ = Group.objects.get_or_create(name=user.role)
+            user.groups.add(group)
             users.append(user)
 
             patient_clinician = PatientClinician.objects.create(
