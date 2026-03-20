@@ -8,35 +8,36 @@ from django.core.files import File
 from django.contrib.auth.hashers import make_password
 import os
 
-
 class Migration(migrations.Migration):
 
     def populate_database(apps, schema_editor):
         User = apps.get_model("user", "User")
         Address = apps.get_model("user", "Address")
+        PatientClinician = apps.get_model("user", "PatientClinician")
         ProductInfo = apps.get_model("user", "ProductInfo")
         ReadingEquipment = apps.get_model("user", "ReadingEquipment")
         PressureMapReading = apps.get_model("user", "PressureMapReading")
+        Group = apps.get_model('auth', 'Group')
 
         users = []
         for i in range(10):
-            email = f"user{i}@example.com"
+            email = f"patient_user{i}@example.com"
 
             if User.objects.filter(email=email).exists():
                 continue
 
             address = Address.objects.create(
-                fist_line=f"123 Test Street {i}",
+                first_line=f"123 Test Street {i}",
                 second_line="",
-                town="Testville",
+                town="Patientville",
                 postal_code=f"TEST{i}123"
             )
 
             user = User.objects.create(
                 email=email,
-                first_name=f"User{i}",
-                last_name="Test",
-                phone_number="1234567890",
+                first_name=f"PatientUser{i}",
+                last_name="TestUser",
+                phone_number=f"123456789{i}",
                 date_of_birth=datetime.date(1995, 1, 1),
                 address=address,
                 role="PATIENT",
@@ -45,6 +46,8 @@ class Migration(migrations.Migration):
                 is_superuser=False,
                 password=make_password("password123"),
             )
+            group, _ = Group.objects.get_or_create(name=user.role)
+            user.groups.add(group)
             users.append(user)
 
         product_info = ProductInfo.objects.create(
@@ -83,8 +86,43 @@ class Migration(migrations.Migration):
 
             reading.save()
 
+        for i in range(10):
+            email = f"clinician_user{i}@example.com"
+
+            if User.objects.filter(email=email).exists():
+                continue
+
+            address = Address.objects.create(
+                first_line=f"123 Test Street {i}",
+                second_line="",
+                town="Clinicianville",
+                postal_code=f"TEST{i}123"
+            )
+
+            user = User.objects.create(
+                email=email,
+                first_name=f"ClinicianUser{i}",
+                last_name="TestUser",
+                phone_number=f"{i}2345678{i}0",
+                date_of_birth=datetime.date(1995, 1, 1),
+                address=address,
+                role="CLINICIAN",
+                is_active=True,
+                is_staff=False,
+                is_superuser=False,
+                password=make_password("password123"),
+            )
+            group, _ = Group.objects.get_or_create(name=user.role)
+            user.groups.add(group)
+            users.append(user)
+
+            patient_clinician = PatientClinician.objects.create(
+                patient=users[i],
+                clinician=users[i + 10]
+            )
+
     dependencies = [
-        ('user', '0004_alter_pressuremapreading_metrics_and_more'),
+        ('user', '0006_alter_conversation_options_and_more'),
     ]
 
     operations = [

@@ -1,38 +1,50 @@
 import datetime
 import uuid
 
+from django.core.exceptions import ValidationError
 from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
+from django.contrib.auth.models import Group, PermissionsMixin, BaseUserManager
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.db import models, transaction
+from django_resized import ResizedImageField
 
 import Sensore_Graphene_Trace.global_constants as constants
 
-from django.contrib.auth.models import Group
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin, BaseUserManager
-from django.db import models
-from django_resized import ResizedImageField
-
 
 class UserManager(BaseUserManager):
+    @transaction.atomic
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("The Email field must be set")
+        if not extra_fields.get("first_name"):
+            raise ValueError("Users must have a first name")
+        if not extra_fields.get("last_name"):
+            raise ValueError("Users must have a last name")
+        if not extra_fields.get("date_of_birth"):
+            raise ValueError("Users must have a date of birth")
+        if extra_fields.get("date_of_birth") >= datetime.date.today():
+            raise ValueError("Date of birth must be in the past")
 
-        email = self.normalize_email(email)
+        email = self.normalize_email(email).lower()
 
         user = self.model(
             email=email,
             **extra_fields,
         )
-        user.set_password(password)
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
         user.save(using=self._db)
         return user
 
+    @transaction.atomic
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
-        extra_fields.setdefault("role", "ADMIN")
-        extra_fields.setdefault("date_of_birth", datetime.date.today())
+        extra_fields["is_staff"] = True
+        extra_fields["is_superuser"] = True
+        extra_fields["is_active"] = True
+        extra_fields["role"] = self.model.Roles.ADMIN
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
@@ -53,7 +65,7 @@ class Address(models.Model):
     postal_code = models.CharField(max_length=20)
 
     def __str__(self):
-        return f"{self.fist_line}, {self.postal_code}"
+        return f"{self.first_line}, {self.postal_code}"
 
 class User(AbstractBaseUser, PermissionsMixin):
     class Roles(models.TextChoices):
@@ -66,41 +78,65 @@ class User(AbstractBaseUser, PermissionsMixin):
         MEDIUM = constants.MEDIUM_FONT_SIZE, "Medium"
         LARGE = constants.LARGE_FONT_SIZE, "Large"
 
+    class Meta:
+        ordering = ["-date_joined"]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=255)
+    phone_number = PhoneNumberField(blank=True, null=True, unique=True)
     date_of_birth = models.DateField()
 
     font_size_preference = models.IntegerField(choices=FontSize.choices, default=FontSize.MEDIUM)
-    address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
-    role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, blank=True, null=True, related_name="users")
+    role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT, db_index=True)
 
     def profile_picture_path(self, filename):
-        return f"users/{self.id}/profile_picture/{filename}"
+        return f"users/{self.pk}/profile_picture/{filename}"
 
     profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, max_length=512, default='users/default_pfp.png', blank=True)
 
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False, db_index=True)
+    is_superuser = models.BooleanField(default=False, db_index=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["first_name", "last_name", "date_of_birth"]
 
     def __str__(self):
-        return self.email
+        return f"{self.email} - ({self.get_full_name()})"
+
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
+    def get_short_name(self):
+        return self.first_name
 
 class PatientClinician(models.Model):
-    Patient_ID = models.ForeignKey(User, related_name='patient', on_delete=models.CASCADE)
-    Clinician_ID = models.ForeignKey(User, related_name='clinician', on_delete=models.CASCADE)
+    patient = models.ForeignKey(User, related_name='patient_relationships', on_delete=models.CASCADE)
+    clinician = models.ForeignKey(User, related_name='clinician_relationships', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['patient', 'clinician'], name='unique_patient_clinician')
+        ]
+
+    def clean(self):
+        if not self.patient.groups.filter(name=User.Roles.PATIENT).exists():
+            raise ValidationError("Selected patient is not a valid patient.")
+        if not self.clinician.groups.filter(name=User.Roles.PATIENT).exists():
+            raise ValidationError("Selected clinician is not a valid clinician.")
 
     def __str__(self):
-        return f"Patient: {self.Patient_ID}, Clinician: {self.Clinician_ID}"
+        return f"Patient: {self.patient}, Clinician: {self.clinician}"
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Ensure validation is performed before saving
+        super().save(*args, **kwargs)
 
 class NotificationType(models.Model):
     type = models.CharField(max_length=25)
@@ -151,14 +187,8 @@ class PressureMapReading(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        """
-        Calculations for new metrics go here, example:
-        if not self.peak_pressure:
-            self.peak_pressure = max(...)
-        """
-
-        super().save(*args, **kwargs)
+    class Meta:
+        ordering = ["-timestamp"]
 
     def __str__(self):
         return f"Reading of: {self.reading_equipment.user}, taken at {self.timestamp}"
@@ -167,28 +197,94 @@ class Report(models.Model):
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
 
+    class Meta:
+        ordering = ["-pressure_map_reading__timestamp"]
+
     def __str__(self):
         return f"Report belonging to {self.pressure_map_reading.reading_equipment.user}, made at {self.pressure_map_reading.timestamp}"
 
 class Conversation(models.Model):
     subject = models.CharField(max_length=255)
+    participants = models.ManyToManyField(User, related_name='conversations')
+    last_message = models.ForeignKey('Message', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def clean(self):
+        if self.pk:
+            participants = list(self.participants.all())
+
+            if len(participants) != 2:
+                raise ValidationError("Conversation must have exactly 2 participants.")
+
+            user1, user2 = participants
+
+            # Check PatientClinician relationship exists
+            valid = PatientClinician.objects.filter(
+                patient=user1, clinician=user2
+            ).exists() or PatientClinician.objects.filter(
+                patient=user2, clinician=user1
+            ).exists()
+
+            if not valid:
+                raise ValidationError("Participants must have a valid patient-clinician relationship.")
 
     def __str__(self):
-        return self.subject
+        return self.subject or f"Conversation {self.id}"
 
 class Message(models.Model):
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
-    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='sender')
-    recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='recipient')
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='received_messages')
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, blank=True, null=True)
 
     def attachment_path(self, filename):
-        return f"users/{self.sender.id}/conversation_{self.conversation.id}/sent_items/{filename}"
+        sender_id = self.sender.id if self.sender else "unknown"
+        conversation_id = self.conversation.id if self.conversation else "unknown"
+        return f"users/{sender_id}/conversation_{conversation_id}/sent_items/{filename}"
 
     attachment = models.ImageField(upload_to=attachment_path, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    read_receipt = models.BooleanField(default=False)
-    content = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+    is_read = models.BooleanField(default=False)
+    body = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+        indexes = [
+            models.Index(fields=["conversation", "-timestamp"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+
+        super().save(*args, **kwargs)
+
+        # Update conversation last_message + timestamp
+        self.conversation.last_message = self
+        self.conversation.save(update_fields=['last_message', 'updated_at'])
+
+    def clean(self):
+        if not self.conversation:
+            return
+
+        participants = self.conversation.participants.all()
+
+        # Sender must be in conversation
+        if self.sender not in participants:
+            raise ValidationError("Sender is not part of this conversation.")
+
+        # Recipient must be in conversation
+        if self.recipient not in participants:
+            raise ValidationError("Recipient is not part of this conversation.")
+
+        # Sender and recipient must be different
+        if self.sender == self.recipient:
+            raise ValidationError("Sender and recipient cannot be the same.")
 
     def __str__(self):
         return f"Message from {self.sender}, to {self.recipient}, made at {self.timestamp}"
