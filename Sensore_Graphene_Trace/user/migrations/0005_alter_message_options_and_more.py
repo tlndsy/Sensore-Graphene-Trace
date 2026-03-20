@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0005_populate_database'),
+        ('user', '0004_alter_pressuremapreading_metrics_and_more'),
     ]
 
     operations = [

@@ -134,7 +134,7 @@ class PatientClinician(models.Model):
             raise ValidationError("Selected clinician is not a valid clinician.")
 
     def __str__(self):
-        return f"Patient: {self.Patient_ID}, Clinician: {self.Clinician_ID}"
+        return f"Patient: {self.patient}, Clinician: {self.clinician}"
 
     def save(self, *args, **kwargs):
         self.full_clean()  # Ensure validation is performed before saving
