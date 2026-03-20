@@ -3,15 +3,13 @@ import uuid
 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-
-import Sensore_Graphene_Trace.global_constants as constants
-
 from phonenumber_field.modelfields import PhoneNumberField
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, PermissionsMixin, BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin, BaseUserManager
 from django.db import models, transaction
 from django_resized import ResizedImageField
+
+import Sensore_Graphene_Trace.global_constants as constants
 
 
 class UserManager(BaseUserManager):
@@ -290,6 +288,3 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender}, to {self.recipient}, made at {self.timestamp}"
-
-
-
