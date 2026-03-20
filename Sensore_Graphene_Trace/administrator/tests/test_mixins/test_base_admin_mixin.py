@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import Group, AnonymousUser
@@ -22,14 +22,22 @@ class BaseAdminMixinTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.group = Group.objects.create(name=constants.ADMIN)
+        self.group, _ = Group.objects.get_or_create(name=constants.ADMIN)
 
         self.user = User.objects.create_user(
-            email="test@test.com", password="pass", date_of_birth=datetime.now()
+            email="test@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
         self.superuser = User.objects.create_superuser(
-            email="admin@test.com", password="pass", date_of_birth=datetime.now()
+            email="admin@test.com",
+            first_name="Admin",
+            last_name="User",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
     def get_view(self, user):
@@ -73,7 +81,7 @@ class BaseAdminMixinTests(TestCase):
         self.assertTrue(view.test_func())
 
     def test_user_in_multiple_groups_passes(self):
-        another_group = Group.objects.create(name=constants.CLINICIAN)
+        another_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
         self.user.groups.add(self.group)
         self.user.groups.add(another_group)
 
@@ -88,25 +96,18 @@ class BaseAdminMixinTests(TestCase):
             view.handle_no_permission()
 
     def test_handle_no_permission_anonymous_user(self):
-        request = self.factory.get("/")
-        request.user = AnonymousUser()
-
-        view = TestView()
-        view.request = request
+        view = self.get_view(AnonymousUser())
 
         response = view.handle_no_permission()
 
         # 302 redirect
         self.assertEqual(response.status_code, 302)
 
+
+
     def test_notification_count_in_context(self):
         self.user.groups.add(self.group)
-
-        request = self.factory.get("/")
-        request.user = self.user
-
-        view = TestView()
-        view.request = request
+        view = self.get_view(self.user)
 
         context = view.get_context_data()
 

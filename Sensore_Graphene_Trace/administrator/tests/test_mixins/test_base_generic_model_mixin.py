@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase, RequestFactory
 from django.http import Http404
 from django.contrib.auth.models import Permission, Group
@@ -41,10 +43,17 @@ class TestListView(BaseGenericModelMixin, ListView):
 class BaseGenericModelMixinTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create_user(email="testuser@test.com", password="pass", date_of_birth="2000-01-01")
+
+        self.user = User.objects.create_user(
+            email="test@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
+        )
 
         # Create admin group
-        self.admin_group = Group.objects.create(name=constants.ADMIN)
+        self.admin_group, _ = Group.objects.get_or_create(name=constants.ADMIN)
         self.user.groups.add(self.admin_group)
 
         self.request = self.factory.get("/")

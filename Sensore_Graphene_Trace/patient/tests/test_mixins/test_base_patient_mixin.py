@@ -96,7 +96,7 @@ class BasePatientMixinTests(TestCase):
             view.handle_no_permission()
 
     def test_handle_no_permission_anonymous_user(self):
-        view = self.get_view(self.user)
+        view = self.get_view(AnonymousUser())
 
         response = view.handle_no_permission()
 

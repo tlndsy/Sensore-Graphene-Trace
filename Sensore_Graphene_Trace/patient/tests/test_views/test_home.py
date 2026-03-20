@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from django.test import TestCase, Client
 from django.contrib.auth.models import Group
@@ -16,42 +16,62 @@ class PatientHomeViewTests(TestCase):
         self.client = Client()
         self.url = reverse("user:patient:home")
 
-        self.patient_group = Group.objects.create(name=constants.PATIENT)
-        self.clinician_group = Group.objects.create(name=constants.CLINICIAN)
-        self.admin_group = Group.objects.create(name=constants.ADMIN)
+        self.patient_group, _ = Group.objects.get_or_create(name=constants.PATIENT)
+        self.clinician_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
+        self.admin_group, _ = Group.objects.get_or_create(name=constants.ADMIN)
 
         self.user = User.objects.create_user(
             email="user@test.com",
             first_name="Test",
             last_name="User",
             password="pass",
-            date_of_birth=datetime.now()
+            date_of_birth=datetime.date(2000, 5, 5)
         )
         self.user.groups.clear()
 
         self.patient_user = User.objects.create_user(
             email="patient_user@test.com",
+            first_name="Test",
+            last_name="Patient",
             password="pass",
-            date_of_birth=datetime.now(),
+            date_of_birth=datetime.date(2000, 5, 5),
             role=constants.PATIENT
         )
 
         self.clinician_user = User.objects.create_user(
-            email="clinician_user@test.com", password="pass", date_of_birth=datetime.now(), role=constants.CLINICIAN
+            email="clinician_user@test.com",
+            first_name="Test",
+            last_name="Clinician",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5),
+            role=constants.CLINICIAN
         )
 
         self.multi_group_user = User.objects.create_user(
-            email="multi_group_user@test.com", password="pass", date_of_birth=datetime.now()
+            email="multi_group_user@test.com",
+            first_name="Test",
+            last_name="Multi",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
         self.multi_group_user.groups.add(self.patient_group)
         self.multi_group_user.groups.add(self.clinician_group)
 
         self.admin_user = User.objects.create_user(
-            email="admin_user@test.com", password="pass", date_of_birth=datetime.now(), role=constants.ADMIN
+            email="admin_user@test.com",
+            first_name="Test",
+            last_name="Admin",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5),
+            role=constants.ADMIN
         )
 
         self.superuser = User.objects.create_superuser(
-            email="superuser@test.com", password="pass", date_of_birth=datetime.now()
+            email="superuser@test.com",
+            first_name="Test",
+            last_name="Superuser",
+            password="pass",
+            date_of_birth=datetime.date(2000, 5, 5)
         )
 
     def test_requires_login(self):
