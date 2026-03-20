@@ -8,9 +8,6 @@ from django.core.files import File
 from django.contrib.auth.hashers import make_password
 import os
 
-from user.models import PatientClinician
-
-
 class Migration(migrations.Migration):
 
     def populate_database(apps, schema_editor):
