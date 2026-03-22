@@ -42,10 +42,18 @@
 
                 <div class="heatmap">
                     <h1> Heatmap </h1>
-                    <div class="tabs">
-                        <button onclick="plotHeatmap()">Predicted Concerns</button>
+                    <div class="heatmap-content">
+                        <div class="heatmap-plot">
+                            <div class="tabs">
+                                <button onclick="plotHeatmap()">Predicted Concerns</button>
+                            </div>
+                            <div id="heatmap"></div>
+                        </div>
+
+                        <div class="heatmap-metrics">
+
+                        </div>
                     </div>
-                    <div id="heatmap"></div>
                 </div>
             </div>
         </div>
@@ -57,6 +65,7 @@
                 <form method='post' class="menu-options">
                     {% csrf_token %}
                     <button type="submit"> Home </button>
+                    <button type="submit"> View Reports </button>
                     <button type="submit"> Notifications </button>
                     <button type="submit"> Support </button>
                     <button type="submit"> Logout </button>
