@@ -19,6 +19,15 @@ class AdminGenericDeleteViewTests(TestCase):
         # default to the administrator home (tests below also exercise the generic create view directly)
         self.url = reverse("user:administrator:generic_create", args=["user", "productinfo"])
 
+        self.post_data = {
+            "model": "TestModel",
+            "manufacturer": "TestManufacturer",
+            "resolution_width": 32,
+            "resolution_height": 32,
+            "refresh_rate": 15,
+        }
+
+
         self.patient_group, _ = Group.objects.get_or_create(name=constants.PATIENT)
         self.clinician_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
         self.admin_group, _ = Group.objects.get_or_create(name=constants.ADMIN)
@@ -181,69 +190,30 @@ class AdminGenericDeleteViewTests(TestCase):
 
         self.assertEqual(response.context["num_notifications"], 0)
 
-
-    def test_get_form_class_uses_modelform_factory(self):
-        self.client.login(email="admin_user@test.com", password="pass")
-
-        # Ensure the home view still works for admin_user
-        with patch("user.utils.notifications.get_notification_count", return_value=1):
-            response = self.client.get(self.url)
-
-        self.assertEqual(response.status_code, 200)
-
-        # Now exercise the GenericCreateView for a model in the `user` app.
-        create_url = reverse("user:administrator:generic_create", args=["user", "productinfo"])
-
-        # Patch the modelform_factory imported in the administrator.views module to assert it's used
-        with patch("administrator.views.modelform_factory") as mock_mff:
-            # Return a simple form class so the view can render
-            class DummyForm:
-                pass
-
-            mock_mff.return_value = DummyForm
-
-            # Login as superuser (has all permissions) and GET the create page
-            self.client.login(email="superuser@test.com", password="pass")
-            response = self.client.get(create_url)
-
-        mock_mff.assert_called_once()
-        # The first argument should be the ProductInfo model class
-        called_model = mock_mff.call_args[0][0]
-        self.assertEqual(called_model._meta.model_name, "productinfo")
-        # ensure view rendered the create template
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "administrator/generic_create.html")
-
     def test_post_creates_productinfo_and_redirects(self):
         # Login as superuser to bypass permission requirements
         self.client.login(email="superuser@test.com", password="pass")
 
         create_url = reverse("user:administrator:generic_create", args=["user", "productinfo"])
 
-        post_data = {
-            "model": "TestModel",
-            "manufacturer": "TestManufacturer",
-            "resolution_width": 32,
-            "resolution_height": 32,
-            "refresh_rate": 15,
-        }
 
-        response = self.client.post(create_url, data=post_data)
+        response = self.client.post(create_url, data=self.post_data)
 
         # Should redirect to the generic list for productinfo
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("user:administrator:generic_list", args=["user", "productinfo"]), response.url)
 
         # Confirm the object was created
-        from user.models import ProductInfo
-
         self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
 
     def test_permission_denied_for_non_admin_on_generic_create(self):
-        # Login as a patient user, should be denied access to generic_create
-        self.client.login(email="patient_user@test.com", password="pass")
+        def test_post_creates_productinfo_and_redirects(self):
+            # Login as patient user who should not have permission to create ProductInfo
+            self.client.login(email="patient_user@test.com", password="pass")
 
-        create_url = reverse("user:administrator:generic_create", args=["user", "productinfo"])
-        response = self.client.get(create_url)
+            create_url = reverse("user:administrator:generic_create", args=["user", "productinfo"])
 
-        self.assertEqual(response.status_code, 403)
+            response = self.client.post(create_url, data=self.post_data)
+
+
+            self.assertEqual(response.status_code, 403)

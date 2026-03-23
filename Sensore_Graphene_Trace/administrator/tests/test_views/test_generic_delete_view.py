@@ -1,20 +1,29 @@
 import datetime
 
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, Client
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.urls import reverse
 
 from unittest.mock import patch
 
 from Sensore_Graphene_Trace import global_constants as constants
-from user.models import User
+from user.models import User, ProductInfo
 
 # Create your tests here.
 class AdminGenericDeleteViewTests(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.url = reverse("user:administrator:generic_delete")
+        product_info = ProductInfo.objects.create(
+            model="TestModel",
+            manufacturer="TestManufacturer",
+            resolution_width=32,
+            resolution_height=32,
+            refresh_rate=15,
+            )
+
+        self.url = reverse("user:administrator:generic_delete", args=["user", "productinfo", product_info.id])
 
         self.patient_group, _ = Group.objects.get_or_create(name=constants.PATIENT)
         self.clinician_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
@@ -75,6 +84,12 @@ class AdminGenericDeleteViewTests(TestCase):
             date_of_birth=datetime.date(2000, 5, 5),
             role=constants.ADMIN
         )
+        content_type = ContentType.objects.get_for_model(ProductInfo)
+        permission = Permission.objects.get(
+            codename="delete_productinfo",
+            content_type=content_type,
+        )
+        self.admin_group.permissions.add(permission)
 
         self.superuser = User.objects.create_superuser(
             email="superuser@test.com",
@@ -103,7 +118,7 @@ class AdminGenericDeleteViewTests(TestCase):
             response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "administrator/administrator_home.html")
+        self.assertTemplateUsed(response, "administrator/generic_delete.html")
         self.assertTemplateUsed(response, "administrator_layout.html")
         self.assertEqual(response.context["num_notifications"], 3)
 
@@ -171,3 +186,47 @@ class AdminGenericDeleteViewTests(TestCase):
             response = self.client.get(self.url)
 
         self.assertEqual(response.context["num_notifications"], 0)
+
+    def test_post_deletes_product_info_and_redirects(self):
+        # Check model exists before post
+        self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+        self.client.login(email="superuser@test.com", password="pass")
+
+        response = self.client.post(self.url)
+
+        # Should redirect to the generic list for productinfo
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("user:administrator:generic_list", args=["user", "productinfo"]), response.url)
+
+        # Check model is deleted after post
+        self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_only_deletes_specified_product_info(self):
+        # Create another ProductInfo to ensure only the specified one is deleted
+        other_product_info = ProductInfo.objects.create(
+            model="OtherModel",
+            manufacturer="OtherManufacturer",
+            resolution_width=64,
+            resolution_height=64,
+            refresh_rate=30,
+        )
+        # Check model exists before post
+        self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+
+        self.client.login(email="superuser@test.com", password="pass")
+
+        response = self.client.post(self.url)
+
+        # Check testModel is deleted  and the otherModel still exists after post
+        self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+        self.assertTrue(ProductInfo.objects.filter(model="OtherModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_forbidden_for_patient_user(self):
+        self.client.login(email="patient_user@test.com", password="pass")
+
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
