@@ -18,6 +18,10 @@ class Migration(migrations.Migration):
         ReadingEquipment = apps.get_model("user", "ReadingEquipment")
         PressureMapReading = apps.get_model("user", "PressureMapReading")
         Group = apps.get_model('auth', 'Group')
+        Permission = apps.get_model('auth', 'Permission')
+
+        group, _ = Group.objects.get_or_create(name="ADMIN")
+        group.permissions.set(Permission.objects.all())
 
         users = []
         for i in range(10):
