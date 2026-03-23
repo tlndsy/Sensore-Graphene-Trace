@@ -131,7 +131,7 @@
     }
 
     function initChat() {
-        fetch("{% url 'get_conversation' %}")
+        fetch("/user/conversation/")
             .then(r => r.json())
             .then(data => {
                 if (data.error) {
@@ -147,7 +147,7 @@
 
     function loadMessages() {
         if (!conversationId) return;
-        fetch(`/patient/messages/${conversationId}/`)
+        fetch(`/user/messages/${conversationId}/`)
             .then(r => r.json())
             .then(data => {
                 const box = document.getElementById('chat-messages');
@@ -177,7 +177,7 @@
         const content = input.value.trim();
         if (!content || !conversationId) return;
 
-        fetch("{% url 'send_message' %}", {
+        fetch("/user/send/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -194,7 +194,7 @@
 
     // Check unread messages every 30s
     function checkUnread() {
-        fetch("{% url 'unread_count' %}")
+        fetch("/user/unread/")
             .then(r => r.json())
             .then(data => {
                 const badge = document.getElementById('unread-badge');

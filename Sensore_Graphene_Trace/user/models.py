@@ -8,6 +8,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin, BaseUserManager
 from django.db import models
 from django_resized import ResizedImageField
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):

@@ -3,14 +3,11 @@ from . import views
 
 app_name = 'user'
 
+
 urlpatterns = [
     path("home/", views.home, name="home"),
     path('patient/', include("patient.urls")),
     path('administrator/', include("administrator.urls")),
-]
-
-urlpatterns = [
-    # ... existing urls ...
     path('messages/<int:conversation_id>/', views.get_messages, name='get_messages'),
     path('conversation/', views.get_or_create_conversation, name='get_conversation'),
     path('send/', views.send_message, name='send_message'),
