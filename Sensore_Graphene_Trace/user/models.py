@@ -223,11 +223,15 @@ class Conversation(models.Model):
 
             user1, user2 = participants
 
-            # Check PatientClinician relationship exists
+            # Check PatientClinician relationship exists or user is messaging an admin
             valid = PatientClinician.objects.filter(
                 patient=user1, clinician=user2
             ).exists() or PatientClinician.objects.filter(
                 patient=user2, clinician=user1
+            ).exists() or user1.groups.filter(
+                name__in=constants.ADMIN
+            ).exists() or user2.groups.filter(
+                name__in=constants.ADMIN
             ).exists()
 
             if not valid:

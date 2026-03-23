@@ -38,7 +38,7 @@ class NotificationUtilsTests(TestCase):
             conversation=self.conversation,
             sender=self.other_user,
             recipient=self.user,
-            body="Unread message 1",
+            content="Unread message 1",
             read_receipt=False
         )
 
@@ -46,7 +46,7 @@ class NotificationUtilsTests(TestCase):
             conversation=self.conversation,
             sender=self.other_user,
             recipient=self.user,
-            body="Unread message 2",
+            content="Unread message 2",
             read_receipt=False
         )
 
@@ -54,7 +54,7 @@ class NotificationUtilsTests(TestCase):
             conversation=self.conversation,
             sender=self.other_user,
             recipient=self.user,
-            body="Read message",
+            content="Read message",
             read_receipt=True
         )
 
@@ -63,7 +63,7 @@ class NotificationUtilsTests(TestCase):
             conversation=self.conversation,
             sender=self.user,
             recipient=self.other_user,
-            body="Other user's message",
+            content="Other user's message",
             read_receipt=False
         )
 
