@@ -32,11 +32,11 @@ class UserModelAndManagerTests(TestCase):
             "conversation": self.conversation,
             "sender": self.test_user_1,
             "recipient": self.test_user_2,
-            "body": "Hello, this is a test message."
+            "content": "Hello, this is a test message."
         }
         self.test_message_2_data = {
             "conversation": self.conversation,
             "sender": self.test_user_2,
             "recipient": self.test_user_1,
-            "body": "Hello, this is a test reply."
+            "content": "Hello, this is a test reply."
         }

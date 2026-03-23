@@ -32,13 +32,13 @@ class UserModelAndManagerTests(TestCase):
             "conversation": self.conversation,
             "sender": self.test_user_1,
             "recipient": self.test_user_2,
-            "body": "Hello, this is a test message."
+            "content": "Hello, this is a test message."
         }
         self.test_message_2_data = {
             "conversation": self.conversation,
             "sender": self.test_user_2,
             "recipient": self.test_user_1,
-            "body": "Hello, this is a test reply."
+            "content": "Hello, this is a test reply."
         }
 
     def test_create_message(self):
@@ -46,7 +46,7 @@ class UserModelAndManagerTests(TestCase):
         self.assertEqual(message.conversation, self.conversation)
         self.assertEqual(message.sender, self.test_user_1)
         self.assertEqual(message.recipient, self.test_user_2)
-        self.assertEqual(message.body, "Hello, this is a test message.")
+        self.assertEqual(message.content, "Hello, this is a test message.")
         self.assertIsNotNone(message.timestamp)
 
     def test_message_conversation_relationship(self):

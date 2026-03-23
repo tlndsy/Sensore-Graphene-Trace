@@ -39,7 +39,7 @@ class NotificationUtilsTests(TestCase):
             sender=self.other_user,
             recipient=self.user,
             body="Unread message 1",
-            is_read=False
+            read_receipt=False
         )
 
         self.unread_msg2 = Message.objects.create(
@@ -47,7 +47,7 @@ class NotificationUtilsTests(TestCase):
             sender=self.other_user,
             recipient=self.user,
             body="Unread message 2",
-            is_read=False
+            read_receipt=False
         )
 
         self.read_msg = Message.objects.create(
@@ -55,7 +55,7 @@ class NotificationUtilsTests(TestCase):
             sender=self.other_user,
             recipient=self.user,
             body="Read message",
-            is_read=True
+            read_receipt=True
         )
 
         # Message for another user (should not be counted)
@@ -64,7 +64,7 @@ class NotificationUtilsTests(TestCase):
             sender=self.user,
             recipient=self.other_user,
             body="Other user's message",
-            is_read=False
+            read_receipt=False
         )
 
     def test_get_notification_count_only_counts_unread(self):
@@ -89,7 +89,7 @@ class NotificationUtilsTests(TestCase):
         self.assertEqual(messages.count(), 2)
 
         for msg in messages:
-            self.assertFalse(msg.is_read)
+            self.assertFalse(msg.read_receipt)
             self.assertEqual(msg.recipient, self.user)
 
     def test_get_notifications_orders_by_timestamp_desc(self):

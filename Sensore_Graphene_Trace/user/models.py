@@ -250,8 +250,8 @@ class Message(models.Model):
     attachment = models.ImageField(upload_to=attachment_path, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_read = models.BooleanField(default=False)
-    body = models.TextField(blank=True)
+    read_receipt = models.BooleanField(default=False)
+    content = models.TextField(blank=True)
 
     class Meta:
         ordering = ["-timestamp"]

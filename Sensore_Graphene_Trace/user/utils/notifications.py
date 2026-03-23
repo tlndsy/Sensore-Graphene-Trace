@@ -7,7 +7,7 @@ def get_notification_count(user, **kwargs):
     # Count the number of unread messages for the user
     num_notifications += Message.objects.filter(
         recipient=user,
-        is_read=False
+        read_receipt=False
     ).count()
 
     # Space for future notification types (e.g., pressure alerts, reminders)
@@ -21,7 +21,7 @@ def get_notifications(user, **kwargs):
     # Get unread messages for the user
     unread_messages = Message.objects.filter(
         recipient=user,
-        is_read=False
+        read_receipt=False
     ).order_by('-timestamp')
 
     # Space for future notification types (e.g., pressure alerts, reminders)
