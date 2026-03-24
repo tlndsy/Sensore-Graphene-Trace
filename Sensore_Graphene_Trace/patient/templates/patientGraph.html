@@ -29,7 +29,7 @@
                             <button onclick="showTimeRange('300')">5 min</button>
                             </div>
                             <div id="graph"></div>
-                            <button onclick="simulateGraphDisplay()">Live Mode</button>
+                            <button id ="live-toggle" onclick="toggleLiveMode()">Live Mode</button>
                         </div>
 
                         <div class="graph-metrics">
@@ -144,30 +144,32 @@
         Plotly.restyle('graph', {visible: [false, false, true]});Plotly.relayout('graph', {margin: { t: 1, l: 1, r: 1, b: 1 },yaxis: {title:"coefficient_of_variation"}});
     }
 
-    let index = 0; let live_data = {peak_pressure_index: [], contact_area_percent: []}; let current_metric = "peak_pressure_index" // default value
-    function simulateGraphDisplay() {
-        index = 0; // Reset index
-        live_data = {peak_pressure_index: [], contact_area_percent: []};
+    let liveInterval = null;let isLive = false;let index = 0;let live_data = {peak_pressure_index: [], contact_area_percent: []};
+    let current_metric = "peak_pressure_index";
+    function toggleLiveMode() {
+        const button = document.getElementById("live-toggle");
 
-        // Reset the graph traces
-        Plotly.react('graph', [
-            { x: [], y: [], name: "Peak Pressure Index", mode: "lines" },
-            { x: [], y: [], name: "Contact Area", mode: "lines", visible: current_metric === "contact_area_percent" },
-            { x: [], y: [], name: "Coefficient Of Variation", mode: "lines", visible: current_metric === "coefficient_of_variation" }
-        ]);
+        // Turn off live mode on button press
+        if (isLive) {clearInterval(liveInterval);isLive = false;button.textContent = "Live Mode";return;}
 
-        const interval = setInterval(() => {
-            if (index >= peak_pressure_index.length) { clearInterval(interval); return; }
+        // Turn on live mode on button press
+        isLive = true;button.textContent= "Stop Live"; index = 0;live_data = {peak_pressure_index: [], contact_area_percent: []};
+        Plotly.react('graph', [{x: [], y: [], name: "Peak Pressure Index", mode: "lines"},
+            {x: [], y: [], name: "Contact Area", mode: "lines", visible: current_metric === "contact_area_percent"},
+            {x: [], y: [], name: "Coefficient Of Variation", mode: "lines", visible: current_metric === "coefficient_of_variation"}]);
+
+        liveInterval = setInterval(() => {
+            if (index >= peak_pressure_index.length) {clearInterval(liveInterval);isLive = false;button.textContent = "Live Mode"; return;}
 
             live_data.peak_pressure_index.push([times[index], peak_pressure_index[index]]);
             live_data.contact_area_percent.push([times[index], contact_area_percent[index]]);
 
             if (current_metric === "peak_pressure_index") {
-                Plotly.extendTraces('graph', { x: [[times[index]]], y: [[peak_pressure_index[index]]] }, [0], 50);
+                Plotly.extendTraces('graph', {x: [[times[index]]], y: [[peak_pressure_index[index]]]}, [0], 50);
             } else if (current_metric === "contact_area_percent") {
-                Plotly.extendTraces('graph', { x: [[times[index]]], y: [[contact_area_percent[index]]] }, [1], 50);
+                Plotly.extendTraces('graph', {x: [[times[index]]], y: [[contact_area_percent[index]]]}, [1], 50);
             } else if (current_metric === "coefficient_of_variation") {
-                Plotly.extendTraces('graph', { x: [[times[index]]], y: [[coefficient_of_variation[index]]] }, [2], 50);
+                Plotly.extendTraces('graph', {x: [[times[index]]], y: [[coefficient_of_variation[index]]]}, [2], 50);
             }
 
             document.getElementById("peak-pressure").textContent = `Peak pressure: ${peak_pressure_index[index].toFixed(2)}`;
