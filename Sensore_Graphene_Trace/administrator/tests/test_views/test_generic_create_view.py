@@ -27,7 +27,6 @@ class AdminGenericDeleteViewTests(TestCase):
             "refresh_rate": 15,
         }
 
-
         self.patient_group, _ = Group.objects.get_or_create(name=constants.PATIENT)
         self.clinician_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
         self.admin_group, _ = Group.objects.get_or_create(name=constants.ADMIN)
@@ -206,14 +205,49 @@ class AdminGenericDeleteViewTests(TestCase):
         # Confirm the object was created
         self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
 
-    def test_permission_denied_for_non_admin_on_generic_create(self):
-        def test_post_creates_productinfo_and_redirects(self):
-            # Login as patient user who should not have permission to create ProductInfo
-            self.client.login(email="patient_user@test.com", password="pass")
+    def test_post_forbidden_for_patient_user(self):
+        self.client.login(email="patient_user@test.com", password="pass")
 
-            create_url = reverse("user:administrator:generic_create", args=["user", "productinfo"])
+        response = self.client.post(self.url, data=self.post_data)
 
-            response = self.client.post(create_url, data=self.post_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
 
+    def test_post_allows_admin_user(self):
+        self.client.login(email="admin_user@test.com", password="pass")
 
-            self.assertEqual(response.status_code, 403)
+        response = self.client.post(self.url, data=self.post_data)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_allows_superuser(self):
+        self.client.login(email="superuser@test.com", password="pass")
+
+        response = self.client.post(self.url, data=self.post_data)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_allow_valid_user_in_multiple_groups(self):
+        self.client.login(email="valid_multi_group_user@test.com", password="pass")
+
+        response = self.client.post(self.url, data=self.post_data)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_deny_invalid_user_in_multiple_groups(self):
+        self.client.login(email="invalid_multi_group_user@test.com", password="pass")
+        response = self.client.post(self.url, data=self.post_data)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_forbidden_for_user_without_group(self):
+        self.client.login(email="user@test.com", password="pass")
+
+        response = self.client.post(self.url, data=self.post_data)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
