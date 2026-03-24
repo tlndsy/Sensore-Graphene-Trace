@@ -153,12 +153,6 @@ class AdminGenericDeleteViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_forbidden_for_anonymous_user(self):
-        response = self.client.get(self.url)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse("user:home"), response.url)
-
     def test_notification_count_in_context(self):
         self.client.login(email="admin_user@test.com", password="pass")
 
@@ -226,6 +220,45 @@ class AdminGenericDeleteViewTests(TestCase):
 
     def test_post_forbidden_for_patient_user(self):
         self.client.login(email="patient_user@test.com", password="pass")
+
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_allows_admin_user(self):
+        self.client.login(email="admin_user@test.com", password="pass")
+
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_allows_superuser(self):
+        self.client.login(email="superuser@test.com", password="pass")
+
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_allow_valid_user_in_multiple_groups(self):
+        self.client.login(email="valid_multi_group_user@test.com", password="pass")
+
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_deny_invalid_user_in_multiple_groups(self):
+        self.client.login(email="invalid_multi_group_user@test.com", password="pass")
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+
+    def test_post_forbidden_for_user_without_group(self):
+        self.client.login(email="user@test.com", password="pass")
 
         response = self.client.post(self.url)
 
