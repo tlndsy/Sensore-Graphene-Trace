@@ -204,15 +204,16 @@ class AdminGenericDeleteViewTests(TestCase):
 
     def test_post_only_deletes_specified_product_info(self):
         # Create another ProductInfo to ensure only the specified one is deleted
-        other_product_info = ProductInfo.objects.create(
+        ProductInfo.objects.create(
             model="OtherModel",
             manufacturer="OtherManufacturer",
             resolution_width=64,
             resolution_height=64,
             refresh_rate=30,
         )
-        # Check model exists before post
+        # Check models exists before post
         self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
+        self.assertTrue(ProductInfo.objects.filter(model="OtherModel", manufacturer="OtherManufacturer").exists())
 
 
         self.client.login(email="superuser@test.com", password="pass")
@@ -221,7 +222,7 @@ class AdminGenericDeleteViewTests(TestCase):
 
         # Check testModel is deleted  and the otherModel still exists after post
         self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
-        self.assertTrue(ProductInfo.objects.filter(model="OtherModel", manufacturer="TestManufacturer").exists())
+        self.assertTrue(ProductInfo.objects.filter(model="OtherModel", manufacturer="OtherManufacturer").exists())
 
     def test_post_forbidden_for_patient_user(self):
         self.client.login(email="patient_user@test.com", password="pass")
