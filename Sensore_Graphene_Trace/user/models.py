@@ -57,6 +57,7 @@ class UserManager(BaseUserManager):
             **extra_fields,
         )
 
+
 # Create your models here.
 class Address(models.Model):
     first_line = models.CharField(max_length=100)
@@ -66,6 +67,7 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.first_line}, {self.postal_code}"
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     class Roles(models.TextChoices):
@@ -95,7 +97,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     def profile_picture_path(self, filename):
         return f"users/{self.pk}/profile_picture/{filename}"
 
-    profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, max_length=512, default='users/default_pfp.png', blank=True)
+    profile_picture = ResizedImageField(size=[128, 128], upload_to=profile_picture_path, max_length=512,
+                                        default='users/default_pfp.png', blank=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False, db_index=True)
@@ -114,6 +117,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.first_name
+
 
 class PatientClinician(models.Model):
     patient = models.ForeignKey(User, related_name='patient_relationships', on_delete=models.CASCADE)
@@ -138,12 +142,14 @@ class PatientClinician(models.Model):
         self.full_clean()  # Ensure validation is performed before saving
         super().save(*args, **kwargs)
 
+
 class NotificationType(models.Model):
     type = models.CharField(max_length=25)
     users = models.ManyToManyField(User)
 
     def __str__(self):
         return f"{self.type}"
+
 
 class ProductInfo(models.Model):
     model = models.CharField(max_length=100)
@@ -154,6 +160,7 @@ class ProductInfo(models.Model):
 
     def __str__(self):
         return self.model
+
 
 class ReadingEquipment(models.Model):
     product_info = models.ForeignKey(ProductInfo, on_delete=models.SET_NULL, null=True)
@@ -173,6 +180,7 @@ class ReadingEquipment(models.Model):
     def __str__(self):
         return f"{self.product_info.model}, Serial Number: {self.serial_number}, Belonging To: {self.user}"
 
+
 class PressureMapReading(models.Model):
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
 
@@ -182,7 +190,8 @@ class PressureMapReading(models.Model):
         safe_timestamp = timestamp.strftime("%Y%m%d_%H%M%S")
         return f"users/{self.reading_equipment.user.id}/pressure_maps/{safe_timestamp}/{filename}"
 
-    pressure_reading = models.FileField(upload_to=pressure_reading_path, max_length=512, blank=True, null=True) # change pending on needs
+    pressure_reading = models.FileField(upload_to=pressure_reading_path, max_length=512, blank=True,
+                                        null=True)  # change pending on needs
     metrics = models.FileField(upload_to=pressure_reading_path, max_length=512, blank=True, null=True)
 
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -193,6 +202,7 @@ class PressureMapReading(models.Model):
     def __str__(self):
         return f"Reading of: {self.reading_equipment.user}, taken at {self.timestamp}"
 
+
 class Report(models.Model):
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
@@ -202,6 +212,7 @@ class Report(models.Model):
 
     def __str__(self):
         return f"Report belonging to {self.pressure_map_reading.reading_equipment.user}, made at {self.pressure_map_reading.timestamp}"
+
 
 class Conversation(models.Model):
     subject = models.CharField(max_length=255)
@@ -239,6 +250,7 @@ class Conversation(models.Model):
 
     def __str__(self):
         return self.subject or f"Conversation {self.id}"
+
 
 class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')

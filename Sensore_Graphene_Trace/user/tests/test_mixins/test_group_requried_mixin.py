@@ -48,7 +48,6 @@ class GroupRequiredMixinTests(TestCase):
         view.request = request
         return view
 
-
     def test_unauthenticated_user_fails_test_func(self):
         view = self.get_view(AnonymousUser())
         self.assertFalse(view.test_func())
