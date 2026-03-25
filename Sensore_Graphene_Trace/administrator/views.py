@@ -1,4 +1,6 @@
 from django.apps import apps
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.forms import AdminPasswordChangeForm
 from django.forms import modelform_factory
 from django.urls import reverse_lazy
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DeleteView
@@ -124,7 +126,7 @@ class GenericUpdateView(BaseGenericModelMixin, UpdateView):
     permission_action = "change"
 
     def get_form_class(self):
-        return modelform_factory(self.model, fields="__all__")
+        return modelform_factory(self.model, exclude=["password"])
 
     def get_success_url(self):
         return reverse_lazy(
@@ -132,7 +134,36 @@ class GenericUpdateView(BaseGenericModelMixin, UpdateView):
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
 
-class GenericDeleteView(BaseGenericModelMixin, DeleteView):
+class AdminPasswordChangeView(PasswordChangeView):
+    form_class = AdminPasswordChangeForm
+    template_name = "administrator/administrator_change_password.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user_pk'] = self.kwargs.get('pk')
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "user:administrator:generic_update",
+            args=[
+                'user',
+                'user',
+                self.kwargs.get('pk'),
+            ],
+        )
+
+    class UserPasswordChangeView(PasswordChangeView):
+        form_class = AdminPasswordChangeForm
+        template_name = "administrator/change_password.html"
+
+        def get_success_url(self):
+            return reverse_lazy(
+                "user:administrator:generic_update",
+                args=[self.kwargs["pk"]],
+            )
+
+class GenericDeleteView(DeleteView):
     template_name = "administrator/generic_delete.html"
     permission_action = "delete"
 

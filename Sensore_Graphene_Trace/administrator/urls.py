@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import GenericCreateView, GenericListView, GenericUpdateView, GenericDeleteView, AdminHomeView
+from .views import GenericCreateView, GenericListView, GenericUpdateView, GenericDeleteView, AdminHomeView, \
+    AdminPasswordChangeView
 
 app_name = 'administrator'
 
@@ -25,4 +26,7 @@ urlpatterns = [
         GenericDeleteView.as_view(),
         name="generic_delete",
     ),
+    path("change-password/<uuid:pk>/",
+         AdminPasswordChangeView.as_view(),
+         name="user_password_change"),
 ]
