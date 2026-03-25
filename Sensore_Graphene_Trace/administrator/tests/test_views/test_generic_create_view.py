@@ -195,7 +195,6 @@ class AdminGenericDeleteViewTests(TestCase):
 
         create_url = reverse("user:administrator:generic_create", args=["user", "productinfo"])
 
-
         response = self.client.post(create_url, data=self.post_data)
 
         # Should redirect to the generic list for productinfo

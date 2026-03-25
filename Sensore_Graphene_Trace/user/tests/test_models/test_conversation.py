@@ -8,7 +8,6 @@ from user.models import User, Message, Conversation
 
 class UserModelAndManagerTests(TestCase):
     def setUp(self):
-
         self.test_user_1 = User.objects.create_user(
             email="user@test.com",
             first_name="Test",

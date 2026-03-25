@@ -16,8 +16,8 @@ def get_notification_count(user, **kwargs):
 
     return num_notifications
 
-def get_notifications(user, **kwargs):
 
+def get_notifications(user, **kwargs):
     # Get unread messages for the user
     unread_messages = Message.objects.filter(
         recipient=user,

@@ -12,9 +12,9 @@ from user.models import User
 from administrator.mixins import BaseGenericModelMixin
 from Sensore_Graphene_Trace import global_constants as constants
 
-
 # Dummy model for testing (use an existing model in your "user" app)
 UserModel = apps.get_model("user", "User")
+
 
 # Dummy single object view for testing
 class TestDetailView(BaseGenericModelMixin, DetailView):
@@ -27,6 +27,7 @@ class TestDetailView(BaseGenericModelMixin, DetailView):
     def get_context_data(self, **kwargs):
         return super().get_context_data(**kwargs)
 
+
 # Dummy multi-object view for testing
 class TestListView(BaseGenericModelMixin, ListView):
     permission_action = None
@@ -37,7 +38,6 @@ class TestListView(BaseGenericModelMixin, ListView):
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(**kwargs)
-
 
 
 class BaseGenericModelMixinTests(TestCase):

@@ -5,6 +5,7 @@ from Sensore_Graphene_Trace import global_constants as constants
 from user.mixins import GroupRequiredMixin
 from user.utils import notifications
 
+
 class BaseAdminMixin(GroupRequiredMixin):
     """
     Base admin access rules shared by all administrator views.

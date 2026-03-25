@@ -22,7 +22,7 @@ class AdminGenericUpdateViewTests(TestCase):
             resolution_width=32,
             resolution_height=32,
             refresh_rate=15,
-            )
+        )
         self.url = reverse("user:administrator:generic_update", args=["user", "productinfo", product_info.id])
 
         self.post_data = {
@@ -199,7 +199,6 @@ class AdminGenericUpdateViewTests(TestCase):
 
         self.assertEqual(response.context["num_notifications"], 0)
 
-
     def test_post_updates_productinfo_and_redirects(self):
         # Login as superuser to bypass permission requirements
         self.client.login(email="superuser@test.com", password="pass")
@@ -211,7 +210,8 @@ class AdminGenericUpdateViewTests(TestCase):
         self.assertIn(reverse("user:administrator:generic_list", args=["user", "productinfo"]), response.url)
 
         # Confirm the object was updated
-        self.assertTrue(ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
+        self.assertTrue(
+            ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
         self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
 
     def test_post_only_updates_specified_product_info(self):
@@ -227,13 +227,13 @@ class AdminGenericUpdateViewTests(TestCase):
         self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
         self.assertTrue(ProductInfo.objects.filter(model="OtherModel", manufacturer="OtherManufacturer").exists())
 
-
         self.client.login(email="superuser@test.com", password="pass")
 
         response = self.client.post(self.url)
 
         # Check testModel is updated  and the otherModel still exists after post
-        self.assertFalse(ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
+        self.assertFalse(
+            ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
         self.assertTrue(ProductInfo.objects.filter(model="OtherModel", manufacturer="OtherManufacturer").exists())
 
     def test_post_forbidden_for_patient_user(self):
@@ -244,7 +244,8 @@ class AdminGenericUpdateViewTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
         self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
-        self.assertFalse(ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
+        self.assertFalse(
+            ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
 
     def test_post_allows_admin_user(self):
         self.client.login(email="admin_user@test.com", password="pass")
@@ -252,7 +253,8 @@ class AdminGenericUpdateViewTests(TestCase):
         response = self.client.post(self.url, data=self.post_data)
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
+        self.assertTrue(
+            ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
         self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
 
     def test_post_allows_superuser(self):
@@ -261,7 +263,8 @@ class AdminGenericUpdateViewTests(TestCase):
         response = self.client.post(self.url, data=self.post_data)
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
+        self.assertTrue(
+            ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
         self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
 
     def test_post_allow_valid_user_in_multiple_groups(self):
@@ -270,7 +273,8 @@ class AdminGenericUpdateViewTests(TestCase):
         response = self.client.post(self.url, data=self.post_data)
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
+        self.assertTrue(
+            ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
         self.assertFalse(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
 
     def test_post_deny_invalid_user_in_multiple_groups(self):
@@ -279,7 +283,8 @@ class AdminGenericUpdateViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
-        self.assertFalse(ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
+        self.assertFalse(
+            ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
 
     def test_post_forbidden_for_user_without_group(self):
         self.client.login(email="user@test.com", password="pass")
@@ -288,4 +293,5 @@ class AdminGenericUpdateViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
-        self.assertFalse(ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())
+        self.assertFalse(
+            ProductInfo.objects.filter(model="TestModelUpdated", manufacturer="TestManufacturerUpdated").exists())

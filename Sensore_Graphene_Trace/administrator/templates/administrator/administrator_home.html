@@ -12,7 +12,7 @@
             <li>
                 <strong>{{ model.name }}</strong> —
                 <a href={% url 'user:administrator:generic_list' model.app_label model.model_name %}>View Records</a> |
-                <a href="{%  url 'user:administrator:generic_create' model.app_label model.model_name %}">Add New</a>
+                <a href="{% url 'user:administrator:generic_create' model.app_label model.model_name %}">Add New</a>
             </li>
         {% endfor %}
     </ul>

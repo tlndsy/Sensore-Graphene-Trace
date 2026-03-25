@@ -44,7 +44,6 @@ class GenericListView(BaseGenericModelMixin, ListView):
 
     SEARCH_FIELD_TYPES = ("CharField", "TextField", "EmailField")
 
-
     # Override to add searching, filtering, and sorting based on query parameters
     def get_queryset(self):
         qs = super().get_queryset()
@@ -108,6 +107,7 @@ class GenericListView(BaseGenericModelMixin, ListView):
 
         return context
 
+
 class GenericCreateView(BaseGenericModelMixin, CreateView):
     template_name = "administrator/generic_create.html"
     permission_action = "add"
@@ -121,6 +121,7 @@ class GenericCreateView(BaseGenericModelMixin, CreateView):
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
 
+
 class GenericUpdateView(BaseGenericModelMixin, UpdateView):
     template_name = "administrator/generic_update.html"
     permission_action = "change"
@@ -133,6 +134,7 @@ class GenericUpdateView(BaseGenericModelMixin, UpdateView):
             "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
+
 
 class AdminPasswordChangeView(PasswordChangeView):
     form_class = AdminPasswordChangeForm
@@ -163,4 +165,3 @@ class GenericDeleteView(DeleteView):
             "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
-

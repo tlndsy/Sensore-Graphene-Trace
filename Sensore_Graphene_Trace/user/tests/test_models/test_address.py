@@ -8,7 +8,6 @@ from user.models import Address
 
 class UserModelAndManagerTests(TestCase):
     def setUp(self):
-
         self.address_data = {
             "first_line": "123 Test St",
             "second_line": "Testford",

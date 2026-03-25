@@ -8,7 +8,6 @@ from user.models import ReadingEquipment, User, ProductInfo, PressureMapReading
 
 class UserModelAndManagerTests(TestCase):
     def setUp(self):
-
         self.user = User.objects.create_user(
             email="user@test.com",
             first_name="Test",

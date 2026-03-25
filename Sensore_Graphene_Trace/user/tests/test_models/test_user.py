@@ -116,7 +116,8 @@ class UserModelAndManagerTests(TestCase):
 
     def test_str_method(self):
         user = User.objects.create_user(**self.user_data)
-        self.assertEqual(str(user), f"{self.user_data["email"]} - ({self.user_data["first_name"]} {self.user_data["last_name"]})")
+        self.assertEqual(str(user),
+                         f"{self.user_data["email"]} - ({self.user_data["first_name"]} {self.user_data["last_name"]})")
 
     def test_profile_picture_path(self):
         user = User.objects.create_user(**self.user_data)

@@ -8,6 +8,7 @@ from user.utils.notifications import get_notification_count, get_notifications
 
 User = get_user_model()
 
+
 class NotificationUtilsTests(TestCase):
 
     def setUp(self):

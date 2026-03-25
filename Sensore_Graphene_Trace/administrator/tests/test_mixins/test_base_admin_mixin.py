@@ -10,12 +10,14 @@ from Sensore_Graphene_Trace import global_constants as constants
 from administrator.mixins import BaseAdminMixin
 from user.models import User
 
+
 # Create your tests here.
 class TestView(BaseAdminMixin, TemplateView):
     template_name = "dummy.html"
 
     def get(self, request, **kwargs):
         return HttpResponse("OK")
+
 
 class BaseAdminMixinTests(TestCase):
 
@@ -102,8 +104,6 @@ class BaseAdminMixinTests(TestCase):
 
         # 302 redirect
         self.assertEqual(response.status_code, 302)
-
-
 
     def test_notification_count_in_context(self):
         self.user.groups.add(self.group)

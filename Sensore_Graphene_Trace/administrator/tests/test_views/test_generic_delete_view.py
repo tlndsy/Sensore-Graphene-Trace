@@ -10,6 +10,7 @@ from unittest.mock import patch
 from Sensore_Graphene_Trace import global_constants as constants
 from user.models import User, ProductInfo
 
+
 # Create your tests here.
 class AdminGenericDeleteViewTests(TestCase):
 
@@ -21,7 +22,7 @@ class AdminGenericDeleteViewTests(TestCase):
             resolution_width=32,
             resolution_height=32,
             refresh_rate=15,
-            )
+        )
 
         self.url = reverse("user:administrator:generic_delete", args=["user", "productinfo", product_info.id])
 
@@ -208,7 +209,6 @@ class AdminGenericDeleteViewTests(TestCase):
         # Check models exists before post
         self.assertTrue(ProductInfo.objects.filter(model="TestModel", manufacturer="TestManufacturer").exists())
         self.assertTrue(ProductInfo.objects.filter(model="OtherModel", manufacturer="OtherManufacturer").exists())
-
 
         self.client.login(email="superuser@test.com", password="pass")
 
