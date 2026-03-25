@@ -153,15 +153,6 @@ class AdminPasswordChangeView(PasswordChangeView):
             ],
         )
 
-    class UserPasswordChangeView(PasswordChangeView):
-        form_class = AdminPasswordChangeForm
-        template_name = "administrator/change_password.html"
-
-        def get_success_url(self):
-            return reverse_lazy(
-                "user:administrator:generic_update",
-                args=[self.kwargs["pk"]],
-            )
 
 class GenericDeleteView(DeleteView):
     template_name = "administrator/generic_delete.html"
