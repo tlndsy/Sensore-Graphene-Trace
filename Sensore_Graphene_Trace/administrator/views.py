@@ -103,7 +103,10 @@ class GenericListView(BaseGenericModelMixin, ListView):
         context["filters"] = filters
         context["search_query"] = self.request.GET.get("q", "")
         context["current_sort"] = self.request.GET.get("sort", "")
-        context["querystring"] = self.request.GET.urlencode()
+
+        querydict = self.request.GET.copy()
+        querydict.pop("sort", None)
+        context["querystring"] = querydict.urlencode()
 
         return context
 

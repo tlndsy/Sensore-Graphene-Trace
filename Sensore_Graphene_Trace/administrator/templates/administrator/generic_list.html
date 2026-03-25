@@ -38,9 +38,17 @@
                 {% for field in fields %}
                     <th class="resizable">
                         <div class="th-content">
-                            <a class="table-header" href="?{{ querystring }}&sort={{ field.name }}">
+                            {% with field_name=field.name %}
+                            <a class="table-header"
+                               href="?{{ querystring }}{% if querystring %}&{% endif %}sort={% if current_sort == field_name %}-{{ field_name }}{% elif current_sort == "-"|add:field_name %}{{ field_name }}{% else %}{{ field_name }}{% endif %}">
                                 {{ field.verbose_name }}
+                                {% if current_sort == field_name %}
+                                    ↑
+                                {% elif current_sort == "-"|add:field_name %}
+                                    ↓
+                                {% endif %}
                             </a>
+                            {% endwith %}
                             <span class="resize-handle"></span>
                         </div>
                     </th>
@@ -77,6 +85,7 @@
     <div class="footer-links">
         <a href="{% url 'user:administrator:generic_create' app_label model_name %}">+ Create new</a>
     </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const table = document.getElementById("resizable-table");

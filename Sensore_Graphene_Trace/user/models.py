@@ -172,6 +172,9 @@ class ReadingEquipment(models.Model):
     def get_default_device_name(self):
         return f"{self.product_info.model} - {self.serial_number}"
 
+    class Meta:
+        ordering = ["-user__date_joined"]
+
     def save(self, *args, **kwargs):
         if not self.custom_name:
             self.custom_name = self.get_default_device_name()
