@@ -116,25 +116,23 @@ def notifications(request):
 def messages(request):
     return HttpResponse("This is the patients messaging page")
 
+@login_required(login_url='/user/home/')
 def view_graph(request):
-    user = request.user # Request the correct user
-    latest_reading = (
-        PressureMapReading.objects.filter(reading_equipment__user=user).order_by('-timestamp').first())
+    # Authentication
+    if not request.user.groups.filter(name=constants.PATIENT).exists: return redirect("home") # Redirect users without login
+    else: user = request.user # Request the correct user
+
+    # Get users pressure mat information
+    latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).order_by('-timestamp').first())
     if not latest_reading or not latest_reading.metrics:
-        return render(request, "patientGraph.html", empty_context())
+        return render(request, "patientGraph.html", empty_context()) # Return empty if no data
 
     try:
         metric_data = process_metrics(latest_reading)
-
-        print("metric_data keys:", metric_data.keys())  # Show what keys are being sent
-        print("First 10 peak_pressure values:", metric_data["peak_pressure"][:10])
-        print("First 10 contact_area values:", metric_data["contact_area"][:10])
-        print("First 10 times:", metric_data["times"][:10])
-        print("Length of arrays:", len(metric_data["peak_pressure"]), len(metric_data["times"]))
     except Exception as e: # Error reading pressure mat data
         print("Error reading patient csv:", e)
         return render(request, "patientGraph.html", empty_context())
-    return render(request, "patientGraph.html",metric_data)
+    return render(request, "patientGraph.html",{"metric_data":metric_data})
 
 def process_metrics(latest_reading):
     fps = latest_reading.reading_equipment.product_info.refresh_rate  # Frames per second
@@ -148,29 +146,15 @@ def process_metrics(latest_reading):
     df['time'] = pd.to_datetime(start_time) + pd.to_timedelta(df['second'], unit='s')
     df['time_sec'] = df['time'].dt.floor('s')
 
-    # Aggregate
-    peak_pressure = df.groupby('time_sec')['peak_pressure'].mean()
-    mean_pressure = df.groupby('time_sec')['mean_pressure'].mean()
-    std_pressure = df.groupby('time_sec')['std_pressure'].mean()
-    peak_pressure_index = df.groupby('time_sec')['peak_pressure_index'].mean()
-    coefficient_of_variation = df.groupby('time_sec')['coefficient_of_variation'].mean()
-    contact_area = df.groupby('time_sec')['contact_area'].mean()
-    contact_area_percent = df.groupby('time_sec')['contact_area_percent'].mean()
-    cop_x = df.groupby('time_sec')['cop_x'].mean()
-    cop_y = df.groupby('time_sec')['cop_y'].mean()
-    times = peak_pressure.index.tolist()
+    metrics = ["peak_pressure","mean_pressure","std_pressure","peak_pressure_index","coefficient_of_variation", "contact_area","contact_area_percent","cop_x","cop_y"]
+    metrics_per_sec = df.groupby('time_sec')[metrics].mean() # Take the mean from 15 frames
+    aggregated_metrics_per_sec = {metric: metrics_per_sec[metric].tolist() for metric in metrics} # Aggregate
+
+    times = metrics_per_sec.index.tolist() # Store the seconds recorded
 
     return {
         "pressure_frames": get_all_pressure_matrix_frames(latest_reading),
-        "peak_pressure":peak_pressure.tolist(),
-        "contact_area":contact_area.tolist(),
-        "mean_pressure":mean_pressure.tolist(),
-        "std_pressure":std_pressure.tolist(),
-        "peak_pressure_index":peak_pressure_index.tolist(),
-        "coefficient_of_variation":coefficient_of_variation.tolist(),
-        "contact_area_percent":contact_area_percent.tolist(),
-        "cop_x":cop_x.tolist(),
-        "cop_y":cop_y.tolist(),
+        **aggregated_metrics_per_sec,
         "times":times,
         "flat_pressure_matrix": get_pressure_matrix(latest_reading)
     }

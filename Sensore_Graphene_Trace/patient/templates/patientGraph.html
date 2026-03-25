@@ -33,9 +33,9 @@
                         </div>
 
                         <div class="graph-metrics">
-                            <button onclick="showPeakPressureIndex()" id="peak-pressure">Peak Pressure Index</button>
-                            <button onclick="showContactAreaPercent()" id="contact-area">Contact Area Percentage</button>
-                            <button onclick="showCoefficientOfVariation()" id="coefficient-of-variation">Coefficient Of Variation</button>
+                            <button onclick="showMetric('peak_pressure_index',0,'Peak Pressure Index')" id="peak-pressure">Peak Pressure Index</button>
+                            <button onclick="showMetric('contact_area_percent',1,'Contact Area Percentage')" id="contact-area">Contact Area Percentage</button>
+                            <button onclick="showMetric('coefficient_of_variation',2,'Coefficient Of Variation')" id="coefficient-of-variation">Coefficient Of Variation</button>
                         </div>
                     </div>
                 </div>
@@ -74,197 +74,109 @@
         </div>
     </div>
 
-<!-- Retrieve graphs x and y data -->
-{{ peak_pressure|json_script:"peak_pressure" }}
-{{ times|json_script:"times" }}
-{{ std_pressure|json_script:"std_pressure" }}
-{{ mean_pressure|json_script:"mean_pressure" }}
-{{ contact_area|json_script:"contact_area" }}
-{{ contact_area_percent|json_script:"contact_area_percent" }}
-{{ flat_pressure_matrix|json_script:"flat_pressure_matrix" }}
-{{ peak_pressure_index |json_script:"peak_pressure_index" }}
-{{ coefficient_of_variation|json_script:"coefficient_of_variation" }}
-{{ cop_x|json_script:"cop_x" }}
-{{ cop_y|json_script:"cop_y" }}
-{{ pressure_frames|json_script:"pressure_frames" }}
-
+{{ metric_data|json_script:"metric_data" }}
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script>
-    const times = JSON.parse(document.getElementById('times').textContent);
-    const date = new Date(times[0]).toLocaleDateString();
-    const flat_pressure_matrix = JSON.parse(document.getElementById('flat_pressure_matrix').textContent);
-    const max_value = Math.max(...flat_pressure_matrix);
-    const peak_pressure = JSON.parse(document.getElementById('peak_pressure').textContent);
-    const contact_area = JSON.parse(document.getElementById('contact_area').textContent);
-    const std_pressure = JSON.parse(document.getElementById('std_pressure').textContent);
-    const mean_pressure = JSON.parse(document.getElementById('mean_pressure').textContent);
-    const cop_x = JSON.parse(document.getElementById('cop_x').textContent);
-    const cop_y = JSON.parse(document.getElementById('cop_y').textContent);
-    const peak_pressure_index = JSON.parse(document.getElementById('peak_pressure_index').textContent);
-    const coefficient_of_variation = JSON.parse(document.getElementById('coefficient_of_variation').textContent);
-    const contact_area_percent = JSON.parse(document.getElementById('contact_area_percent').textContent);
-    const pressure_frames = JSON.parse(document.getElementById('pressure_frames').textContent);
+    const metric_data = JSON.parse(document.getElementById('metric_data').textContent);
+    for (const key in metric_data) {window[key] = metric_data[key];}
+    const date = times.length ? new Date(times[0]).toLocaleDateString() : "";
+    const max_value = Math.max(flat_pressure_matrix);
+    const graph_layout = {margin: {t:1, l:50, r:1, b:50}, xaxis:{tickformat: "%H:%M", showline:true, line:{color:"#ccc"}, linewidth: 1, mirror: true}, yaxis:{title: {text: "Peak Pressure Index"}, showline:true, line:{color:"#ccc"}, linewidth: 1, mirror: true}};
+    const graph_config = {responsive: true, displayModeBar: false, staticPlot: false};
+    const heatmap_layout = {margin: { t: 1, l: 1, r: 1, b: 1 }, xaxis: {visible:false}, yaxis:{visible: false, autorange:'reversed'},line:{color:"#ccc"}, linewidth: 1};
+    const heatmap_config = {staticPlot: false, displayModeBar: false, responsive: true}
 
-    // Convert the flat heatmap list back to a matrix
-    function list_to_matrix(flat_pressure_matrix){
-        const pressure_matrix = []; // Empty array for matrix
-        let size = Math.sqrt(flat_pressure_matrix.length) // Defines matrix size
-        for(let i = 0; i < size; i++){pressure_matrix.push(flat_pressure_matrix.slice(i*size, i*size + size))}; // Fill matrix with list values
-    return pressure_matrix}
+    function listToMatrix(flat_list){const size = Math.sqrt(flat_list.length) // Defines matrix size
+        return Array.from({length:size},(_,i)=>flat_list.slice(i*size,i*size+size));} // Return matrix
 
     // Graph plotting function
-    function plot_graph(y,metric){
-        Plotly.react('graph', [{x:times, y:y, name:metric}],
-            {margin: {t:1, l:50, r:1, b:50},
-                xaxis:{title:`Date: ${date}`, tickformat: "%H:%M", showline:true, linecolor: "ccc", linewidth: 1, mirror: true},
-                yaxis:{title:metric,showline:true, linecolor: "ccc", linewidth: 1, mirror: "allticks", showLine: true}},
-            {responsive: true, displayModeBar: false, staticPlot: false});
-    }
+    function plotGraph(y,label,times){Plotly.react('graph', [{x:times, y:y, name:formatMetricName(label)}], graph_layout, graph_config);}
 
-    // For display the predicted regions of concern (currently just displays heatmap)
-    function plotHeatmap(pressure_matrix){
-        Plotly.newPlot('heatmap',[{ z: pressure_matrix, type:'heatmap', showscale: false}],
-            {margin: { t: 1, l: 1, r: 1, b: 1 }, xaxis: {visible:false}, yaxis:{visible: false, autorange:'reversed'},
-            linecolor: "ccc", linewidth: 1},
-            {staticPlot: false, displayModeBar: false, responsive: true});
-    }
+    // For displaying the predicted regions of concern (currently just displays heatmap)
+    function plotHeatmap(pressure_matrix){Plotly.newPlot('heatmap',[{ z: pressure_matrix, type:'heatmap', showscale: false}], heatmap_layout, heatmap_config);}
 
-    function showPeakPressureIndex(){
-        current_metric = "peak_pressure_index";
-        Plotly.restyle('graph', {visible: [true, false, false]}); Plotly.relayout('graph', {margin: { t: 1, l: 1, r: 1, b: 1 },yaxis: {title:"Peak Pressure Index"}});
-    }
+    function showMetric(metric, index, label){current_metric = metric;
+        Plotly.restyle('graph', {visible:[false,false,false]});Plotly.restyle('graph', {visible:true},[index]);
+        Plotly.relayout('graph',{'yaxis.title.text':formatMetricName(label)});}
 
-    function showContactAreaPercent(){
-        current_metric = "contact_area_percent";
-        Plotly.restyle('graph', {visible: [false, true, false]});Plotly.relayout('graph', {margin: { t: 1, l: 1, r: 1, b: 1 },yaxis: {title:"Contact Area"}});
-    }
+    function formatMetricName(metric) {return metric.replace(/_/g, " ").replace("index", "").trim();} // For titles
 
-    function showCoefficientOfVariation(){
-        current_metric = "coefficient_of_variation";
-        Plotly.restyle('graph', {visible: [false, false, true]});Plotly.relayout('graph', {margin: { t: 1, l: 1, r: 1, b: 1 },yaxis: {title:"coefficient_of_variation"}});
-    }
-
-    let liveInterval = null;let isLive = false;let index = 0;let live_data = {peak_pressure_index: [], contact_area_percent: []};
-    let current_metric = "peak_pressure_index";
+    let liveInterval = null;let isLive = false;let current_metric = "peak_pressure_index";let index = 0;
+    const metrics = {peak_pressure_index: 0, contact_area_percent: 1, coefficient_of_variation: 2};
     function toggleLiveMode() {
         const button = document.getElementById("live-toggle");
-
-        // Turn off live mode on button press
-        if (isLive) {clearInterval(liveInterval);isLive = false;button.textContent = "Live Mode";return;}
+        if (isLive) {clearInterval(liveInterval);isLive = false;button.textContent = "Live Mode";return;} // Turn off live mode on button press
 
         // Turn on live mode on button press
-        isLive = true;button.textContent= "Stop Live"; index = 0;live_data = {peak_pressure_index: [], contact_area_percent: []};
-        Plotly.react('graph', [{x: [], y: [], name: "Peak Pressure Index", mode: "lines"},
-            {x: [], y: [], name: "Contact Area", mode: "lines", visible: current_metric === "contact_area_percent"},
-            {x: [], y: [], name: "Coefficient Of Variation", mode: "lines", visible: current_metric === "coefficient_of_variation"}]);
+        isLive = true;button.textContent= "Stop Live"; index = 0;
+        const traces = Object.keys(metrics).map(metric => ({x: [], y: [], name: formatMetricName(metric), mode: "lines", visible: metric === current_metric}));
+        Plotly.react('graph', traces, graph_layout, graph_config);
 
         liveInterval = setInterval(() => {
             if (index >= peak_pressure_index.length) {clearInterval(liveInterval);isLive = false;button.textContent = "Live Mode"; return;}
-
-            live_data.peak_pressure_index.push([times[index], peak_pressure_index[index]]);
-            live_data.contact_area_percent.push([times[index], contact_area_percent[index]]);
-
-            if (current_metric === "peak_pressure_index") {
-                Plotly.extendTraces('graph', {x: [[times[index]]], y: [[peak_pressure_index[index]]]}, [0], 50);
-            } else if (current_metric === "contact_area_percent") {
-                Plotly.extendTraces('graph', {x: [[times[index]]], y: [[contact_area_percent[index]]]}, [1], 50);
-            } else if (current_metric === "coefficient_of_variation") {
-                Plotly.extendTraces('graph', {x: [[times[index]]], y: [[coefficient_of_variation[index]]]}, [2], 50);
-            }
-
-            document.getElementById("peak-pressure").textContent = `Peak pressure: ${peak_pressure_index[index].toFixed(2)}`;
-            document.getElementById("contact-area").textContent = `Contact area: ${contact_area_percent[index].toFixed(2)}%`;
-            document.getElementById("coefficient-of-variation").textContent = `Coefficient of variation: ${coefficient_of_variation[index].toFixed(2)}%`;
-
+            const metric_array = window[current_metric];const trace_index = metrics[current_metric];
+            Plotly.extendTraces('graph', {x: [[times[index]]], y: [[metric_array[index]]]}, [trace_index]);
+            updateMetrics(index);
             index++;
-        }, 1000);
-    }
+        }, 1000);}
 
     // Simulates live heatmap
     function simulateHeatMap() {
         let frame = 0;
         const interval = setInterval(() => {
             if (frame >= pressure_frames.length) {clearInterval(interval);return;}
-
-            const matrix = list_to_matrix(pressure_frames[frame]);
-
-            Plotly.react('heatmap',[{z: matrix, type:'heatmap',showscale:false}],
-                { margin: { t: 1, l: 1, r: 1, b: 1 },xaxis: {visible: false}, yaxis: {visible:false, autorange: 'reversed'}},
-                {displayModeBar: false});
+            const matrix = listToMatrix(pressure_frames[frame]);
+            Plotly.react('heatmap',[{z: matrix, type:'heatmap',showscale:false}], heatmap_layout, heatmap_config);
             frame++;
-        }, 1000 / 15)};
+        }, 1000 / 15)}
 
     window.onload = function(){
-        const pressure_matrix = list_to_matrix(flat_pressure_matrix); // Convert 1D list to 2D matrix
+        const pressure_matrix = listToMatrix(metric_data.flat_pressure_matrix); // Convert 1D list to 2D matrix
         plotHeatmap(pressure_matrix); // Plot heatmap
         simulateHeatMap();
 
+        const traces = [
+        { x: [], y: [], name: "Peak Pressure", mode: "lines", line: { color: '#ccc' } },
+        { x: [], y: [], name: "Contact Area", mode: "lines", visible: false },
+        { x: [], y: [], name: "Coefficient of Variation", mode: "lines", visible: false }];
+
         // Plot graph
-        Plotly.newPlot('graph', [{x: [], y: [], name: "Peak Pressure", mode: "lines", linecolor:'#ccc'},
-                {x: [], y: [], name: "Contact Area", mode: "lines", visible: false},
-            {x: [], y: [], name: "Coefficient of variation", mode: "lines", visible: false}],
-            {margin: {t:1, l:1, r:1, b:1}, xaxis:{title:`Date: ${date}`}, yaxis:{title:"Peak Pressure"}},
-            {responsive: true, displayModeBar: false});
+        Plotly.newPlot('graph', traces, graph_layout, graph_config);
 
         showTimeRange('300')
         const last_index = peak_pressure_index.length - 1;
-        document.getElementById("peak-pressure").textContent = `Peak pressure: ${peak_pressure_index[last_index].toFixed(2)}`;
-        document.getElementById("contact-area").textContent = `Contact area: ${contact_area_percent[last_index].toFixed(2)}%`;
-        document.getElementById("coefficient-of-variation").textContent = `Coefficient of variation: ${coefficient_of_variation[last_index].toFixed(2)}%`;
-    }
+        updateMetrics(last_index)}
+
+    function updateMetrics(index) {
+        document.getElementById("peak-pressure").textContent = `Peak pressure: ${peak_pressure_index[index].toFixed(2)}`;
+        document.getElementById("contact-area").textContent = `Contact area: ${contact_area_percent[index].toFixed(2)}%`;
+        document.getElementById("coefficient-of-variation").textContent = `Coefficient of variation: ${coefficient_of_variation[index].toFixed(2)}%`;}
 
     // Displays latest data within a specified timerange in seconds
     function showTimeRange(seconds) {
-        index = 0; // Reset index
-        let time_range = [];
-        let filtered_peak_pressure_index = [];
-        let filtered_contact_area_percent = [];
-        let filtered_coefficient_of_variation = [];
-        const latest_timestamp = new Date(times[times.length - 1]); // latest timestamp
+        const latest_timestamp = new Date(times[times.length - 1]);const time_range = [];
+        const metric_arrays = {peak_pressure_index: [], contact_area_percent: [], coefficient_of_variation: []};
 
-        // For each time at the specified index, append to create the new timeframe
-        times.forEach((t, i) => {
-            const delta_time = (latest_timestamp - new Date(t)) / 1000;
-            if (delta_time <= seconds) {
-                time_range.push(times[i]);
-                filtered_peak_pressure_index.push(peak_pressure_index[i]);
-                filtered_contact_area_percent.push(contact_area_percent[i]);
-                filtered_coefficient_of_variation.push(coefficient_of_variation[i]);
-            }
-        });
+        times.forEach((t, i) => {if ((latest_timestamp - new Date(t)) / 1000 <= seconds) {time_range.push(t);
+                for (const metric in metric_arrays) {metric_arrays[metric].push(window[metric][i]);}}});
 
-        Plotly.react('graph', [{x: time_range, y: filtered_peak_pressure_index, name: "Peak Pressure", mode: "lines"},
-            {x: time_range, y: filtered_contact_area_percent, name: "Contact Area", mode: "lines", visible: false},
-            {
-                x: time_range,
-                y: filtered_coefficient_of_variation,
-                name: "Coefficient of Variation",
-                mode: "lines",
-                visible: false
-            }]);
+        const traces = Object.entries(metric_arrays).map(([metric, values]) => ({x: time_range, y: values, name: formatMetricName(metric), mode: "lines", visible: metric === current_metric}));
+        Plotly.react('graph', traces, graph_layout, graph_config);
 
-        const last_index = filtered_peak_pressure_index.length - 1;
-        if (last_index >= 0) {
-            document.getElementById("peak-pressure").textContent = `Peak pressure: ${filtered_peak_pressure_index[last_index].toFixed(2)}`;
-            document.getElementById("contact-area").textContent = `Contact area: ${filtered_contact_area_percent[last_index].toFixed(2)}%`;
-            document.getElementById("coefficient-of-variation").textContent = `Coefficient of variation: ${filtered_coefficient_of_variation[last_index].toFixed(2)}%`;
-        }
-    }
+        // Update latest metric values
+        const last_index = time_range.length - 1; updateMetrics(last_index);}
 
 </script>
 
 <!-- Opens and closes side panel -->
     <script>
-        document.querySelector(".side-panel-toggle").addEventListener("click", () => {
-            document.querySelector(".wrapper").classList.toggle("side-panel-open");
-        })
+        document.querySelector(".side-panel-toggle").addEventListener("click", () => {document.querySelector(".wrapper").classList.toggle("side-panel-open");})
     </script>
 
 <!-- Manage tabs -->
     <script>
         const tabs = document.querySelectorAll('.tabs button');
         tabs.forEach(tab => tab.addEventListener('click', () => {tabs.forEach(t => t.classList.remove('active'));tab.classList.add('active');}));
-
         const timeTabs = document.querySelectorAll('.time-tabs button');
         timeTabs.forEach(tab => tab.addEventListener('click', () => {timeTabs.forEach(t => t.classList.remove('active'));tab.classList.add('active');}));
     </script>
