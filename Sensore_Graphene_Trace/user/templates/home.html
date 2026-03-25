@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Sensore Graphene Trace</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load socialaccount %}
     {%  load static %}
     <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
@@ -49,6 +50,8 @@
                     <button type="button" class="btn" id="open-register">Register</button>
                 </form>
             </div>
+
+            <div class="google-login"><a href="{% provider_login_url 'google' %}" class="link-button">Login with Google</a></div>
 
             <!-- Registration Form -->
              <div id="register-panel" class="hidden">
@@ -126,6 +129,7 @@
             wrapper.classList.add("side-panel-open");
             loginPanel.classList.add("hidden");
             registerPanel.classList.remove("hidden");
+
         })
 
         // Open login panel
@@ -134,7 +138,6 @@
             registerPanel.classList.add("hidden");
             loginPanel.classList.remove("hidden");
         })
-
     </script>
 </body>
 </html>

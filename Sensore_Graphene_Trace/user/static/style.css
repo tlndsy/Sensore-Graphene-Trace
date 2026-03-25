@@ -135,3 +135,21 @@ nav{
     justify-content: space-between;
     align-items: center;
 }
+
+.link-button{
+    display:block;
+    background: var(--DARK_BLUE);
+    color:white;
+    padding:12px;
+    border-radius:6px;
+    text-align:center;
+    text-decoration:none;
+    margin-top:10px;
+    font-size: 0.75rem;
+    font-family: system-ui;
+    font-weight: 400;
+}
+
+.google-login:hover{
+    background:darkgrey;
+}
