@@ -38,7 +38,7 @@ def home(request):
 def register(request):
     return render(request, "register.html", {})
 
-  def logout_view(request):
+def logout_view(request):
     logout(request)
     return redirect('home')
 
