@@ -159,7 +159,7 @@ class AdminPasswordChangeView(PasswordChangeView):
         )
 
 
-class GenericDeleteView(DeleteView):
+class GenericDeleteView(BaseGenericModelMixin, DeleteView):
     template_name = "administrator/generic_delete.html"
     permission_action = "delete"
 
