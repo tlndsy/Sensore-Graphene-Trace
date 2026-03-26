@@ -100,12 +100,12 @@ def interpreterDisplay(request):
     else:
         report = Report.objects.filter(pressure_map_reading=current_reading).last()
 
-    frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame)
+    #frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame) # Currently not working
     reportContents = report.content.split("@")
 
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
                "report_3": reportContents[3], "reportNumber": currentPage+1, "noOfReports": noOfReadings,
-               "heatmapList": frameHeatmap, "allReports": all_readings}
+               "allReports": all_readings}
     return render(request, "patient\interpreterDisplay.html", context)
 
 def interpreterButton(request):
