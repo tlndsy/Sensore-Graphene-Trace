@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'patient',
     'user',
     'django_cleanup.apps.CleanupConfig',
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [

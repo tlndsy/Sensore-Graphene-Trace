@@ -6,14 +6,14 @@
 {% endblock %}
 
 {% block content %}
-<h1>Delete {{ model_verbose_name }}</h1>
+    <h1>Delete {{ model_verbose_name }}</h1>
 
-<p>Are you sure you want to delete this object?</p>
+    <p>Are you sure you want to delete this object?</p>
 
-<form method="post">
-  {% csrf_token %}
-  <button type="submit">Yes, delete</button>
-</form>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Yes, delete</button>
+    </form>
 
-<a href="{% url 'user:administrator:generic_list' app_label model_name %}">Cancel</a>
+    <a href="{% url 'user:administrator:generic_list' app_label model_name %}">Cancel</a>
 {% endblock %}

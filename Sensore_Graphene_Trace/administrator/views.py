@@ -1,4 +1,6 @@
 from django.apps import apps
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.forms import AdminPasswordChangeForm
 from django.forms import modelform_factory
 from django.urls import reverse_lazy
 from django.views.generic import ListView, UpdateView, CreateView, TemplateView, DeleteView
@@ -41,7 +43,6 @@ class GenericListView(BaseGenericModelMixin, ListView):
     permission_action = "view"
 
     SEARCH_FIELD_TYPES = ("CharField", "TextField", "EmailField")
-
 
     # Override to add searching, filtering, and sorting based on query parameters
     def get_queryset(self):
@@ -102,9 +103,13 @@ class GenericListView(BaseGenericModelMixin, ListView):
         context["filters"] = filters
         context["search_query"] = self.request.GET.get("q", "")
         context["current_sort"] = self.request.GET.get("sort", "")
-        context["querystring"] = self.request.GET.urlencode()
+
+        querydict = self.request.GET.copy()
+        querydict.pop("sort", None)
+        context["querystring"] = querydict.urlencode()
 
         return context
+
 
 class GenericCreateView(BaseGenericModelMixin, CreateView):
     template_name = "administrator/generic_create.html"
@@ -119,18 +124,40 @@ class GenericCreateView(BaseGenericModelMixin, CreateView):
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
 
+
 class GenericUpdateView(BaseGenericModelMixin, UpdateView):
     template_name = "administrator/generic_update.html"
     permission_action = "change"
 
     def get_form_class(self):
-        return modelform_factory(self.model, fields="__all__")
+        return modelform_factory(self.model, exclude=["password"])
 
     def get_success_url(self):
         return reverse_lazy(
             "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
+
+
+class AdminPasswordChangeView(PasswordChangeView):
+    form_class = AdminPasswordChangeForm
+    template_name = "administrator/administrator_change_password.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user_pk'] = self.kwargs.get('pk')
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "user:administrator:generic_update",
+            args=[
+                'user',
+                'user',
+                self.kwargs.get('pk'),
+            ],
+        )
+
 
 class GenericDeleteView(BaseGenericModelMixin, DeleteView):
     template_name = "administrator/generic_delete.html"
@@ -141,4 +168,3 @@ class GenericDeleteView(BaseGenericModelMixin, DeleteView):
             "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],
         )
-
