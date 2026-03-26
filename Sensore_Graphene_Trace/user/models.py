@@ -192,8 +192,8 @@ class ReadingEquipment(models.Model):
 class PressureMapReading(models.Model):
     reading_equipment = models.ForeignKey(ReadingEquipment, on_delete=models.SET_NULL, null=True)
 
-    # Remove colons to create valid filepath
     def pressure_reading_path(self, filename):
+        # Remove colons to create valid filepath
         timestamp = self.timestamp or timezone.now()
         safe_timestamp = timestamp.strftime("%Y%m%d_%H%M%S")
         return f"users/{self.reading_equipment.user.id}/pressure_maps/{safe_timestamp}/{filename}"
@@ -214,6 +214,7 @@ class PressureMapReading(models.Model):
 class Report(models.Model):
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
+    frame = models.IntegerField()
 
     class Meta:
         ordering = ["-pressure_map_reading__timestamp"]

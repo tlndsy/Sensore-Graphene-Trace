@@ -95,17 +95,54 @@ class PatientRegisterDeviceView(BasePatientMixin, CreateView):
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
+currentPage = 0 # Stores the report the user is currently on
 def interpreterDisplay(request):
+    global currentPage
     user = request.user
+    from user.models import Report
 
-    latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).latest('timestamp'))
+    all_readings = (PressureMapReading.objects.filter(reading_equipment__user=user).all())
+    all_readings = all_readings.order_by('timestamp')
 
-    file = latest_reading.pressure_reading
+    noOfReadings = len(all_readings)
 
-    report = ScanInterpreter.runInterpreter(ScanInterpreter, file)
+    # Check if stated page is within limits
+    if currentPage < 0:
+        currentPage = 0
+    elif currentPage >= noOfReadings:
+        currentPage = noOfReadings - 1
+    print(currentPage)
+    current_reading = all_readings[currentPage]
 
-    context = {"report_0": report[0], "report_1": report[1], "report_2": report[2]}
+    file = current_reading.pressure_reading
+    if not Report.objects.filter(pressure_map_reading=current_reading).exists():
+        # Make a new report only if one does not already exist
+        report = Report(pressure_map_reading=current_reading)
+        reportContents, scanNumber = ScanInterpreter.runInterpreter(ScanInterpreter, file)
+        report.content = "@".join(reportContents)
+        report.frame = scanNumber
+        report.save()
+    else:
+        report = Report.objects.filter(pressure_map_reading=current_reading).last()
+
+    frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame) # Currently not working
+    reportContents = report.content.split("@")
+
+    context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
+               "report_3": reportContents[3], "reportNumber": currentPage+1, "noOfReports": noOfReadings,
+               "heatmap": frameHeatmap, "allReports": all_readings}
     return render(request, "patient\interpreterDisplay.html", context)
+
+def interpreterButton(request):
+    global currentPage
+    if 'Older' in request.POST:
+        currentPage = currentPage + 1
+    elif 'Newer' in request.POST:
+        currentPage = currentPage - 1
+    elif 'Newest':
+        currentPage = 0
+    return redirect("/user/patient/report")
+
 
 def profile(request):
     return HttpResponse("This is the patients profile page")
