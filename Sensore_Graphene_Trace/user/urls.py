@@ -12,4 +12,5 @@ urlpatterns = [
     path('conversation/', views.get_or_create_conversation, name='get_conversation'),
     path('send/', views.send_message, name='send_message'),
     path('unread/', views.unread_count, name='unread_count'),
+    path('clinician/', include("clinician.urls")),
 ]

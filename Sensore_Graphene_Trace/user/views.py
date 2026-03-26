@@ -38,6 +38,9 @@ def home(request):
 def register(request):
     return render(request, "register.html", {})
 
+  def logout_view(request):
+    logout(request)
+    return redirect('home')
 
 
 
@@ -168,3 +171,4 @@ def unread_count(request):
         read_receipt=False
     ).count()
     return JsonResponse({'count': count})
+

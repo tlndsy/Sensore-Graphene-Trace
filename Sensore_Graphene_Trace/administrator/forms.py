@@ -58,6 +58,7 @@ class AdminUserCreationForm(forms.ModelForm):
 
         return user
 
+
 class AdminUserFilterForm(forms.Form):
     email = forms.CharField(required=False)
     first_name = forms.CharField(required=False)
@@ -87,6 +88,8 @@ class AdminUserFilterForm(forms.Form):
             ('oldest', 'Oldest Accounts'),
         ]
     )
+
+
 class AdminUserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
