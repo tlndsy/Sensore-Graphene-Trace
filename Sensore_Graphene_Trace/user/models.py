@@ -1,6 +1,11 @@
 import datetime
 import uuid
 
+from django.utils import timezone
+
+import Sensore_Graphene_Trace.global_constants as constants
+
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField

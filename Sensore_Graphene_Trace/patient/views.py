@@ -1,10 +1,11 @@
 # patient/views.py
+from datetime import timedelta
+
 from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
-import pandas as pd
 import numpy as np
 from django.utils import timezone
 from django.urls import reverse_lazy
@@ -115,29 +116,79 @@ def notifications(request):
 def messages(request):
     return HttpResponse("This is the patients messaging page")
 
+@login_required(login_url='/user/home/')
 def view_graph(request):
-    try: # Try read the latest pressure mat data
-        user = request.user # Request the correct user
-        latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).latest('timestamp'))
-        fps = latest_reading.reading_equipment.product_info.refresh_rate # Frames per second
+    # Authentication
+    if not request.user.groups.filter(name=constants.PATIENT).exists: return redirect("home") # Redirect users without login
+    else: user = request.user # Request the correct user
 
-        if latest_reading and latest_reading.metrics: # If the latest reading exists
-            with latest_reading.metrics.open(mode='r') as f: # Open metrics csv
-                df = pd.read_csv(f) # Copy csv to pandas dataframe
+    # Get users pressure mat information
+    latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).order_by('-timestamp').first())
+    if not latest_reading or not latest_reading.metrics:
+        return render(request, "patientGraph.html", empty_context()) # Return empty if no data
 
-            # Calculate values to display per second
-            df['second'] = np.floor((df['frame'] / fps)).astype(int) # approx. 15 fps
-            peak_pressure_per_s = df.groupby('second')['peak_pressure'].max()
-            contact_area_per_s = df.groupby('second')['contact_area'].mean()
-
-            #Convert to lists for the graph
-            seconds = peak_pressure_per_s.index.tolist() # Each index represents a second
-            peak_pressure = peak_pressure_per_s.values.tolist()
-            contact_area = contact_area_per_s.values.tolist()
+    try:
+        metric_data = process_metrics(latest_reading)
     except Exception as e: # Error reading pressure mat data
         print("Error reading patient csv:", e)
-    return render(request, "patientGraph.html",
-                  {"seconds":seconds,"peak_pressure":peak_pressure,"contact_area":contact_area})
+        return render(request, "patientGraph.html", empty_context())
+    return render(request, "patientGraph.html",{"metric_data":metric_data})
+
+def process_metrics(latest_reading):
+    fps = latest_reading.reading_equipment.product_info.refresh_rate  # Frames per second
+    start_time = latest_reading.timestamp
+
+    with latest_reading.metrics.open(mode='r') as f:  # Read metrics csv
+        df = pd.read_csv(f)  # Copy csv to pandas dataframe
+
+    # Calculate values to display per second
+    df['second'] = np.floor((df['frame'] / fps)).astype(int)  # approx. 15 fps
+    df['time'] = pd.to_datetime(start_time) + pd.to_timedelta(df['second'], unit='s')
+    df['time_sec'] = df['time'].dt.floor('s')
+
+    metrics = ["peak_pressure","mean_pressure","std_pressure","peak_pressure_index","coefficient_of_variation", "contact_area","contact_area_percent","cop_x","cop_y"]
+    metrics_per_sec = df.groupby('time_sec')[metrics].mean() # Take the mean from 15 frames
+    aggregated_metrics_per_sec = {metric: metrics_per_sec[metric].tolist() for metric in metrics} # Aggregate
+
+    times = metrics_per_sec.index.tolist() # Store the seconds recorded
+
+    return {
+        "pressure_frames": get_all_pressure_matrix_frames(latest_reading),
+        **aggregated_metrics_per_sec,
+        "times":times,
+        "flat_pressure_matrix": get_pressure_matrix(latest_reading)
+    }
+    
+def empty_context():
+    return {"pressure_frames":[], "peak_pressure":[],"contact_area":[],"times":[],"flat_pressure_matrix":[], "mean_pressure":[],"std_pressure":[],"contact_area_percent":[], "cop_x":[],"cop_y":[], "coefficient_of_variation":[] }
+
+# Takes the latest reading and converts the pressure data into a list
+def get_pressure_matrix(latest_reading):
+    pressure_matrix = []
+    if latest_reading.pressure_reading:
+        with latest_reading.pressure_reading.open(mode='r') as f:
+            reader = csv.reader(f)
+            for row in reader: pressure_matrix.extend([float(value) for value in row])
+        pressure_matrix += [0.0] * (1024 - len(pressure_matrix))
+        pressure_matrix = pressure_matrix[:1024]
+    return pressure_matrix
+
+# Gets all the pressure matrix frames from the most recent pressure reading file
+def get_all_pressure_matrix_frames(latest_reading):
+    frames = []
+    if not latest_reading.pressure_reading: return frames
+    with latest_reading.pressure_reading.open(mode='r') as f: df = pd.read_csv(f)
+    data = df.values.tolist()
+    FRAME_SIZE = 32  # Will fix
+
+    for i in range(0, len(data), FRAME_SIZE):
+        block = data[i:i + FRAME_SIZE]
+        if len(block) < FRAME_SIZE: break  # skip incomplete frame
+        frame = [val for row in block for val in row]
+        frames.append(frame)
+    return frames
+
+
 def temp_logout(request):
     if request.method == 'POST':
         logout(request)
