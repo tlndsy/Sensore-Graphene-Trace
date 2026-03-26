@@ -166,6 +166,7 @@ class PressureMapReading(models.Model):
 class Report(models.Model):
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
+    frame = models.IntegerField()
 
     def __str__(self):
         return f"Report belonging to {self.pressure_map_reading.reading_equipment.user}, made at {self.pressure_map_reading.timestamp}"

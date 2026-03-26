@@ -80,6 +80,13 @@
             top: 500px;
             left: 1050px;
         }
+
+        .reportList {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 650px;
+        }
     </style>
 </head>
 <body>
@@ -89,8 +96,14 @@
 </nav>
 <div class="main_page_element">
     <div class="heatmap_box">
-        <h1> A heatmap will go here </h1>
+        {{ Heatmap }}
     </div>
+
+    <ul class="reportList">
+        {% for report in allReports %}
+            <li> Report from: {{report.timestamp}} </li>
+        {% endfor %}
+    </ul>
 
     <div class="report_box">
         <h1> Scan Analysis Report </h1>
@@ -126,3 +139,15 @@
 </div>
 </body>
 </html>
+
+# Trying to display heatmap
+{{ heatmapList|json_script:"heatmapList" }}
+<script>
+    const heatmapList = JSON.parse(document.getElementById('heatmapList').textContent);
+
+    function list_to_matrix(flat_pressure_matrix){
+        const pressure_matrix = []; // Empty array for matrix
+        let size = Math.sqrt(flat_pressure_matrix.length) // Defines matrix size
+        for(let i = 0; i < size; i++){pressure_matrix.push(flat_pressure_matrix.slice(i*size, i*size + size))}; // Fill matrix with list values
+        return pressure_matrix}
+</script>

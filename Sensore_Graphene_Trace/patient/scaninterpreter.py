@@ -19,7 +19,7 @@ class ScanInterpreter():
             scan = []
             i = 0
             while i < 32:
-                scan.append(["0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0", "0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0"])
+                scan.append(["0", "0", "0", "0", "0", "0", "0", "0","0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0"])
                 i = i + 1
             return scan
 
@@ -28,6 +28,8 @@ class ScanInterpreter():
         testScan = []
         i = testNo * 32
         endTest = (testNo + 1) * 32
+        if len(scannedData) < endTest:
+            return -1
         while i < endTest:
             testScan.append(scannedData[i])
             i = i + 1
@@ -104,16 +106,43 @@ class ScanInterpreter():
         report[3] = "The exact coordinates of this pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
         return report
 
+
     def runInterpreter(self, file):
         scannedData = self.scanDataFile(self, file)
-        testScan = self.getData(self,0, scannedData) # Currently only gets the first scan in a file
-        #self.showScan(self, testScan) # Used for testing
 
-        highestValueRow = max(testScan)
+        totalHighestValue = 0
+        highestScan = 0
+        endLoop = False
+        scanNumber = 0
+        while not endLoop:
+            currentScan = self.getData(self,scanNumber, scannedData)
+
+            if currentScan == -1:
+                endLoop = True
+            else:
+                highestValueRow = max(currentScan)
+                highestValue = max(highestValueRow)
+
+                if totalHighestValue < int(highestValue):
+                    totalHighestValue = int(highestValue)
+                    highestScan = scanNumber
+
+                scanNumber += 1
+
+
+        highestScanData = self.getData(self,highestScan, scannedData)
+        highestValueRow = max(highestScanData)
         highestValue = max(highestValueRow)
 
         highestXCoord = highestValueRow.index(highestValue)
-        highestYCoord = testScan.index(highestValueRow)
+        highestYCoord = highestScanData.index(highestValueRow)
 
         report = self.createReport(self, highestValue, highestXCoord, highestYCoord)
-        return report
+        return report, scanNumber
+
+    # Takes the report frame and generates a heatmap
+    def get_pressure_matrix(self, file, frame):
+        scannedData = self.scanDataFile(self, file)
+        frameScan = self.getData(self, frame, scannedData)
+        intScan = [[int(x) for x in line] for line in frameScan]
+        return intScan

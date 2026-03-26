@@ -4,3 +4,7 @@ from django.shortcuts import render
 def reportDisplay(request):
     context = {"report_0": "placeholder", "report_1": "placeholder2", "report_2": "placeholder3", "report_3": "placeholder4"}
     return render(request, "clinician/clinicianReportDisplay.html", context)
+
+def displayProfile(request):
+    context = {}
+    return render(request, "clinician/clinicianProfile.html", context)

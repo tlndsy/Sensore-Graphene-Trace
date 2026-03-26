@@ -70,7 +70,7 @@ def registerDevice(request):
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
-currentPage = 0
+currentPage = 0 # Stores the report the user is currently on
 def interpreterDisplay(request):
     global currentPage
     user = request.user
@@ -85,23 +85,27 @@ def interpreterDisplay(request):
     if currentPage < 0:
         currentPage = 0
     elif currentPage >= noOfReadings:
-        currentPage = noOfReadings
+        currentPage = noOfReadings - 1
+    print(currentPage)
     current_reading = all_readings[currentPage]
 
+    file = current_reading.pressure_reading
     if not Report.objects.filter(pressure_map_reading=current_reading).exists():
         # Make a new report only if one does not already exist
         report = Report(pressure_map_reading=current_reading)
-        file = current_reading.pressure_reading
-        reportContents = ScanInterpreter.runInterpreter(ScanInterpreter, file)
+        reportContents, scanNumber = ScanInterpreter.runInterpreter(ScanInterpreter, file)
         report.content = "@".join(reportContents)
+        report.frame = scanNumber
         report.save()
     else:
         report = Report.objects.filter(pressure_map_reading=current_reading).last()
 
+    frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame)
     reportContents = report.content.split("@")
 
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-               "report_3": reportContents[3], "reportNumber": currentPage+1, "noOfReports": noOfReadings}
+               "report_3": reportContents[3], "reportNumber": currentPage+1, "noOfReports": noOfReadings,
+               "heatmapList": frameHeatmap, "allReports": all_readings}
     return render(request, "patient\interpreterDisplay.html", context)
 
 def interpreterButton(request):
