@@ -1,3 +1,5 @@
+from django.utils.text import re_camel_case
+
 from user.models import *
 import csv
 import numpy as np
@@ -17,14 +19,17 @@ class ScanInterpreter():
             scan = []
             i = 0
             while i < 32:
-                scan.append(["0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0", "0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0"])
+                scan.append(["0", "0", "0", "0", "0", "0", "0", "0","0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0","0", "0", "0", "0"])
                 i = i + 1
             return scan
 
-    def getTestData(self, testNo, scannedData):
+    def getData(self, testNo, scannedData):
+        # Retrieve a scan from the scan file. Only gives one file.
         testScan = []
         i = testNo * 32
         endTest = (testNo + 1) * 32
+        if len(scannedData) < endTest:
+            return -1
         while i < endTest:
             testScan.append(scannedData[i])
             i = i + 1
@@ -47,18 +52,20 @@ class ScanInterpreter():
         return area
 
     def checkSeverity(self, pressure):
+        # Determine the severity of the highest pressure point detected
         if pressure > 400:
-            severity = "Extremely High"
-        elif pressure > 250:
             severity = "Very High"
-        elif pressure > 150:
+        elif pressure > 250:
             severity = "High"
+        elif pressure > 150:
+            severity = "Moderate"
         else:
-            severity = "Normal"
+            severity = "Low"
 
         return severity
 
     def showScan(self, scan):
+        # Used for testing, currently not in usage
         i = 0
         while i < 32:
             j = 0
@@ -75,25 +82,71 @@ class ScanInterpreter():
             print(line)
             i += 1
 
+    def makeRecommendation(self, severity):
+        recommendation = " "
+        if severity == "Low":
+            recommendation = "no action needs to be taken, and you are not at significant risk of ulcers"
+        elif severity == "Moderate":
+            recommendation = "this area should be monitored for possible issues, as you may be at risk of developing ulcers"
+        elif severity == "High":
+            recommendation = "this area should be monitored closely, as you are at risk of developing ulcers"
+        elif severity == "Very High":
+            recommendation = "preventative action should be taken to prevent issues, as you will likely develop ulcers in this area if not treated"
+        return recommendation
+
     def createReport(self, pressureValue, xCoord, yCoord):
+        # Give a description of the pressure sensitivity
         location = self.locateArea(self, xCoord, yCoord)
         severity = self.checkSeverity(self, int(pressureValue))
-        report = ["", "", ""]
-        report[0] = "An area of " + severity + " pressure is detected in the " + location + " area."
-        report[1] = "The pressure value is " + str(pressureValue) + "."
-        report[2] = "The exact coordinates of the pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
+        recommendation = self.makeRecommendation(self, severity)
+        report = ["", "", "", ""]
+        report[0] = "The highest point of pressure on your scan is detected in the " + location + " area."
+        report[1] = "This is a pressure value of " + str(pressureValue) + ", which is a " + severity + " pressure reading."
+        report[2] = "This pressure value means that " + recommendation + "."
+        report[3] = "The exact coordinates of this pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
         return report
+
 
     def runInterpreter(self, file):
         scannedData = self.scanDataFile(self, file)
-        testScan = self.getTestData(self,0, scannedData)
-        self.showScan(self, testScan)
 
-        highestValueRow = max(testScan)
+        totalHighestValue = 0
+        highestScan = 0
+        endLoop = False
+        scanNumber = 0
+        while not endLoop:
+            currentScan = self.getData(self,scanNumber, scannedData)
+
+            if currentScan == -1:
+                endLoop = True
+            else:
+                highestValueRow = max(currentScan)
+                highestValue = max(highestValueRow)
+
+                if totalHighestValue < int(highestValue):
+                    totalHighestValue = int(highestValue)
+                    highestScan = scanNumber
+
+                scanNumber += 1
+
+
+        highestScanData = self.getData(self,highestScan, scannedData)
+        highestValueRow = max(highestScanData)
         highestValue = max(highestValueRow)
 
         highestXCoord = highestValueRow.index(highestValue)
-        highestYCoord = testScan.index(highestValueRow)
+        highestYCoord = highestScanData.index(highestValueRow)
 
         report = self.createReport(self, highestValue, highestXCoord, highestYCoord)
-        return report
+        return report, scanNumber
+
+    # Takes the report frame and generates a heatmap
+    def get_pressure_matrix(self, file, frame):
+        scannedData = self.scanDataFile(self, file)
+        frameScan = self.getData(self, frame, scannedData)
+        i = 0
+        intScan = frameScan
+        for line in frameScan:
+            intScan[i] = list(map(int, line))
+            i = i + 1
+        return intScan

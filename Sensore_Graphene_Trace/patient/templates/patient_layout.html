@@ -9,9 +9,12 @@
             Sensore App
         {% endblock %}
     </title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/patient_style.css' %}">
 </head>
 <body>
+{% if user.is_authenticated and user.role == 'PATIENT' %}
+    {% include 'patient/chat_widget.html' %}
+{% endif %}
 <nav class="navbar">
     <a href="/user/patient/">
         <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">

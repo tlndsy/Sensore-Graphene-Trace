@@ -21,10 +21,16 @@ from django.conf import settings
 from django.views.static import serve
 from user import views
 
+
+
+# Sensore_Graphene_Trace/urls.py
 urlpatterns = [
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
     path('admin/', admin.site.urls),
     path('user/', include("user.urls")),
+    path('patient/', include("patient.urls")),
+    path('administrator/', include("administrator.urls")),
     path('', views.home, name='home'),
+    path('accounts/', include('allauth.urls')),
 ]

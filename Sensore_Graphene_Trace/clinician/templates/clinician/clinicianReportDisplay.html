@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensor Report Display</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {%  load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+    <style>
+        .main_page_element {
+            position: relative;
+            height: 0;
+            width: 0;
+        }
+
+        .heatmap_box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 535px;
+            height: 250px;
+            border: 2px solid black;
+            text-align: center;
+        }
+
+        .report_box {
+            position: absolute;
+            top: 270px;
+            left: 10px;
+            width: 535px;
+            height: 250px;
+            border: 2px solid black;
+            padding: 5px
+        }
+
+        .button {
+            border: 2px solid black;
+            text_align: center;
+            padding: 16px 32px;
+            color: white;
+            background-color: #008CBA;
+            cursor: pointer;
+            transition-duration: 0.4s;
+        }
+
+        .button:hover {
+            background-color: white;
+            color: black;
+        }
+
+        .button1 {
+            position: absolute;
+            top: 550px;
+            left: 60px;
+        }
+
+        .button2 {
+            position: absolute;
+            top: 550px;
+            left: 380px;
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <h3 class="nav-title"> Sensore Graphene Trace </h3>
+    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
+</nav>
+<div class="main_page_element">
+    <div class="heatmap_box">
+        <h1> A heatmap will go here </h1>
+    </div>
+
+    <div class="report_box">
+        <h1> Scan Analysis Report </h1>
+        <p>
+            {{ report_0 }}
+        </p>
+        <p>
+            {{ report_1 }}
+        </p>
+        <p>
+            {{ report_2 }}
+        </p>
+        <p>
+            {{ report_3}}
+        </p>
+    </div>
+    <button class="button button1">
+        Edit Report
+    </button>
+    <button class="button button2">
+        Approve Report
+    </button>
+</div>
+</body>
+</html>

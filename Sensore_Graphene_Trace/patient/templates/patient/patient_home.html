@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends 'patient_layout.html' %}
 
 {% block title %}
     Home
@@ -16,9 +16,9 @@
                 <span>My profile</span>
             </a>
 
-            <a href="/user/patient/view-devices/" class="action-card">
+            <a href="/user/patient/report" class="action-card">
                 <div class="icon"></div>
-                <span>View Devices</span>
+                <span>View Reports</span>
             </a>
 
             <a href="/user/patient/stats/" class="action-card">
@@ -26,6 +26,11 @@
                 <span>View Pressure Data</span>
             </a>
 
+            <a href="/user/patient/view-devices/" class="action-card">
+                <div class="icon"></div>
+                <span>View Devices</span>
+            </a>
+            
             <a href="/user/patient/notifications/" class="action-card">
                 <div class="icon"></div>
                 <span>Notifications</span>
