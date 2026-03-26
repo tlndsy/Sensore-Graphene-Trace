@@ -20,8 +20,13 @@ class GroupRequiredMixin(UserPassesTestMixin):
         else:
             groups = self.group_required
 
+
         return user.groups.filter(name__in=groups).exists()
 
     # Raise 403 Forbidden if the user does not have permission to access the page
     def handle_no_permission(self):
+        # if user is not logged in, redirect to login page
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
         raise PermissionDenied("You do not have permission to access this page.")

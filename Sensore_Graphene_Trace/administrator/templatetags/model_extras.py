@@ -7,6 +7,7 @@ register = template.Library()
 def attr(obj, attr_name):
     return getattr(obj, attr_name)
 
+
 @register.filter
 def get_item(mapping, key):
     return mapping.get(key, "")

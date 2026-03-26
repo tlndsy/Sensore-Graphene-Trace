@@ -26,3 +26,7 @@ def home(request):
                 print("Registration failed")
 
     return render(request, "home.html", {"form":login_form, "register_form":register_form})
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')

@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "administrator_layout.html" %}
 {% load model_extras %}
 
 {% block title %}
@@ -6,12 +6,17 @@
 {% endblock %}
 
 {% block content %}
-<h1>Update {{ model_verbose_name }}</h1>
+    <h1>Update {{ model_verbose_name }}</h1>
+    {% if model_name == "user" %}
+        <a href="{% url 'user:administrator:user_password_change' object.pk %}">
+            Change Password
+        </a>
+    {% endif %}
 
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Save</button>
-  <a href="{% url 'user:administrator:generic_list' app_label model_name %}">Cancel</a>
-</form>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+        <a href="{% url 'user:administrator:generic_list' app_label model_name %}">Cancel</a>
+    </form>
 {% endblock %}
