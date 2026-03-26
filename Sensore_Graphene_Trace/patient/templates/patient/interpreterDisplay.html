@@ -96,7 +96,7 @@
 </nav>
 <div class="main_page_element">
     <div class="heatmap_box">
-        {{ Heatmap }}
+        {{ HeatmapGoesHere }}
     </div>
 
     <ul class="reportList">
@@ -140,7 +140,6 @@
 </body>
 </html>
 
-# Trying to display heatmap
 {{ heatmapList|json_script:"heatmapList" }}
 <script>
     const heatmapList = JSON.parse(document.getElementById('heatmapList').textContent);

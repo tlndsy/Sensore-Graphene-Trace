@@ -144,5 +144,9 @@ class ScanInterpreter():
     def get_pressure_matrix(self, file, frame):
         scannedData = self.scanDataFile(self, file)
         frameScan = self.getData(self, frame, scannedData)
-        intScan = [[int(x) for x in line] for line in frameScan]
+        i = 0
+        intScan = frameScan
+        for line in frameScan:
+            intScan[i] = list(map(int, line))
+            i = i + 1
         return intScan
