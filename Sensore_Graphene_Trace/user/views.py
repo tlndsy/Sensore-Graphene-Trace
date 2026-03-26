@@ -58,36 +58,74 @@ def get_messages(request, conversation_id):
     } for m in messages]
 
     return JsonResponse({'messages': data})
+@login_required
+def get_assigned_clinicians(request):
+    assigned = PatientClinician.objects.filter(
+        Patient_ID=request.user
+    ).select_related('Clinician_ID')
+
+    return JsonResponse({
+        'clinicians': [
+            {
+                'id': str(pc.Clinician_ID.id),
+                'name': f"{pc.Clinician_ID.first_name} {pc.Clinician_ID.last_name}",
+                'email': pc.Clinician_ID.email,
+                'unread': Message.objects.filter(
+                    sender=pc.Clinician_ID,
+                    recipient=request.user,
+                    read_receipt=False
+                ).count()
+            }
+            for pc in assigned
+        ]
+    })
 
 
 @login_required
 def get_or_create_conversation(request):
-    # Find the clinician linked to this patient
-    patient_clinician = PatientClinician.objects.filter(
-        Patient_ID=request.user
-    ).first()
+    try:
+        if request.user.role == 'CLINICIAN':
+            patient_id = request.GET.get('patient_id')
+            from user.models import User
+            other_user = User.objects.get(id=patient_id)
+        else:
+            # Patient — clinician_id now passed from frontend
+            clinician_id = request.GET.get('clinician_id')
 
-    if not patient_clinician:
-        return JsonResponse({'error': 'No clinician assigned'}, status=404)
+            if clinician_id:
+                from user.models import User
+                other_user = User.objects.get(id=clinician_id)
+            else:
+                # fallback to first assigned clinician
+                patient_clinician = PatientClinician.objects.filter(
+                    Patient_ID=request.user
+                ).select_related('Clinician_ID').first()
 
-    clinician = patient_clinician.Clinician_ID
+                if not patient_clinician:
+                    return JsonResponse({'error': 'No clinician assigned'})
 
-    # Find existing conversation or create one
-    existing = Message.objects.filter(
-        sender=request.user, recipient=clinician
-    ).values_list('conversation', flat=True).first()
+                other_user = patient_clinician.Clinician_ID
 
-    if existing:
-        conversation = Conversation.objects.get(id=existing)
-    else:
-        conversation = Conversation.objects.create(
-            subject=f"Chat: {request.user.first_name} & {clinician.first_name}"
-        )
+        conversation = Conversation.objects.filter(
+            message__sender=request.user,
+            message__recipient=other_user
+        ).first() or Conversation.objects.filter(
+            message__sender=other_user,
+            message__recipient=request.user
+        ).first()
 
-    return JsonResponse({
-        'conversation_id': conversation.id,
-        'clinician_name': clinician.first_name + ' ' + clinician.last_name,
-    })
+        if not conversation:
+            conversation = Conversation.objects.create(
+                subject=f"Chat between {request.user.first_name} and {other_user.first_name}"
+            )
+
+        return JsonResponse({
+            'conversation_id': conversation.id,
+            'clinician_name': f"{other_user.first_name} {other_user.last_name}",
+        })
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
