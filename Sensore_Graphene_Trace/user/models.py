@@ -13,6 +13,7 @@ from django.contrib.auth.models import Group, PermissionsMixin, BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.db import models, transaction
 from django_resized import ResizedImageField
+from django.utils import timezone
 
 import Sensore_Graphene_Trace.global_constants as constants
 
