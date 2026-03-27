@@ -39,6 +39,10 @@
             }
         </script>
 
+        <form action="{% url 'user:clinician:logout' %}" method="post">
+            {% csrf_token %}
+            <button class="logout" aria-label="User Logout" title="User Logout">Log out</button>
+        </form>
 
         <div class="dropdown">
             <button class="menu-btn">☰</button>
@@ -46,6 +50,7 @@
                 <a href="/user/clinician/profile">Profile</a>
                 <a href="/user/clinician/view-devices/">View Devices</a>
                 <a href="/user/clinician/notifications/">Notifications</a>
+                <a href="/user/clinician/report/">View Scan Reports</a>
                 <a href="#">Settings</a>
                 <a href="#">Support</a>
             </div>

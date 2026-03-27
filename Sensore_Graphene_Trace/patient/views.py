@@ -95,9 +95,8 @@ class PatientRegisterDeviceView(BasePatientMixin, CreateView):
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
-currentPage = 0 # Stores the report the user is currently on
-def interpreterDisplay(request):
-    global currentPage
+def interpreterDisplay(request, reportNumber = 0):
+    print(request)
     user = request.user
     from user.models import Report
 
@@ -106,14 +105,12 @@ def interpreterDisplay(request):
 
     noOfReadings = len(all_readings)
 
-    # Check if stated page is within limits
-    if currentPage < 0:
-        currentPage = 0
-    elif currentPage >= noOfReadings:
-        currentPage = noOfReadings - 1
+    # Check if requested report is within limits
+    if reportNumber >= noOfReadings:
+        reportNumber = noOfReadings - 1
 
     try:
-        current_reading = all_readings[currentPage]
+        current_reading = all_readings[reportNumber]
         file = current_reading.pressure_reading
 
         if not Report.objects.filter(pressure_map_reading=current_reading).exists():
@@ -130,7 +127,7 @@ def interpreterDisplay(request):
         reportContents = report.content.split("@")
 
         context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-                   "report_3": reportContents[3], "reportNumber": currentPage+1, "noOfReports": noOfReadings,
+                   "report_3": reportContents[3], "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
                    "heatmap": frameHeatmap, "allReports": all_readings}
 
     except Exception: #If no scans found, inform user of this
@@ -144,15 +141,15 @@ def interpreterDisplay(request):
 
     return render(request, "patient\interpreterDisplay.html", context)
 
-def interpreterButton(request):
-    global currentPage
+
+def interpreterButton(request, reportNumber = 0):
     if 'Older' in request.POST:
-        currentPage = currentPage + 1
-    elif 'Newer' in request.POST:
-        currentPage = currentPage - 1
+        reportNumber = reportNumber
+    elif 'Newer' in request.POST and reportNumber > 1:
+        reportNumber = reportNumber - 2
     elif 'Newest':
-        currentPage = 0
-    return redirect("/user/patient/report")
+        reportNumber = 0
+    return redirect("/user/patient/report/" + str(reportNumber))
 
 
 def profile(request):

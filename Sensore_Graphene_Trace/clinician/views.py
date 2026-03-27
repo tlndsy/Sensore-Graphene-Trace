@@ -8,3 +8,7 @@ def reportDisplay(request):
 def displayProfile(request):
     context = {}
     return render(request, "clinician/clinicianProfile.html", context)
+
+def tempLogout(request): #Just redirects the user to their home page for now
+    context = {}
+    return render(request, "clinician/clinicianProfile.html", context)

@@ -14,10 +14,12 @@ urlpatterns = [
     path("view-devices/", views.PatientViewDevices.as_view(), name="viewDevices"),
     path("register-device/", views.PatientRegisterDeviceView.as_view(), name="registerDevice"),
     path("stats/", views.stats, name="stats"),
-    path("report/", views.interpreterDisplay, name="report"),
     path("notifications/", views.notifications, name="stats"),
     path("messages/", views.messages, name="stats"),
     path("logout/", views.temp_logout, name="logout"),
     path("graphs/", views.view_graph, name="graphs"),
-    path("report/patient-button", views.interpreterButton, name="interpreterButton"),
+
+    path("report/", views.interpreterDisplay, name="report"),
+    path("report/<int:reportNumber>", views.interpreterDisplay, name="report"),
+    path("report/patient-button/<int:reportNumber>", views.interpreterButton, name="interpreterButton"),
 ]

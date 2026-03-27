@@ -10,4 +10,6 @@ urlpatterns = [
     #path('', views.displayProfile, name='profile'),
     path("report/", views.reportDisplay, name="report"),
     path("profile/", views.displayProfile, name="profile"),
+
+    path("logout/", views.tempLogout, name="logout"), #Doesn't work currently!
 ]

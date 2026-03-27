@@ -138,7 +138,7 @@ class ScanInterpreter():
         highestYCoord = highestScanData.index(highestValueRow)
 
         report = self.createReport(self, highestValue, highestXCoord, highestYCoord)
-        return report, scanNumber
+        return report, highestScan
 
     # Takes the report frame and generates a heatmap
     def get_pressure_matrix(self, file, frame):

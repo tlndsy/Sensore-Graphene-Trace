@@ -114,7 +114,7 @@
             </p>
         </div>
 
-        <form action="patient-button" method="POST">
+        <form action="patient-button/{{reportNumber}}" method="POST">
             {% csrf_token %}
             <button name="Older" class="button button1">
                 Older Report
