@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sensor Report Display</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {%  load static %}
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-
+{% extends 'clinician_layout.html' %}
+{% block title %}
+    Report
+{% endblock %}
+{% block content %}
     <style>
         .main_page_element {
             position: relative;
@@ -44,25 +40,18 @@
             text-align: center;
         }
     </style>
-</head>
-<body>
-<nav>
-    <h3 class="nav-title"> Sensore Graphene Trace </h3>
-    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
-</nav>
-<div class="main_page_element">
-    <div class="profile_picture_box">
-        This is a picture.
+    <div class="main_page_element">
+        <div class="profile_picture_box">
+            This is a picture.
+        </div>
+
+        <div class="personal_information_box">
+            This box has personal information
+        </div>
+
+        <div class="patient_list_box">
+            This box has a list of patients
+        </div>
     </div>
 
-    <div class="personal_information_box">
-        This box has personal information
-    </div>
-
-    <div class="patient_list_box">
-        This box has a list of patients
-    </div>
-</div>
-
-</body>
-</html>
+{% endblock %}

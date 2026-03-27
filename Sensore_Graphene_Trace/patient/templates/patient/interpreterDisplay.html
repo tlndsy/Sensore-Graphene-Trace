@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sensor Report Display</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {%  load static %}
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-
+{% extends 'patient_layout.html' %}
+{% block title %}
+    Report
+{% endblock %}
+{% block content %}
     <style>
         .main_page_element {
             position: relative;
@@ -19,14 +15,14 @@
             top: 10px;
             left: 10px;
             width: 750px;
-            height: 350px;
+            height: 310px;
             border: 2px solid black;
             text-align: center;
         }
 
         .report_box {
             position: absolute;
-            top: 370px;
+            top: 340px;
             left: 10px;
             width: 750px;
             height: 250px;
@@ -36,7 +32,7 @@
 
         .index_box {
             position: absolute;
-            top: 50px;
+            top: 20px;
             left: 1050px;
             width: 200px;
             height: 120px;
@@ -65,19 +61,19 @@
 
         .button1 {
             position: absolute;
-            top: 200px;
+            top: 170px;
             left: 1050px;
         }
 
         .button2 {
             position: absolute;
-            top: 350px;
+            top: 320px;
             left: 1050px;
         }
 
         .button3 {
             position: absolute;
-            top: 500px;
+            top: 470px;
             left: 1050px;
         }
 
@@ -88,65 +84,47 @@
             width: 650px;
         }
     </style>
-</head>
-<body>
-<nav>
-    <h3 class="nav-title"> Sensore Graphene Trace </h3>
-    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
-</nav>
-<div class="main_page_element">
-    <div class="heatmap_box">
-        {{ HeatmapGoesHere }}
+    <div class="main_page_element">
+        <div class="heatmap_box">
+            {{ HeatmapGoesHere }}
+        </div>
+
+        <ul class="reportList">
+            {% for report in allReports %}
+                <li> Report from: {{report.timestamp}} </li>
+            {% endfor %}
+        </ul>
+
+        <div class="report_box">
+            <h1> Scan Analysis Report </h1>
+            <p style="font-size:24px">
+                {{ report_0 }}
+            </p>
+            <p style="font-size:24px">
+                {{ report_1 }}
+            </p>
+            <p style="font-size:24px">
+                {{ report_2 }}
+            </p>
+        </div>
+
+        <div class="index_box">
+            <p style="font-size:24px; text-align: center">
+                This report is report {{ reportNumber }} out of the {{ noOfReports }} saved reports.
+            </p>
+        </div>
+
+        <form action="patient-button" method="POST">
+            {% csrf_token %}
+            <button name="Older" class="button button1">
+                Older Report
+            </button>
+            <button name="Newer" class="button button2">
+                Newer Report
+            </button>
+            <button name="Newest" class="button button3">
+                Newest Report
+            </button>
+        </form>
     </div>
-
-    <ul class="reportList">
-        {% for report in allReports %}
-            <li> Report from: {{report.timestamp}} </li>
-        {% endfor %}
-    </ul>
-
-    <div class="report_box">
-        <h1> Scan Analysis Report </h1>
-        <p style="font-size:24px">
-            {{ report_0 }}
-        </p>
-        <p style="font-size:24px">
-            {{ report_1 }}
-        </p>
-        <p style="font-size:24px">
-            {{ report_2 }}
-        </p>
-    </div>
-
-    <div class="index_box">
-        <p style="font-size:24px; text-align: center">
-            This report is report {{ reportNumber }} out of the {{ noOfReports }} saved reports.
-        </p>
-    </div>
-
-    <form action="patient-button" method="POST">
-        {% csrf_token %}
-        <button name="Older" class="button button1">
-            Older Report
-        </button>
-        <button name="Newer" class="button button2">
-            Newer Report
-        </button>
-        <button name="Newest" class="button button3">
-            Newest Report
-        </button>
-    </form>
-</div>
-</body>
-</html>
-
-{{ heatmapList|json_script:"heatmapList" }}
-<script>
-    const heatmapList = JSON.parse(document.getElementById('heatmapList').textContent);
-
-    function list_to_matrix(flat_pressure_matrix){
-        const pressure_matrix = []; // Empty array for matrix
-        let size = Math.sqrt(flat_pressure_matrix.length) // Defines matrix size
-        for(let i = 0; i < size; i++){pressure_matrix.push(flat_pressure_matrix.slice(i*size, i*size + size))}; // Fill matrix with list values
-        return pressure_matrix}
-</script>
+{% endblock %}
