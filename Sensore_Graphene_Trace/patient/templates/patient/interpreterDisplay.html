@@ -41,46 +41,10 @@
             text-align: center;
         }
 
-        .button {
-            border: 2px solid black;
-            text_align: center;
-            padding: 16px 32px;
-            width: 200px;
-            height: 120px;
-            font-size: 30px;
-            color: white;
-            background-color: #008CBA;
-            cursor: pointer;
-            transition-duration: 0.4s;
-        }
-
-        .button:hover {
-            background-color: white;
-            color: black;
-        }
-
-        .button1 {
-            position: absolute;
-            top: 170px;
-            left: 1050px;
-        }
-
-        .button2 {
-            position: absolute;
-            top: 320px;
-            left: 1050px;
-        }
-
-        .button3 {
-            position: absolute;
-            top: 470px;
-            left: 1050px;
-        }
-
         .reportList {
             position: absolute;
-            top: 50px;
-            left: 50px;
+            top: 170px;
+            left: 1000px;
             width: 650px;
         }
     </style>
@@ -91,7 +55,9 @@
 
         <ul class="reportList">
             {% for report in allReports %}
-                <li> Report from: {{report.timestamp}} </li>
+                <li>
+                    <a href="/user/patient/report/{{forloop.counter0}}">Report from: {{report.timestamp}}</a>
+                </li>
             {% endfor %}
         </ul>
 
@@ -114,17 +80,5 @@
             </p>
         </div>
 
-        <form action="patient-button/{{reportNumber}}" method="POST">
-            {% csrf_token %}
-            <button name="Older" class="button button1">
-                Older Report
-            </button>
-            <button name="Newer" class="button button2">
-                Newer Report
-            </button>
-            <button name="Newest" class="button button3">
-                Newest Report
-            </button>
-        </form>
     </div>
 {% endblock %}

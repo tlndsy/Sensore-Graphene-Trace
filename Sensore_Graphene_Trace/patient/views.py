@@ -96,13 +96,11 @@ def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
 def interpreterDisplay(request, reportNumber = 0):
-    print(request)
     user = request.user
     from user.models import Report
 
     all_readings = (PressureMapReading.objects.filter(reading_equipment__user=user).all())
     all_readings = all_readings.order_by('timestamp')
-
     noOfReadings = len(all_readings)
 
     # Check if requested report is within limits
