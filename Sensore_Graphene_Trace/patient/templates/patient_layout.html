@@ -16,48 +16,77 @@
     {% include 'patient/chat_widget.html' %}
 {% endif %}
 <nav class="navbar">
-    <a href="/user/patient/">
-        <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">
-    </a>
-
-
-    <div class="nav-right">
-        <a href="/user/patient/profile/" class="profile-container">
-            <img src="{{ user.profile_picture.url }}" alt="User profile picture" class="profile-pic">
-            <span class="notification-badge">{{ num_notifications }}</span>
+        <a href="/user/patient/">
+            <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">
         </a>
-        <script>
-            // Set notification badge count
-            const notificationCount = {{ num_notifications }};
-            const badge = document.querySelector(".notification-badge");
 
-            badge.textContent = notificationCount;
+        <div class="nav-right">
+            <a href="/user/patient/profile/" class="profile-container">
+                <img src="{{ user.profile_picture.url }}" alt="User profile picture" class="profile-pic">
+                <span class="notification-badge">{{ num_notifications }}</span>
+            </a>
+            <script>
+                // Set notification badge count
+                const notificationCount = {{ num_notifications }};
+                const badge = document.querySelector(".notification-badge");
 
-            // Hide badge if count is zero
-            if (notificationCount === 0) {
-                badge.style.display = "none";
-            }
-        </script>
+                badge.textContent = notificationCount;
 
-        <form action="{% url 'user:patient:logout' %}" method="post">
-            {% csrf_token %}
-            <button class="logout" aria-label="User Logout" title="User Logout">Log out</button>
-        </form>
+                // Hide badge if count is zero
+                if (notificationCount === 0) {
+                    badge.style.display = "none";
+                }
+            </script>
 
-        <div class="dropdown">
-            <button class="menu-btn">☰</button>
-            <div class="dropdown-menu">
-                <a href="/user/patient/profile">Profile</a>
-                <a href="/user/patient/view-devices/">View Devices</a>
-                <a href="/user/patient/notifications/">Notifications</a>
-                <a href="#">Settings</a>
-                <a href="#">Support</a>
-            </div>
+            <form action="{% url 'user:patient:logout' %}" method="post">
+                {% csrf_token %}
+                <button class="logout" aria-label="User Logout" title="User Logout">Log out</button>
+            </form>
+
+
+            <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
+
+        </div>
+    </nav>
+<div class="wrapper">
+    <!-- Side panel -->
+    <div class="side-panel">
+        <!-- Menu Options -->
+        <div id="menu-options">
+            <a href="/user/patient/profile" class="side-panel-button">
+                <span>My profile</span>
+            </a>
+
+            <a href="/user/patient/report" class="side-panel-button">
+                <span>View Reports</span>
+            </a>
+
+            <a href="/user/patient/graphs/" class="side-panel-button">
+                <span>View Pressure Data</span>
+            </a>
+
+            <a href="/user/patient/view-devices/" class="side-panel-button">
+                <span>View Devices</span>
+            </a>
+
+            <a href="/user/patient/notifications/" class="side-panel-button">
+                <span>Notifications</span>
+            </a>
+
+            <a href="/user/patient/messages/" class="side-panel-button">
+                <span>Contact Clinician</span>
+            </a>
         </div>
     </div>
-</nav>
+
+    <main class="main">
+        {% block content %}
+        {% endblock %}
+    </main>
+</div>
+
 <script>
-    const menuBtn = document.querySelector(".menu-btn");
+    /*const menuBtn = document.querySelector(".menu-btn");
     const dropdown = document.querySelector(".dropdown");
 
     menuBtn.addEventListener("click", () => {
@@ -69,12 +98,11 @@
         if (!dropdown.contains(e.target)) {
             dropdown.classList.remove("open");
         }
-    });
-</script>
+    });*/
 
-<main>
-    {% block content %}
-    {% endblock %}
-</main>
+    // Opens and closes side panel
+    document.querySelector(".side-panel-toggle").addEventListener("click", () => {document.querySelector(".wrapper").classList.toggle("side-panel-open");})
+
+</script>
 </body>
 </html>

@@ -42,8 +42,6 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
-
-
 @login_required
 def get_messages(request, conversation_id):
     conversation = get_object_or_404(Conversation, id=conversation_id)

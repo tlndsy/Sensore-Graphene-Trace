@@ -163,7 +163,6 @@ def view_graph(request):
     latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).order_by('-timestamp').first())
     if not latest_reading or not latest_reading.metrics:
         return render(request, "patientGraph.html", empty_context()) # Return empty if no data
-
     try:
         metric_data = process_metrics(latest_reading)
     except Exception as e: # Error reading pressure mat data

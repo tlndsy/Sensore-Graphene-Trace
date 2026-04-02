@@ -1,75 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sensore Graphene Trace</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {%  load static %}
-    <link rel="stylesheet" href="{% static 'style2.css' %}">
-</head>
-<body>
-<nav>
-    <h3 class="nav-title"> Sensore Graphene Trace </h3>
-    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
-</nav>
-    <div class="wrapper">
-
-        <!-- Main page content -->
-        <div class="main">
-            <div class="graphs">
-                <!-- Contains key metrics from the patients pressure mat data -->
-                <div class="graph">
-                    <h1>Graph Data</h1>
-                    <div class="graph-content">
-                        <div class="graph-plot">
-                            <div class="tabs">
-                            <button onclick="showTimeRange('30')">30 sec</button>
-                            <button onclick="showTimeRange('60')">1 min</button>
-                            <button onclick="showTimeRange('150')">2.5 min</button>
-                            <button onclick="showTimeRange('300')">5 min</button>
-                            </div>
-                            <div id="graph"></div>
-                            <button id ="live-toggle" onclick="toggleLiveMode()">Live Mode</button>
+{%  extends "patient_layout.html" %}
+{% block content %}
+    <!-- Main page content -->
+    <div class="main">
+        <div class="graphs">
+            <!-- Contains key metrics from the patients pressure mat data -->
+            <div class="graph">
+                <h1>Graph Data</h1>
+                <div class="graph-content">
+                    <div class="graph-plot">
+                        <div class="tabs">
+                        <button onclick="showTimeRange('30')">30 sec</button>
+                        <button onclick="showTimeRange('60')">1 min</button>
+                        <button onclick="showTimeRange('150')">2.5 min</button>
+                        <button onclick="showTimeRange('300')">5 min</button>
                         </div>
-
-                        <div class="graph-metrics">
-                            <button onclick="showMetric('peak_pressure_index',0,'Peak Pressure Index')" id="peak-pressure">Peak Pressure Index</button>
-                            <button onclick="showMetric('contact_area_percent',1,'Contact Area Percentage')" id="contact-area">Contact Area Percentage</button>
-                            <button onclick="showMetric('coefficient_of_variation',2,'Coefficient Of Variation')" id="coefficient-of-variation">Coefficient Of Variation</button>
-                        </div>
+                        <div id="graph"></div>
+                        <button id ="live-toggle" onclick="toggleLiveMode()">Live Mode</button>
                     </div>
-                </div>
 
-                <div class="heatmap">
-                    <h1> Heatmap </h1>
-                    <div class="heatmap-content">
-                        <div class="heatmap-plot">
-                            <div class="tabs">
-                                <button onclick="plotHeatmap()">Predicted Concerns</button>
-                            </div>
-                            <div id="heatmap"></div>
-                        </div>
-
-                        <div class="heatmap-metrics">
-
-                        </div>
+                    <div class="graph-metrics">
+                        <button onclick="showMetric('peak_pressure_index',0,'Peak Pressure Index')" id="peak-pressure">Peak Pressure Index</button>
+                        <button onclick="showMetric('contact_area_percent',1,'Contact Area Percentage')" id="contact-area">Contact Area Percentage</button>
+                        <button onclick="showMetric('coefficient_of_variation',2,'Coefficient Of Variation')" id="coefficient-of-variation">Coefficient Of Variation</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Side panel -->
-        <div class="side-panel">
-            <!-- Menu Options -->
-            <div id="menu-options">
-                <form method='post' class="menu-options">
-                    {% csrf_token %}
-                    <button type="submit"> Home </button>
-                    <button type="submit"> View Reports </button>
-                    <button type="submit"> Notifications </button>
-                    <button type="submit"> Support </button>
-                    <button type="submit"> Logout </button>
-                </form>
+            <div class="heatmap">
+                <h1> Heatmap </h1>
+                <div class="heatmap-content">
+                    <div class="heatmap-plot">
+                        <div class="tabs">
+                            <button onclick="plotHeatmap()">Predicted Concerns</button>
+                        </div>
+                        <div id="heatmap"></div>
+                    </div>
+
+                    <div class="heatmap-metrics">
+
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -168,11 +138,6 @@
 
 </script>
 
-<!-- Opens and closes side panel -->
-    <script>
-        document.querySelector(".side-panel-toggle").addEventListener("click", () => {document.querySelector(".wrapper").classList.toggle("side-panel-open");})
-    </script>
-
 <!-- Manage tabs -->
     <script>
         const tabs = document.querySelectorAll('.tabs button');
@@ -180,5 +145,4 @@
         const timeTabs = document.querySelectorAll('.time-tabs button');
         timeTabs.forEach(tab => tab.addEventListener('click', () => {timeTabs.forEach(t => t.classList.remove('active'));tab.classList.add('active');}));
     </script>
-</body>
-</html>
+{% endblock %}

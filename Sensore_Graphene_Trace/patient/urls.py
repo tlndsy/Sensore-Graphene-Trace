@@ -13,7 +13,6 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
     path("view-devices/", views.PatientViewDevices.as_view(), name="viewDevices"),
     path("register-device/", views.PatientRegisterDeviceView.as_view(), name="registerDevice"),
-    path("stats/", views.stats, name="stats"),
     path("report/", views.interpreterDisplay, name="report"),
     path("notifications/", views.notifications, name="stats"),
     path("messages/", views.messages, name="stats"),
