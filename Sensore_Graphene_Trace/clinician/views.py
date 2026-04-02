@@ -11,7 +11,7 @@ def reportDisplay(request, reportNumber = 0, patientNumber = 0):
 
     try:
         patientCliniciansList = (PatientClinician.objects.filter(clinician=user).all())
-        patientClinician = patientCliniciansList[0]
+        patientClinician = patientCliniciansList[patientNumber]
         patient = patientClinician.patient
 
         all_readings = (PressureMapReading.objects.filter(reading_equipment__user=patient).all())
@@ -51,7 +51,8 @@ def reportDisplay(request, reportNumber = 0, patientNumber = 0):
 
         context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
                    "report_3": reportContents[3], "reportNumber": reportNumber + 1, "noOfReports": noOfReadings,
-                   "heatmap": frameHeatmap, "allReports": all_readings, "patientNumber": patientNumber}
+                   "heatmap": frameHeatmap, "allReports": all_readings, "patientNumber": patientNumber,
+                   "patientList": patientCliniciansList}
 
     except Exception:  # If no scans found, inform user of this
         reportContents = ["", "", "", ""]

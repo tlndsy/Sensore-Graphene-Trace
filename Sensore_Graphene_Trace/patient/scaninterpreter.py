@@ -94,7 +94,7 @@ class ScanInterpreter():
             recommendation = "preventative action should be taken to prevent issues, as you will likely develop ulcers in this area if not treated"
         return recommendation
 
-    def createReport(self, pressureValue, xCoord, yCoord):
+    def createReport(self, pressureValue, xCoord, yCoord, highestScan):
         # Give a description of the pressure sensitivity
         location = self.locateArea(self, xCoord, yCoord)
         severity = self.checkSeverity(self, int(pressureValue))
@@ -103,7 +103,8 @@ class ScanInterpreter():
         report[0] = "The highest point of pressure on your scan is detected in the " + location + " area."
         report[1] = "This is a pressure value of " + str(pressureValue) + ", which is a " + severity + " pressure reading."
         report[2] = "This pressure value means that " + recommendation + "."
-        report[3] = "The exact coordinates of this pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) + ")."
+        report[3] = ("The exact coordinates of this pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) +
+                     "), and this happened on snapshot " + str(highestScan) + ".")
         return report
 
 
@@ -137,7 +138,7 @@ class ScanInterpreter():
         highestXCoord = highestValueRow.index(highestValue)
         highestYCoord = highestScanData.index(highestValueRow)
 
-        report = self.createReport(self, highestValue, highestXCoord, highestYCoord)
+        report = self.createReport(self, highestValue, highestXCoord, highestYCoord, highestScan)
         return report, highestScan
 
     # Takes the report frame and generates a heatmap

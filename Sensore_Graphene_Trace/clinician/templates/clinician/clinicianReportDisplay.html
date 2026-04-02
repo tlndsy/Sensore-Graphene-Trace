@@ -59,7 +59,14 @@
 
         .reportList {
             position: absolute;
-            top: 170px;
+            top: 370px;
+            left: 950px;
+            text-align: center;
+        }
+
+        .patientList {
+            position: absolute;
+            top: 40px;
             left: 950px;
             text-align: center;
         }
@@ -80,7 +87,7 @@
         </div>
 
         <div class="report_box">
-            <h1> Scan Analysis Report </h1>
+            <h1> Patient Scan Report </h1>
             <p>
                 {{ report_0 }}
             </p>
@@ -106,6 +113,16 @@
                 <li>
                     <div class="list_box">
                         <a href="/user/clinician/report/{{forloop.counter0}}/{{patientNumber}}">Report from: {{report.timestamp}}</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <ul class="patientList">
+            {% for patientClinician in patientList %}
+                <li>
+                    <div class="list_box">
+                        <a href="/user/clinician/report/0/{{forloop.counter0}}">Patient: {{patientClinician.patient}}</a>
                     </div>
                 </li>
             {% endfor %}
