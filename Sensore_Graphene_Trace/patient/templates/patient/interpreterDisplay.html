@@ -18,6 +18,7 @@
             height: 310px;
             border: 2px solid black;
             text-align: center;
+            border-radius: 25px;
         }
 
         .report_box {
@@ -27,7 +28,8 @@
             width: 750px;
             height: 250px;
             border: 2px solid black;
-            padding: 5px
+            padding: 5px;
+            border-radius: 25px;
         }
 
         .index_box {
@@ -39,13 +41,24 @@
             border: 2px solid black;
             padding: 5px
             text-align: center;
+            border-radius: 15px;
         }
 
         .reportList {
             position: absolute;
             top: 170px;
-            left: 1000px;
-            width: 650px;
+            left: 950px;
+            text-align: center;
+        }
+
+        .list_box {
+            position: relative;
+            width: 400px;
+            border: 2px solid black;
+            padding: 5px
+            text-align: center;
+            font-size: 18px;
+            border-radius: 15px;
         }
     </style>
     <div class="main_page_element">
@@ -56,7 +69,9 @@
         <ul class="reportList">
             {% for report in allReports %}
                 <li>
-                    <a href="/user/patient/report/{{forloop.counter0}}">Report from: {{report.timestamp}}</a>
+                    <div class="list_box">
+                        <a href="/user/patient/report/{{forloop.counter0}}">Report from: {{report.timestamp}}</a>
+                    </div>
                 </li>
             {% endfor %}
         </ul>

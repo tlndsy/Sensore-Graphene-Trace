@@ -138,7 +138,7 @@ class PatientClinician(models.Model):
     def clean(self):
         if not self.patient.groups.filter(name=User.Roles.PATIENT).exists():
             raise ValidationError("Selected patient is not a valid patient.")
-        if not self.clinician.groups.filter(name=User.Roles.PATIENT).exists():
+        if not self.clinician.groups.filter(name=User.Roles.CLINICIAN).exists():
             raise ValidationError("Selected clinician is not a valid clinician.")
 
     def __str__(self):
