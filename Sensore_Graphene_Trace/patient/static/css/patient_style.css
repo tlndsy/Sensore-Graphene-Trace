@@ -571,7 +571,7 @@ body {
     display: flex;
 }
 /* ----------------------------------------------------------- GRAPH PAGE --------------------------------------------*/
-.graphs {
+.pressure-data {
     display: flex;
     flex-direction: column;
     gap: 20px;

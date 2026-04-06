@@ -84,7 +84,6 @@
 
 
         <div class="side-panel">
-
             <!-- Login Form -->
             <div id="login-panel">
                 <form method='post' class="login-form">
@@ -104,14 +103,14 @@
                             <input type="checkbox" id="showPassword">
                             Show password
                         </label>
-                        <a href="www.google.com">Forgot Password? </a>
+                        <button type="button" class="btn" id="open-password-reset"> Forgot password? </button>
                     </div>
                     <button type="submit">Login</button> <!-- Will update later when page exists -->
                     <button type="button" class="btn" id="open-register">Register</button>
                 </form>
-            </div>
 
-            <div class="google-login"><a href="{% provider_login_url 'google' %}" class="link-button">Login with Google</a></div>
+                <div class="google-login"><a href="{% provider_login_url 'google' %}" class="link-button">Login with Google</a></div>
+            </div>
 
             <!-- Registration Form -->
              <div id="register-panel" class="hidden">
@@ -148,19 +147,44 @@
                         {{ register_form.date_of_birth }}
                     </div>
                      <button type="submit"> Create account </button>
-                     <button type="button" class="btn" id="open-login"> Return to login </button>
+                     <button type="button" class="btn open-login">Return to login</button>
                  </form>
              </div>
 
-            <!-- Password Reset Form -->
+            <!-- Request Password Reset Form -->
             <div id="password-reset-panel" class="hidden">
-                <form method="post" class="password-reset">
+                <form method="post">
                     {% csrf_token %}
-                    <h1> Reset Password </h1>
-
+                    <input type="hidden" name="form_type" value="request_reset_code">
+                    <h1>Reset Password</h1>
+                    <div class="field">
+                        <label>Email</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <button type="submit">Send Code</button>
                 </form>
+                <button type="button" class="btn open-login">Return to login</button>
             </div>
 
+            <!-- Password Reset Form -->
+            <div id="password-code-panel" class="hidden">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="confirm_reset">
+                    <input type="hidden" name="email" value="{{ reset_email }}">
+                    <h1>Enter Reset Code</h1>
+                    <div class="field">
+                        <label>Reset Code</label>
+                        <input type="text" name="code" required>
+                    </div>
+                    <div class="field">
+                        <label>New Password</label>
+                        <input type="password" name="password" required>
+                    </div>
+                    <button type="submit">Reset Password</button>
+                </form>
+                <button type="button" class="btn open-login">Return to login</button>
+            </div>
         </div>
     </div>
 <!-- Opens and closes side panel -->
@@ -182,6 +206,7 @@
     <script>
         const loginPanel = document.getElementById("login-panel");
         const registerPanel = document.getElementById("register-panel");
+        const resetPanel = document.getElementById("password-reset-panel")
         const wrapper = document.querySelector(".wrapper");
 
         //Open registration panel
@@ -189,14 +214,26 @@
             wrapper.classList.add("side-panel-open");
             loginPanel.classList.add("hidden");
             registerPanel.classList.remove("hidden");
-
+            resetPanel.classList.add("hidden");
         })
 
         // Open login panel
-        document.getElementById("open-login").addEventListener("click", () => {
+        document.querySelectorAll(".open-login").forEach(btn => {
+            btn.addEventListener("click", () => {
+                wrapper.classList.add("side-panel-open");
+                registerPanel.classList.add("hidden");
+                loginPanel.classList.remove("hidden");
+                resetPanel.classList.add("hidden");
+                document.getElementById("password-code-panel").classList.add("hidden");
+            });
+        });
+
+        // Open password reset panel
+        document.getElementById("open-password-reset").addEventListener("click", () => {
             wrapper.classList.add("side-panel-open");
             registerPanel.classList.add("hidden");
-            loginPanel.classList.remove("hidden");
+            loginPanel.classList.add("hidden");
+            resetPanel.classList.remove("hidden");
         })
     </script>
 
@@ -207,6 +244,17 @@
         const button = card.querySelector(".faq-question");
         button.addEventListener("click", () => {card.classList.toggle("active");});
     });
+    </script>
+
+    <script>
+        const step = "{{ reset_step|default:0 }}";
+        if (step == "2") {
+            wrapper.classList.add("side-panel-open");
+            loginPanel.classList.add("hidden");
+            registerPanel.classList.add("hidden");
+            resetPanel.classList.add("hidden");
+            document.getElementById("password-code-panel").classList.remove("hidden");
+        }
     </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from django.utils.html import avoid_wrapping
 
 from .models import User

@@ -14,6 +14,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.db import models, transaction
 from django_resized import ResizedImageField
 from django.utils import timezone
+from django.conf import settings
+
 
 import Sensore_Graphene_Trace.global_constants as constants
 
@@ -314,3 +316,13 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender}, to {self.recipient}, made at {self.timestamp}"
+
+class PasswordResetCode(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        from django.utils import timezone
+        return (timezone.now() - self.created_at).seconds < 600
+

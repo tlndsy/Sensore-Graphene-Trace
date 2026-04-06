@@ -1,8 +1,11 @@
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm,PasswordResetForm
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, HttpResponse, redirect
 from .forms import RegisterForm, LoginForm
-
+import random
+from django.core.mail import send_mail
+from django.contrib.auth.hashers import make_password
+from .models import PasswordResetCode
 
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
@@ -16,6 +19,7 @@ import json
 def home(request):
     login_form = LoginForm()
     register_form = RegisterForm()
+    reset_password_form = PasswordResetForm()
     if request.method == 'POST':
         if request.POST.get("form_type") == "login":
             login_form =LoginForm(request, data=request.POST)
@@ -23,7 +27,6 @@ def home(request):
                 print("Login success")
                 login(request, login_form.get_user())
                 return redirect('user:patient:home')
-
         elif request.POST.get("form_type") == "register":
             register_form = RegisterForm(request.POST)
             if register_form.is_valid():
@@ -32,8 +35,31 @@ def home(request):
                 return redirect('home')
             else:
                 print("Registration failed")
-
-    return render(request, "user_home.html", {"form":login_form, "register_form":register_form})
+        elif request.POST.get("form_type") == "request_reset_code":
+            email = request.POST.get("email")
+            try:user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return render(request, "user_home.html", {"error": "No account with that email."})
+            code = str(random.randint(100000, 999999))
+            PasswordResetCode.objects.create(user=user, code=code)
+            send_mail("Your password reset code",f"Your reset code is: {code}","sensoregraphenetrace@gmail.com",
+                [email],fail_silently=False,)
+            return render(request, "user_home.html", {"reset_step": 2,"reset_email": email})
+        elif request.POST.get("form_type") == "confirm_reset":
+            email = request.POST.get("email")
+            code = request.POST.get("code")
+            password = request.POST.get("password")
+            try:
+                user = User.objects.get(email=email)
+                reset = PasswordResetCode.objects.filter(user=user, code=code).latest("created_at")
+                if not reset.is_valid(): raise Exception("Expired")
+                user.password = make_password(password)
+                user.save()
+                reset.delete()
+                return redirect("home")
+            except Exception:
+                return render(request, "user_home.html", {"error": "Invalid or expired code."})
+    return render(request, "user_home.html", {"form":login_form, "register_form":register_form, "reset_password_form":reset_password_form})
 
 def register(request):
     return render(request, "register.html", {})
@@ -59,6 +85,7 @@ def get_messages(request, conversation_id):
     } for m in messages]
 
     return JsonResponse({'messages': data})
+
 @login_required
 def get_assigned_clinicians(request):
     assigned = PatientClinician.objects.filter(

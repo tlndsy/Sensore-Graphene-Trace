@@ -121,6 +121,16 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
 
+# For password resets
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'sensoregraphenetrace@gmail.com'
+"""EMAIL_HOST = ""
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER"""
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
