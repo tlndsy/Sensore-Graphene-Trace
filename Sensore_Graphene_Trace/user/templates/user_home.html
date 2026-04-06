@@ -11,17 +11,78 @@
 
 <body>
 <nav>
-    <h3 class="nav-title"> Sensore Graphene Trace </h3>
+    <img src="https://framerusercontent.com/images/bvcb26Bam4QafK4hXxNVcUU5uoU.png?scale-down-to=512&width=1695&height=380">
+    <h3 class="nav-title">  </h3>
     <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
 </nav>
     <div class="wrapper">
         <div class="main">
-            <h1> About the company </h1>
-            <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-            <article class="img-info">
-                <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-            </article>
+            <section class="slogan">
+            <h2>Helping people do something better</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+
+            <h1>What our product does</h1>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3> Real time monitoring </h3>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Continuous support</h3>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Pressure alerts</h3>
+                    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <h2>10K+</h2>
+                    <p>Users helped</p>
+                </div>
+
+                <div class="stat">
+                    <h2>24/7</h2>
+                    <p>Availability</p>
+                </div>
+
+                <div class="stat">
+                    <h2>98%</h2>
+                    <p>Success rate</p>
+                </div>
+            </div>
+
+            <div class="faq">
+            <h1>Frequently Asked Questions</h1>
+
+            <div class="faq-container">
+
+                <div class="faq-card">
+                    <button class="faq-question">What does this product do?<span class="arrow">⌄</span></button>
+                    <div class="faq-answer"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></div>
+                </div>
+
+                <div class="faq-card">
+                    <button class="faq-question">How secure is my data?<span class="arrow">⌄</span></button>
+                    <div class="faq-answer"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></div>
+                </div>
+
+                <div class="faq-card">
+                    <button class="faq-question"> I forgot my password<span class="arrow">⌄</span></button>
+                    <div class="faq-answer">
+                        <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                    </div>
+                </div>
+
+            </div>
         </div>
+        </div>
+
+
         <div class="side-panel">
 
             <!-- Login Form -->
@@ -137,6 +198,15 @@
             registerPanel.classList.add("hidden");
             loginPanel.classList.remove("hidden");
         })
+    </script>
+
+    <!-- Toggle dropdown FAQ information -->
+    <script>
+    const faqCards = document.querySelectorAll(".faq-card");
+    faqCards.forEach(card => {
+        const button = card.querySelector(".faq-question");
+        button.addEventListener("click", () => {card.classList.toggle("active");});
+    });
     </script>
 </body>
 </html>

@@ -33,7 +33,7 @@ def home(request):
             else:
                 print("Registration failed")
 
-    return render(request, "home.html", {"form":login_form, "register_form":register_form})
+    return render(request, "user_home.html", {"form":login_form, "register_form":register_form})
 
 def register(request):
     return render(request, "register.html", {})

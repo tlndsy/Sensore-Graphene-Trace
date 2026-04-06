@@ -162,13 +162,13 @@ def view_graph(request):
     # Get users pressure mat information
     latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).order_by('-timestamp').first())
     if not latest_reading or not latest_reading.metrics:
-        return render(request, "patientGraph.html", empty_context()) # Return empty if no data
+        return render(request, "patient/patient_view_pressure_data.html", empty_context()) # Return empty if no data
     try:
         metric_data = process_metrics(latest_reading)
     except Exception as e: # Error reading pressure mat data
         print("Error reading patient csv:", e)
-        return render(request, "patientGraph.html", empty_context())
-    return render(request, "patientGraph.html",{"metric_data":metric_data})
+        return render(request, "patient/patient_view_pressure_data.html", empty_context())
+    return render(request, "patient/patient_view_pressure_data.html", {"metric_data":metric_data})
 
 def process_metrics(latest_reading):
     fps = latest_reading.reading_equipment.product_info.refresh_rate  # Frames per second
