@@ -67,7 +67,13 @@ def reportDisplay(request, reportNumber = 0, patientNumber = 0):
     return render(request, "clinician/clinicianReportDisplay.html", context)
 
 def displayProfile(request):
-    context = {}
+    user = request.user
+    from user.models import PatientClinician
+
+    #Obtain patient/clinicians
+    patientCliniciansList = (PatientClinician.objects.filter(clinician=user).all())
+
+    context = {"listOfPatients": patientCliniciansList}
     return render(request, "clinician/clinicianProfile.html", context)
 
 def tempLogout(request): #Just redirects the user to their home page for now

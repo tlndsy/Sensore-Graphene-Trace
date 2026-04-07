@@ -39,6 +39,7 @@
             border: 2px solid black;
             text-align: center;
         }
+
     </style>
     <div class="main_page_element">
         <div class="profile_picture_box">
@@ -50,7 +51,11 @@
         </div>
 
         <div class="patient_list_box">
-            This box has a list of patients
+            {% for patientClinician in listOfPatients %}
+                <li>
+                    <a>Patient: {{patientClinician.patient}}</a>
+                </li>
+            {% endfor %}
         </div>
     </div>
 
