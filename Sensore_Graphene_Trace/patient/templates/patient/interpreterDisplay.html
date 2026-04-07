@@ -48,17 +48,32 @@
             position: absolute;
             top: 170px;
             left: 950px;
+            height: 350px;
             text-align: center;
+            overflow: auto;
+            display: block;
         }
 
+        /* Modify individual entries in lists */
         .list_box {
             position: relative;
             width: 400px;
             border: 2px solid black;
             padding: 5px
             text-align: center;
-            font-size: 18px;
+            font-size: 20px;
             border-radius: 15px;
+            background-color: #008CBA;
+        }
+
+        .list_box a {
+            text-decoration: none;
+            color: white;
+        }
+
+        .list_box a:hover {
+            color: black;
+        }
         }
     </style>
     <div class="main_page_element">
