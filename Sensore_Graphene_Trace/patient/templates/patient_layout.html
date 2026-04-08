@@ -38,7 +38,7 @@
                 }
             </script>
 
-            <form action="{% url 'user:patient:logout' %}" method="post">
+            <form action="{% url 'user:logout_user' %}" method="post">
                 {% csrf_token %}
                 <button class="logout" aria-label="User Logout" title="User Logout">Log out</button>
             </form>

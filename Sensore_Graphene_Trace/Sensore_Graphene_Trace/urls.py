@@ -20,6 +20,8 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.views.static import serve
 from user import views
+from django.shortcuts import redirect
+from user.views import complete_profile
 
 
 
@@ -33,4 +35,7 @@ urlpatterns = [
     path('administrator/', include("administrator.urls")),
     path('', views.home, name='home'),
     path('accounts/', include('allauth.urls')),
+    path("complete-profile/", complete_profile, name="complete_profile"),
+    path("accounts/profile/", lambda request: redirect("user:patient:home")),
+
 ]

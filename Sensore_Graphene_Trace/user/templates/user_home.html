@@ -109,7 +109,18 @@
                     <button type="button" class="btn" id="open-register">Register</button>
                 </form>
 
-                <div class="google-login"><a href="{% provider_login_url 'google' %}" class="link-button">Login with Google</a></div>
+                <div class="google-auth">
+                    <a href="{% provider_login_url 'google' %}" class="google-btn">
+                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+                        <span>Login with Google</span>
+                    </a>
+                </div>
+                <div class="google-auth">
+                    <a href="{% provider_login_url 'google' process='signup' %}" class="google-btn">
+                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+                        <span>Register with Google</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Registration Form -->
