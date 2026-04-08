@@ -43,17 +43,25 @@
     </style>
     <div class="main_page_element">
         <div class="profile_picture_box">
-            This is a picture.
+            <h2>Profile Picture:</h2>
+            <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
         </div>
 
         <div class="personal_information_box">
-            This box has personal information
+            <h2>Account Information:</h2>
+            <p>Name: {{user.first_name}} {{user.last_name}}</p>
+            <p>Email: {{user.email}}</p>
+            <p>Phone Number: {{user.phone_number}}</p>
+            <p>Date of Birth: {{user.date_of_birth}}</p>
         </div>
 
         <div class="patient_list_box">
+            <h2>Currently Assigned Patients:</h2>
             {% for patientClinician in listOfPatients %}
+                <a>Patient: </a>
                 <li>
-                    <a>Patient: {{patientClinician.patient}}</a>
+                    <a>{{patientClinician.patient.first_name}}</a>
+                    <a>{{patientClinician.patient.last_name}}</a>
                 </li>
             {% endfor %}
         </div>

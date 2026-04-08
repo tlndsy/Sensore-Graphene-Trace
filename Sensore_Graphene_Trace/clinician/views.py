@@ -73,7 +73,9 @@ def displayProfile(request):
     #Obtain patient/clinicians
     patientCliniciansList = (PatientClinician.objects.filter(clinician=user).all())
 
-    context = {"listOfPatients": patientCliniciansList}
+    profilePicture = user.profile_picture
+
+    context = {"listOfPatients": patientCliniciansList, "user": user}
     return render(request, "clinician/clinicianProfile.html", context)
 
 def tempLogout(request): #Just redirects the user to their home page for now

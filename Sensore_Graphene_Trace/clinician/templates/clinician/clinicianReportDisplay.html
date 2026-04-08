@@ -145,7 +145,7 @@
             {% for patientClinician in listOfPatients %}
                 <li>
                     <div class="list_box">
-                        <a href="/user/clinician/report/0/{{forloop.counter0}}">Patient: {{patientClinician.patient}}</a>
+                        <a href="/user/clinician/report/0/{{forloop.counter0}}">Patient: {{patientClinician.patient.first_name}} {{patientClinician.patient.last_name}}</a>
                     </div>
                 </li>
             {% endfor %}
