@@ -104,38 +104,43 @@ def interpreterDisplay(request, reportNumber = 0):
     noOfReadings = len(all_readings)
 
     # Check if requested report is within limits
-    if reportNumber >= noOfReadings:
+    if reportNumber >= noOfReadings and noOfReadings > 0:
         reportNumber = noOfReadings - 1
+    elif reportNumber < 0:
+        reportNumber = 0
 
     try:
         current_reading = all_readings[reportNumber]
         file = current_reading.pressure_reading
 
-        if not Report.objects.filter(pressure_map_reading=current_reading).exists():
-            # Make a new report only if one does not already exist
-            report = Report(pressure_map_reading=current_reading)
-            reportContents, scanNumber = ScanInterpreter.runInterpreter(ScanInterpreter, file)
-            report.content = "@".join(reportContents)
-            report.frame = scanNumber
-            report.save()
-        else:
-            report = Report.objects.filter(pressure_map_reading=current_reading).last()
+    except Exception:  # If no scans found, inform user of this
+        reportContents = ["", "", "", ""]
 
-        frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame) # Currently not working
-        reportContents = report.content.split("@")
-
-        context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-                   "report_3": reportContents[3], "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
-                   "heatmap": frameHeatmap, "allReports": all_readings}
-
-    except Exception: #If no scans found, inform user of this
-        reportContents = ["","","",""]
-
-        reportContents[0] = "No scans have been detected for this patient."
-        reportContents[1] = "Please contact your administrator if you believe this is in error."
+        reportContents[0] = "The report you have requested cannot be found."
+        reportContents[1] = "This could be because there are no scans on file for you, or another error."
+        reportContents[2] = "Please contact your administrator if you believe this is in error."
 
         context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
                    "report_3": reportContents[3], "reportNumber": 0, "noOfReports": 0, "allReports": all_readings}
+
+        return render(request, "patient\interpreterDisplay.html", context)
+
+    if not Report.objects.filter(pressure_map_reading=current_reading).exists():
+        # Make a new report only if one does not already exist
+        report = Report(pressure_map_reading=current_reading)
+        reportContents, scanNumber = ScanInterpreter.runInterpreter(ScanInterpreter, file)
+        report.content = "@".join(reportContents)
+        report.frame = scanNumber
+        report.save()
+    else:
+        report = Report.objects.filter(pressure_map_reading=current_reading).last()
+
+    frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame) # Currently not working
+    reportContents = report.content.split("@")
+
+    context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
+               "report_3": reportContents[3], "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
+               "heatmap": frameHeatmap, "allReports": all_readings}
 
     return render(request, "patient\interpreterDisplay.html", context)
 

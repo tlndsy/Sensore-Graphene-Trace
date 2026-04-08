@@ -73,8 +73,6 @@ def displayProfile(request):
     #Obtain patient/clinicians
     patientCliniciansList = (PatientClinician.objects.filter(clinician=user).all())
 
-    profilePicture = user.profile_picture
-
     context = {"listOfPatients": patientCliniciansList, "user": user}
     return render(request, "clinician/clinicianProfile.html", context)
 
