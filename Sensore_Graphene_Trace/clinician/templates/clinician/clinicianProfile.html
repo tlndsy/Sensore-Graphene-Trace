@@ -19,6 +19,8 @@
             border: 2px solid black;
             text-align: center;
             border-radius: 15px;
+            overflow: auto;
+            display: block;
         }
 
         .personal_information_box {
@@ -26,10 +28,27 @@
             top: 10px;
             left: 550px;
             width: 450px;
-            height: 450px;
+            height: 200px;
             border: 2px solid black;
             text-align: center;
             border-radius: 15px;
+            overflow: auto;
+            display: block;
+            font-size: {{user.font_size_preference}};
+        }
+
+        .personal_preferences_box {
+            position: absolute;
+            top: 250px;
+            left: 550px;
+            width: 450px;
+            height: 200px;
+            border: 2px solid black;
+            text-align: center;
+            border-radius: 15px;
+            overflow: auto;
+            display: block;
+            font-size: {{user.font_size_preference}};
         }
 
         .patient_list_box {
@@ -41,6 +60,13 @@
             border: 2px solid black;
             text-align: center;
             border-radius: 15px;
+            overflow: auto;
+            display: block;
+            font-size: {{user.font_size_preference}};
+        }
+
+        .patientListEntry {
+            list-style-type: none;
         }
 
     </style>
@@ -51,18 +77,24 @@
         </div>
 
         <div class="personal_information_box">
-            <h2>Account Information:</h2>
+            <h2>User Information:</h2>
             <p>Name: {{user.first_name}} {{user.last_name}}</p>
             <p>Email: {{user.email}}</p>
             <p>Phone Number: {{user.phone_number}}</p>
             <p>Date of Birth: {{user.date_of_birth}}</p>
+            <p>Address: {{user.address}}</p>
+        </div>
+
+        <div class="personal_preferences_box">
+            <h2>User Preferences:</h2>
+            <p>Font Size: {{user.font_size_preference}}px</p>
         </div>
 
         <div class="patient_list_box">
             <h2>Currently Assigned Patients:</h2>
             {% for patientClinician in listOfPatients %}
                 <a>Patient: </a>
-                <li>
+                <li class="patientListEntry">
                     <a>{{patientClinician.patient.first_name}}</a>
                     <a>{{patientClinician.patient.last_name}}</a>
                 </li>

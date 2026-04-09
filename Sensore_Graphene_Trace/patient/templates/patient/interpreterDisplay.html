@@ -8,6 +8,7 @@
             position: relative;
             height: 0;
             width: 0;
+            font-size: {{user.font_size_preference}};
         }
 
         .heatmap_box {
@@ -34,13 +35,15 @@
 
         .index_box {
             position: absolute;
+            display: flex;
             top: 20px;
             left: 1050px;
             width: 200px;
             height: 120px;
             border: 2px solid black;
-            padding: 5px
+            padding: 5px;
             text-align: center;
+            align-items: center;
             border-radius: 15px;
         }
 
@@ -61,9 +64,9 @@
             border: 2px solid black;
             padding: 5px
             text-align: center;
-            font-size: 20px;
             border-radius: 15px;
             background-color: #008CBA;
+            font-size: {{user.font_size_preference}};
         }
 
         .list_box a {
@@ -78,8 +81,11 @@
     </style>
     <div class="main_page_element">
         <div class="heatmap_box">
-            {{ HeatmapGoesHere }}
+
         </div>
+
+        <canvas id="heatmapCanvas" width="320" height="320" style="border:1px solid #000000;">
+        </canvas>
 
         <ul class="reportList">
             {% for report in allReports %}
@@ -93,22 +99,31 @@
 
         <div class="report_box">
             <h1> Scan Analysis Report </h1>
-            <p style="font-size:24px">
+            <p>
                 {{ report_0 }}
             </p>
-            <p style="font-size:24px">
+            <p>
                 {{ report_1 }}
             </p>
-            <p style="font-size:24px">
+            <p>
                 {{ report_2 }}
             </p>
         </div>
 
         <div class="index_box">
-            <p style="font-size:24px; text-align: center">
+            <p style="text-align: center">
                 This report is report {{ reportNumber }} out of the {{ noOfReports }} saved reports.
             </p>
         </div>
 
     </div>
 {% endblock %}
+
+<script>
+    const canvas = document.getElementById('heatmapCanvas');
+    const ctx = canvas.getContext("2d");
+    var heatmap = {{heatmapArr}};
+
+    ctx.fillStyle = "red";
+    ctx.fillRect(0, 0, 150, 75);
+</script>
