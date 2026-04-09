@@ -11,84 +11,11 @@ from unittest.mock import patch
 
 from Sensore_Graphene_Trace import global_constants as constants
 from user.models import User
+from user.mixins import UserTestSetupMixin
+
 
 # Create your tests here.
-class UserLoginViewTests(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.url = reverse('user:home')
-
-        site = Site.objects.get_current()
-        social_app = SocialApp.objects.create(
-            provider='google',
-            name='Google',
-            client_id='test-client-id',
-            secret='test-secret'
-        )
-        social_app.sites.add(site)
-
-        self.patient_group, _ = Group.objects.get_or_create(name=constants.PATIENT)
-        self.clinician_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
-        self.admin_group, _ = Group.objects.get_or_create(name=constants.ADMIN)
-
-        self.user = User.objects.create_user(
-            email='user@email.com',
-            phone_number = '+1234567811',
-            first_name = 'John',
-            last_name = 'Doe',
-            password = 'Password?123',
-            date_of_birth = datetime.date(1900, 1, 1),
-        )
-        self.user.groups.clear()
-
-        self.valid_patient = User.objects.create_user(
-            email='patient@email.com',
-            phone_number='+1234567890',
-            first_name='John',
-            last_name='Doe',
-            password='Password?123',
-            date_of_birth=datetime.date(1900, 1, 1),
-        )
-        self.valid_patient.groups.add(self.patient_group)
-
-        self.valid_clinician = User.objects.create_user(
-            email='clinician@email.com',
-            phone_number='+1234567891',
-            first_name='John',
-            last_name='Doe',
-            password='Password?123',
-            date_of_birth=datetime.date(1900, 1, 1),
-        )
-        self.valid_clinician.groups.add(self.clinician_group)
-
-        self.valid_admin = User.objects.create_user(
-            email='admin@email.com',
-            phone_number='+1234567892',
-            first_name='John',
-            last_name='Doe',
-            password='Password?123',
-            date_of_birth=datetime.date(1900, 1, 1),
-        )
-        self.valid_admin.groups.add(self.admin_group)
-
-        self.unregistered_google_user = User.objects.create_user(
-            email='newgoogleuser@email.com',
-            password='Password?123',
-            first_name='John',
-            last_name='Doe',
-        )
-        self.unregistered_google_user.groups.add(self.patient_group)
-
-        self.registered_google_user = User.objects.create_user(
-            email='googleuser@email.com',
-            password='Password?123',
-            phone_number='+1234567893',
-            first_name='John',
-            last_name='Doe',
-            date_of_birth=datetime.date(1900, 1, 1),
-        )
-        self.registered_google_user.groups.add(self.patient_group)
-
+class UserLoginViewTests(UserTestSetupMixin):
     # Home views
     def test_home_page_loads(self):
         response = self.client.get(self.url)
@@ -151,7 +78,7 @@ class UserLoginViewTests(TestCase):
     def test_clinician_redirect(self):
         self.client.force_login(self.valid_clinician)
         response = self.client.get(reverse("user:redirect_to_home"))
-        self.assertRedirects(response, reverse("user:clinician:home"))
+        self.assertRedirects(response, reverse("user:clinician:profile"))
 
     def test_admin_redirect(self):
         self.client.force_login(self.valid_admin)
@@ -176,5 +103,3 @@ class UserLoginViewTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("user:redirect_to_home"))
         self.assertRedirects(response, reverse("home"))
-
-

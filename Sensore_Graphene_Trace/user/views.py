@@ -40,7 +40,7 @@ def request_password_reset(request):
     PasswordResetCode.objects.create(user=user, code=code)
     send_mail("Your password reset code",f"Your reset code is: {code}","sensoregraphenetrace@gmail.com",
         [email],fail_silently=False)
-    return render(request, "user_home.html", {"reset_step": 2,"reset_email": email})
+    return render(request, "user_home.html", {"reset_step": 2,"reset_email": email, "error": "No account with that email."})
 
 # Method for the user to reset their password
 def confirm_password_reset(request):
@@ -60,7 +60,7 @@ def redirect_to_home(request):
         if redirect_response := redirect_if_profile_incomplete(request): return redirect_response # Incomplete profile
         user_groups = request.user.groups.values_list("name", flat=True)
         if constants.ADMIN in user_groups: return redirect("user:administrator:home") # Admin home page
-        if constants.CLINICIAN in user_groups: return redirect("user:clinician:home") # Clinician home page
+        if constants.CLINICIAN in user_groups: return redirect("user:clinician:profile") # Clinician profile
         if constants.PATIENT in user_groups: return redirect("user:patient:home") # Patient home page
         return redirect("home") # No group assigned to user
     return redirect("home") # User is not authenticated
@@ -98,7 +98,7 @@ def register(request):
 def logout_user(request):
     logout(request)
     request.session.flush()
-    return redirect('home')
+    return redirect('user:home')
 
 @login_required
 def complete_profile(request):

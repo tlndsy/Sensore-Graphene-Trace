@@ -168,6 +168,9 @@
                     {% csrf_token %}
                     <input type="hidden" name="form_type" value="request_reset_code">
                     <h1>Reset Password</h1>
+                    {% if error %}
+                        <p class="error">{{ error }}</p>
+                    {% endif %}
                     <div class="field">
                         <label>Email</label>
                         <input type="email" name="email" required>
