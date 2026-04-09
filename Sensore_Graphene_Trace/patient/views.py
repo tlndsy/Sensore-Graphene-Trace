@@ -153,7 +153,7 @@ def notifications(request):
 def messages(request):
     return HttpResponse("This is the patients messaging page")
 
-class PressureMetricsView(BasePatientMixin,TemplateView):
+class PressureDataView(BasePatientMixin, TemplateView):
     template_name = "patient/patient_view_pressure_data.html"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -167,7 +167,7 @@ class PressureMetricsView(BasePatientMixin,TemplateView):
         return context
 
 @login_required(login_url='/user/home/')
-def OLD_Pressure_Metrics_View(request):
+def OLD_Pressure_Data_View(request):
     # Authentication
     if not request.user.groups.filter(name=constants.PATIENT).exists: return redirect("home") # Redirect users without login
     else: user = request.user # Request the correct user

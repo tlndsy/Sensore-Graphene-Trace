@@ -590,15 +590,24 @@ body {
     gap: 20px;
 }
 
-.graph-plot, .heatmap-plot {
+.graph-plot{
     flex: 2;
 }
-
-.graph-metrics, .heatmap-metrics {
+.heatmap-plot{
+    flex: 0 0 400px
+}
+.graph-metrics{
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.heatmap-metrics{
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
 }
 
 #graph {
@@ -611,7 +620,7 @@ body {
     display:flex;
     margin-bottom: 0;
     padding-left: 49px;
-
+    gap: 2px;
 }
 
 #heatmap {
@@ -627,10 +636,14 @@ body {
 
 .tabs button{
     background: white;
-    border: 1px solid #ccc;
+    border: 1px solid black;
     border-bottom: none;
     border-radius: 5px 5px 0 0;
     cursor: pointer;
+    padding: 0px 4px;
+    font-size: 0.9rem;
+    text-align: center;
+    min-width: 75px;
 }
 
 .graph-metrics button{
@@ -727,3 +740,14 @@ body {
     justify-content: space-between;
     align-items: center;
 }
+
+.legend-item span{
+    display:inline-block;
+    width:15px;
+    height:15px;
+    margin-right:5px;
+}
+
+.low {background:blue;}
+.medium {background:yellow;}
+.high {background:red;}
