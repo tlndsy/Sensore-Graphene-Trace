@@ -125,6 +125,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         return self.first_name
 
+    # Enforce use of UserManager
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            raise RuntimeError("Use User.objects.create_user() or User.objects.create_superuser() to create users instead of User.objects.create()")
+        super().save(*args, **kwargs)
+
 
 class PatientClinician(models.Model):
     patient = models.ForeignKey(User, related_name='patient_relationships', on_delete=models.CASCADE)
@@ -225,6 +231,64 @@ class Report(models.Model):
         return f"Report belonging to {self.pressure_map_reading.reading_equipment.user}, made at {self.pressure_map_reading.timestamp}"
 
 
+
+class ConversationManager(models.Manager):
+
+    def create_conversation(self, participants, subject=""):
+        if len(participants) != 2:
+            raise ValidationError("Conversation must have exactly 2 participants.")
+
+        user1, user2 = participants
+
+        if user1 == user2:
+            raise ValidationError("Users must be different.")
+
+        """
+        # Check PatientClinician relationship exists or user is messaging an admin
+        valid = PatientClinician.objects.filter(
+            patient=user1, clinician=user2
+        ).exists() or PatientClinician.objects.filter(
+            patient=user2, clinician=user1
+        ).exists() or user1.groups.filter(
+            name__in=constants.ADMIN
+        ).exists() or user2.groups.filter(
+            name__in=constants.ADMIN
+        ).exists()
+        """
+
+        # Check PatientClinician relationship exists or user is messaging an admin
+        relationship_exists = PatientClinician.objects.filter(
+            Q(patient=user1, clinician=user2) |
+            Q(patient=user2, clinician=user1)
+        ).exists()
+
+        is_admin = (
+            any(g.name in constants.ADMIN for g in user1.groups.all()) or
+            any(g.name in constants.ADMIN for g in user2.groups.all())
+        )
+
+        if not (relationship_exists or is_admin):
+            raise ValidationError(
+                "Participants must have a valid patient-clinician relationship."
+            )
+
+        # Prevent duplicate conversations
+        existing = self.filter(participants=user1).filter(participants=user2).distinct()
+        if existing.exists():
+            return existing.first()
+
+        # Create default subject if not provided
+        if not subject:
+            subject = f"Conversation between {user1.get_full_name()} and {user2.get_full_name()}"
+
+        # Create conversation
+        conversation = self.model(subject=subject)
+        conversation.save()
+
+        conversation.participants.set([user1, user2])
+
+        return conversation
+
 class Conversation(models.Model):
     subject = models.CharField(max_length=255)
     participants = models.ManyToManyField(User, related_name='conversations')
@@ -233,10 +297,21 @@ class Conversation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    objects = ConversationManager()
+
     class Meta:
         ordering = ['-updated_at']
 
-    def clean(self):
+    def __str__(self):
+        return self.subject or f"Conversation {self.id}"
+
+    # Enforce use of ConversationManager
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            raise RuntimeError("Use Conversation.objects.create_conversation() to create conversations instead of Conversation.objects.create().")
+        super().save(*args, **kwargs)
+
+    def clean_OLD(self):
         if self.pk:
             participants = list(self.participants.all())
 
@@ -270,8 +345,7 @@ class Conversation(models.Model):
             if not valid:
                 raise ValidationError("Participants must have a valid patient-clinician relationship.")
 
-    def __str__(self):
-        return self.subject or f"Conversation {self.id}"
+
 
 
 class Message(models.Model):
@@ -309,6 +383,8 @@ class Message(models.Model):
     def clean(self):
         if not self.conversation:
             return
+
+        self.conversation.full_clean()
 
         participants = self.conversation.participants.all()
 
