@@ -1,22 +1,17 @@
 import datetime
 import uuid
 
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import Group, PermissionsMixin, BaseUserManager
+from django.core.exceptions import ValidationError
+from django.db import models, transaction, IntegrityError
 from django.db.models import Q
 from django.utils import timezone
-
-import Sensore_Graphene_Trace.global_constants as constants
-
-from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from phonenumber_field.modelfields import PhoneNumberField
-from django.contrib.auth.models import Group, PermissionsMixin, BaseUserManager
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.db import models, transaction
 from django_resized import ResizedImageField
-from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
 
 import Sensore_Graphene_Trace.global_constants as constants
+from user.utils.pair_key import generate_pair_key
 
 
 class UserManager(BaseUserManager):
@@ -63,7 +58,6 @@ class UserManager(BaseUserManager):
             password=password,
             **extra_fields,
         )
-
 
 # Create your models here.
 class Address(models.Model):
@@ -231,17 +225,29 @@ class Report(models.Model):
         return f"Report belonging to {self.pressure_map_reading.reading_equipment.user}, made at {self.pressure_map_reading.timestamp}"
 
 
+class ConversationQuerySet(models.QuerySet):
 
-class ConversationManager(models.Manager):
+    def between(self, user1, user2):
+        return self.filter(participants=user1).filter(participants=user2)
 
-    def create_conversation(self, participants, subject=""):
-        if len(participants) != 2:
-            raise ValidationError("Conversation must have exactly 2 participants.")
+    def for_user(self, user):
+        return self.filter(participants=user)
 
-        user1, user2 = participants
+    def with_exact_participants(self, user1, user2):
+        return (
+            self.between(user1, user2)
+            .annotate(num_participants=models.Count("participants"))
+            .filter(num_participants=2)
+        )
+
+class ConversationManager(models.Manager.from_queryset(ConversationQuerySet)):
+
+    def create_conversation(self, user1, user2, subject=""):
 
         if user1 == user2:
             raise ValidationError("Users must be different.")
+
+        pair_key = generate_pair_key(user1.id, user2.id)
 
         """
         # Check PatientClinician relationship exists or user is messaging an admin
@@ -272,27 +278,28 @@ class ConversationManager(models.Manager):
                 "Participants must have a valid patient-clinician relationship."
             )
 
-        # Prevent duplicate conversations
-        existing = self.filter(participants=user1).filter(participants=user2).distinct()
-        if existing.exists():
-            return existing.first()
+        #if not subject:
+        #    subject = f"Conversation between {user1.get_full_name()} and {user2.get_full_name()}"
 
-        # Create default subject if not provided
-        if not subject:
-            subject = f"Conversation between {user1.get_full_name()} and {user2.get_full_name()}"
+        with transaction.atomic():
+            try:
+                conversation = self.create(
+                    subject=subject,
+                    pair_key=pair_key,
+                )
+                conversation.participants.set([user1, user2])
+                return conversation
 
-        # Create conversation
-        conversation = self.model(subject=subject)
-        conversation.save()
-
-        conversation.participants.set([user1, user2])
-
-        return conversation
+            except IntegrityError:
+                # Another process created it at the same time
+                return self.get(pair_key=pair_key)
 
 class Conversation(models.Model):
     subject = models.CharField(max_length=255)
     participants = models.ManyToManyField(User, related_name='conversations')
     last_message = models.ForeignKey('Message', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+
+    pair_key = models.CharField(max_length=64, editable=False, unique=True, db_index=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -305,10 +312,10 @@ class Conversation(models.Model):
     def __str__(self):
         return self.subject or f"Conversation {self.id}"
 
-    # Enforce use of ConversationManager
     def save(self, *args, **kwargs):
-        if not self.pk:
-            raise RuntimeError("Use Conversation.objects.create_conversation() to create conversations instead of Conversation.objects.create().")
+        if not self.pk and not self.pair_key:
+            raise RuntimeError("Direct creation of Conversation is not allowed, Use Conversation.objects.create_conversation().")
+
         super().save(*args, **kwargs)
 
     def clean_OLD(self):

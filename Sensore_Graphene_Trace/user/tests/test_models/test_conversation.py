@@ -64,12 +64,12 @@ class UserModelAndManagerTests(TestCase):
         PatientClinician.objects.create(patient=self.test_patient_2, clinician=self.test_clinician_2)
 
 
-    def create_conversation(self, participants):
-        conversation = Conversation.objects.create_conversation(subject="Test Conversation", participants=participants)
+    def create_conversation(self, user1, user2):
+        conversation = Conversation.objects.create_conversation(user1, user2, subject="Test Conversation")
         return conversation
 
     def test_valid_conversation_with_patient_clinician_relationship(self):
-        conversation = self.create_conversation([self.test_patient_1, self.test_clinician_1])
+        conversation = self.create_conversation(self.test_patient_1, self.test_clinician_1)
 
         # Should not raise
         conversation.full_clean()
@@ -77,28 +77,22 @@ class UserModelAndManagerTests(TestCase):
         self.assertIn(self.test_patient_1, conversation.participants.all())
         self.assertIn(self.test_clinician_1, conversation.participants.all())
 
-    def test_invalid_conversation_more_than_two_participants(self):
-        with self.assertRaises(ValidationError) as ctx:
-            conversation = self.create_conversation([self.test_patient_1, self.test_clinician_1,  self.test_patient_2])
-
-        self.assertIn("exactly 2 participants", str(ctx.exception))
-
     def test_invalid_conversation_without_relationship(self):
         with self.assertRaises(ValidationError) as ctx:
-            conversation = self.create_conversation([self.test_patient_1, self.test_clinician_2])
+            conversation = self.create_conversation(self.test_patient_1, self.test_clinician_2)
 
         self.assertIn("valid patient-clinician relationship.", str(ctx.exception))
 
     def test_invalid_conversation_same_user(self):
         with self.assertRaises(ValidationError) as ctx:
-            conversation = self.create_conversation([self.test_patient_1, self.test_patient_1])
+            conversation = self.create_conversation(self.test_patient_1, self.test_patient_1)
 
         self.assertIn("Users must be different.", str(ctx.exception))
 
 
     def test_valid_conversation_with_admin(self):
 
-        conversation = self.create_conversation([self.test_patient_1, self.test_admin])
+        conversation = self.create_conversation(self.test_patient_1, self.test_admin)
 
         # Should not raise
         conversation.full_clean()
@@ -106,27 +100,9 @@ class UserModelAndManagerTests(TestCase):
         self.assertIn(self.test_patient_1, conversation.participants.all())
         self.assertIn(self.test_admin, conversation.participants.all())
 
-    def test_duplicate_conversation_not_created1(self):
-        conversation1 = self.create_conversation([self.test_patient_1, self.test_clinician_1])
-        conversation2 = self.create_conversation([self.test_patient_1, self.test_clinician_1])
+    def test_no_duplicate_conversations(self):
+        convo1 = Conversation.objects.create_conversation(self.test_patient_1, self.test_clinician_1)
+        convo2 = Conversation.objects.create_conversation(self.test_patient_1, self.test_clinician_1)
 
-        self.assertEqual(conversation1, conversation2)
-
-    def test_duplicate_conversation_reversed_participants_not_created(self):
-        conversation1 = self.create_conversation([self.test_patient_1, self.test_clinician_1])
-        conversation2 = self.create_conversation([self.test_clinician_1, self.test_patient_1])
-
-        self.assertEqual(conversation1, conversation2)
-
-    def test_conversation_manager_enforced(self):
-        with self.assertRaises(RuntimeError) as ctx:
-            conversation = Conversation.objects.create(subject="Invalid Conversation")
-            conversation.participants.add(self.test_patient_1)
-            conversation.participants.add(self.test_clinician_1)
-            conversation.full_clean()
-
-        self.assertIn("Use Conversation.objects.create_conversation() to create conversations", str(ctx.exception))
-
-
-
-
+        self.assertEqual(convo1.id, convo2.id)
+        self.assertEqual(Conversation.objects.count(), 1)

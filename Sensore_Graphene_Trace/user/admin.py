@@ -8,7 +8,7 @@ from .models import *
 # Register your models here.
 
 
-
+# Force admin to user custom user model instead of default
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     ordering = ("email",)
@@ -70,6 +70,24 @@ class UserAdmin(BaseUserAdmin):
 
     readonly_fields = ("last_login", "date_joined")
 
+# Force admin to use ConversationManager
+@admin.register(Conversation)
+class ConversationAdmin(admin.ModelAdmin):
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            user1, user2 = form.cleaned_data['participants']
+
+            convo = Conversation.objects.create_conversation(
+                user1=user1,
+                user2=user2,
+                subject=obj.subject
+            )
+
+            obj.pk = convo.pk  # bind admin object to created one
+        else:
+            super().save_model(request, obj, form, change)
+
 admin.site.register(PatientClinician)
 admin.site.register(Address)
 admin.site.register(NotificationType)
@@ -77,5 +95,4 @@ admin.site.register(ProductInfo)
 admin.site.register(ReadingEquipment)
 admin.site.register(PressureMapReading)
 admin.site.register(Report)
-admin.site.register(Conversation)
 admin.site.register(Message)
