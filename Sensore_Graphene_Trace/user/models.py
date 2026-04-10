@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from django.db.models import Q
 from django.utils import timezone
 
 import Sensore_Graphene_Trace.global_constants as constants
@@ -138,7 +139,7 @@ class PatientClinician(models.Model):
     def clean(self):
         if not self.patient.groups.filter(name=User.Roles.PATIENT).exists():
             raise ValidationError("Selected patient is not a valid patient.")
-        if not self.clinician.groups.filter(name=User.Roles.PATIENT).exists():
+        if not self.clinician.groups.filter(name=User.Roles.CLINICIAN).exists():
             raise ValidationError("Selected clinician is not a valid clinician.")
 
     def __str__(self):
@@ -243,7 +244,7 @@ class Conversation(models.Model):
                 raise ValidationError("Conversation must have exactly 2 participants.")
 
             user1, user2 = participants
-
+            """
             # Check PatientClinician relationship exists or user is messaging an admin
             valid = PatientClinician.objects.filter(
                 patient=user1, clinician=user2
@@ -254,6 +255,17 @@ class Conversation(models.Model):
             ).exists() or user2.groups.filter(
                 name__in=constants.ADMIN
             ).exists()
+            """
+
+            # Check PatientClinician relationship exists or user is messaging an admin
+            relationship_exists = PatientClinician.objects.filter(
+                Q(patient=user1, clinician=user2) |
+                Q(patient=user2, clinician=user1)
+            ).exists()
+            is_admin = any(g.name in constants.ADMIN for g in user1.groups.all()) or \
+                       any(g.name in constants.ADMIN for g in user2.groups.all())
+
+            valid = relationship_exists or is_admin
 
             if not valid:
                 raise ValidationError("Participants must have a valid patient-clinician relationship.")
