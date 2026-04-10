@@ -106,3 +106,51 @@ class UserModelAndManagerTests(TestCase):
 
         self.assertEqual(convo1.id, convo2.id)
         self.assertEqual(Conversation.objects.count(), 1)
+
+    def test_conversation_manager_enforced(self):
+
+        with self.assertRaises(RuntimeError) as ctx:
+            convo1 = Conversation.objects.create(subject="Test Conversation")
+            convo1.participants.set([self.test_patient_1, self.test_clinician_1])
+
+        self.assertIn("Use Conversation.objects.create_conversation()", str(ctx.exception))
+
+    def test_last_message_updates(self):
+        conversation = self.create_conversation(self.test_patient_1, self.test_clinician_1)
+
+        message1 = Message.objects.create(
+            conversation=conversation,
+            sender=self.test_patient_1,
+            recipient=self.test_clinician_1,
+            content="First message"
+        )
+
+        self.assertEqual(conversation.last_message, message1)
+
+        message2 = Message.objects.create(
+            conversation=conversation,
+            sender=self.test_clinician_1,
+            recipient=self.test_patient_1,
+            content="Reply message"
+        )
+
+        conversation.refresh_from_db()
+        self.assertEqual(conversation.last_message, message2)
+
+    def test_updated_at_auto_now(self):
+        conversation = self.create_conversation(self.test_patient_1, self.test_clinician_1)
+        old_updated_at = conversation.updated_at
+
+        # Simulate a wait to ensure timestamp difference
+        import time
+        time.sleep(1)
+
+        message = Message.objects.create(
+            conversation=conversation,
+            sender=self.test_patient_1,
+            recipient=self.test_clinician_1,
+            content="Testing updated_at"
+        )
+
+        conversation.refresh_from_db()
+        self.assertGreater(conversation.updated_at, old_updated_at)

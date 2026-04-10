@@ -276,7 +276,7 @@ class ConversationManager(models.Manager.from_queryset(ConversationQuerySet)):
         if created:
             conversation.participants.set([user1, user2])
         return conversation
-    
+
 
 class Conversation(models.Model):
     subject = models.CharField(max_length=255)
