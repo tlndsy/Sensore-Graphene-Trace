@@ -249,18 +249,6 @@ class ConversationManager(models.Manager.from_queryset(ConversationQuerySet)):
 
         pair_key = generate_pair_key(user1.id, user2.id)
 
-        """
-        # Check PatientClinician relationship exists or user is messaging an admin
-        valid = PatientClinician.objects.filter(
-            patient=user1, clinician=user2
-        ).exists() or PatientClinician.objects.filter(
-            patient=user2, clinician=user1
-        ).exists() or user1.groups.filter(
-            name__in=constants.ADMIN
-        ).exists() or user2.groups.filter(
-            name__in=constants.ADMIN
-        ).exists()
-        """
 
         # Check PatientClinician relationship exists or user is messaging an admin
         relationship_exists = PatientClinician.objects.filter(
@@ -278,21 +266,17 @@ class ConversationManager(models.Manager.from_queryset(ConversationQuerySet)):
                 "Participants must have a valid patient-clinician relationship."
             )
 
-        #if not subject:
-        #    subject = f"Conversation between {user1.get_full_name()} and {user2.get_full_name()}"
+        if not subject:
+            subject = f"Conversation between {user1.get_full_name()} and {user2.get_full_name()}"
 
-        with transaction.atomic():
-            try:
-                conversation = self.create(
-                    subject=subject,
-                    pair_key=pair_key,
-                )
-                conversation.participants.set([user1, user2])
-                return conversation
-
-            except IntegrityError:
-                # Another process created it at the same time
-                return self.get(pair_key=pair_key)
+        conversation, created = Conversation.objects.get_or_create(
+            pair_key=pair_key,
+            subject=subject,
+        )
+        if created:
+            conversation.participants.set([user1, user2])
+        return conversation
+    
 
 class Conversation(models.Model):
     subject = models.CharField(max_length=255)
