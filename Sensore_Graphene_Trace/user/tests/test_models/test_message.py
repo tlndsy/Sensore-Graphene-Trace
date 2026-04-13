@@ -75,6 +75,7 @@ class UserModelAndManagerTests(TestCase):
     def test_message_timestamp_auto_now_add(self):
         message = Message.objects.create(**self.test_message_1_data)
         self.assertIsNotNone(message.timestamp)
+        self.assertEqual(message.timestamp.date(), datetime.date.today())
 
     def test_attachment_path_generation(self):
         message = Message.objects.create(**self.test_message_1_data)

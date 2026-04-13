@@ -59,6 +59,12 @@ class UserManager(BaseUserManager):
             **extra_fields,
         )
 
+    # Enforce use of UserManager
+    def create(self, *args, **kwargs):
+        raise RuntimeError(
+            "Use User.objects.create_user() or User.objects.create_superuser() to create users instead of User.objects.create()"
+        )
+
 # Create your models here.
 class Address(models.Model):
     first_line = models.CharField(max_length=100)
@@ -119,11 +125,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         return self.first_name
 
-    # Enforce use of UserManager
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            raise RuntimeError("Use User.objects.create_user() or User.objects.create_superuser() to create users instead of User.objects.create()")
-        super().save(*args, **kwargs)
+
 
 
 class PatientClinician(models.Model):
