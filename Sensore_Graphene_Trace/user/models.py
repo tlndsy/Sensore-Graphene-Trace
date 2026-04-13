@@ -97,6 +97,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = PhoneNumberField(blank=True, null=True, unique=True)
     date_of_birth = models.DateField()
 
+    personalised_threshold = models.IntegerField(default=constants.DEFAULT_PRESSURE_THRESHOLD)
+
     font_size_preference = models.IntegerField(choices=FontSize.choices, default=FontSize.MEDIUM)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, blank=True, null=True, related_name="users")
     role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT, db_index=True)
@@ -208,6 +210,8 @@ class PressureMapReading(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    processed = models.BooleanField(default=False)
+
     class Meta:
         ordering = ["-timestamp"]
 
@@ -219,6 +223,9 @@ class Report(models.Model):
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     frame = models.IntegerField()
+    notify_user = models.BooleanField(default=False)
+    read_receipt = models.BooleanField(default=False)
+
 
     class Meta:
         ordering = ["-pressure_map_reading__timestamp"]
