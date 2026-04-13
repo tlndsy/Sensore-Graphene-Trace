@@ -14,6 +14,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.db import models, transaction
 from django_resized import ResizedImageField
 from django.utils import timezone
+from django.conf import settings
+
 
 import Sensore_Graphene_Trace.global_constants as constants
 
@@ -27,10 +29,10 @@ class UserManager(BaseUserManager):
             raise ValueError("Users must have a first name")
         if not extra_fields.get("last_name"):
             raise ValueError("Users must have a last name")
-        if not extra_fields.get("date_of_birth"):
+        """if not extra_fields.get("date_of_birth"):
             raise ValueError("Users must have a date of birth")
         if extra_fields.get("date_of_birth") >= datetime.date.today():
-            raise ValueError("Date of birth must be in the past")
+            raise ValueError("Date of birth must be in the past")"""
 
         email = self.normalize_email(email).lower()
 
@@ -94,7 +96,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     phone_number = PhoneNumberField(blank=True, null=True, unique=True)
-    date_of_birth = models.DateField()
+    date_of_birth = models.DateField(null=True, blank=True)
 
     font_size_preference = models.IntegerField(choices=FontSize.choices, default=FontSize.MEDIUM)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, blank=True, null=True, related_name="users")
@@ -113,7 +115,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ["first_name", "last_name", "date_of_birth"]
+    REQUIRED_FIELDS = ["first_name", "last_name"]# ,"date_of_birth"]
 
     def __str__(self):
         return f"{self.email} - ({self.get_full_name()})"
@@ -314,3 +316,13 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender}, to {self.recipient}, made at {self.timestamp}"
+
+class PasswordResetCode(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        from django.utils import timezone
+        return (timezone.now() - self.created_at).seconds < 600
+

@@ -4,6 +4,13 @@
     box-sizing: border-box;
 }
 
+:root {
+    --DARK_BLUE: #1065AB;
+    --MEDIUM_BLUE: #3A93C3;
+    --LIGHT_BLUE: #8EC4DE;
+    --PALE_BLUE: #D1E5F0;
+}
+
 body {
   font-family: Inter, sans-serif;
   background: #f1f5f9;
@@ -487,7 +494,6 @@ body {
     position: absolute;
     width: 133px;
     height: 48px;
-    line-height: auto;
     border-style: hidden;
     outline: none;
     display: flex;
@@ -551,3 +557,197 @@ body {
         text-align: center;
     }
 }
+
+.wrapper {
+    display: flex;
+    height: calc(100vh - 100px);
+    position: relative;
+}
+
+.main{
+    flex-grow: 1;
+    overflow-y: auto;
+    flex-direction: column;
+    display: flex;
+}
+/* ----------------------------------------------------------- GRAPH PAGE --------------------------------------------*/
+.pressure-data {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;}
+
+.graph, .heatmap {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.graph-content, .heatmap-content {
+    display: flex;
+    gap: 20px;
+}
+
+.graph-plot{
+    flex: 2;
+}
+.heatmap-plot{
+    flex: 0 0 400px
+}
+.graph-metrics{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.heatmap-metrics{
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+#graph {
+    width: 100%;
+    height: 400px;
+    max-height: 60vh;
+}
+
+.tabs{
+    display:flex;
+    margin-bottom: 0;
+    padding-left: 49px;
+    gap: 2px;
+}
+
+#heatmap {
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1/1;
+}
+
+.heatmap .tabs{
+    margin: 0;
+    padding: 0;
+}
+
+.tabs button{
+    background: white;
+    border: 1px solid black;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    padding: 0px 4px;
+    font-size: 0.9rem;
+    text-align: center;
+    min-width: 75px;
+}
+
+.graph-metrics button{
+    font-size: 1rem;
+    font-weight: 500;
+    background: var(--PALE_BLUE);
+    padding: 20px;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    cursor: pointer;
+}
+
+.graph-metrics button:hover {
+    background: #cce0ff;
+}
+
+.graph-metrics button.active {
+    background: var(--DARK_BLUE);
+    color: white;
+}
+
+.metric{
+    background: var(--PALE_BLUE);
+    padding: 5px 8px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+/* ------------------------------------------Side panel settings -----------------------------------------------------*/
+.side-panel{
+    width: 33.333vw;
+    max-width: 1000px;
+    right: 0;
+    height: 100%;
+    padding: 16px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    position: absolute;
+    z-index: 10;
+}
+
+.side-panel-toggle{
+    width: 48px;
+    height: 48px;
+    font-size: 36px;
+    margin-left: auto;
+    margin-right: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.side-panel-open .side-panel{
+    right: 0;
+    transform: translateX(0);
+}
+
+.side-panel-toggle:hover {
+    background: darkgrey;
+}
+
+.side-panel-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    background: var(--DARK_BLUE);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.side-panel-button:hover {
+    background: #1f4f8f;
+}
+/*-------------------------------------------------------------------------------------------------------------------*/
+
+.login-form button:hover {
+    background: darkgrey;
+}
+
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.legend-item span{
+    display:inline-block;
+    width:15px;
+    height:15px;
+    margin-right:5px;
+}
+
+.low {background:blue;}
+.medium {background:yellow;}
+.high {background:red;}
