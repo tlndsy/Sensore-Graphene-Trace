@@ -1,4 +1,5 @@
 {% extends 'patient_layout.html' %}
+{% load static %}
 {% block title %}
     Report
 {% endblock %}
@@ -19,12 +20,11 @@
             height: 310px;
             border: 2px solid black;
             text-align: center;
-            border-radius: 25px;
         }
 
         .report_box {
             position: absolute;
-            top: 340px;
+            top: 540px;
             left: 10px;
             width: 750px;
             height: 250px;
@@ -77,15 +77,13 @@
         .list_box a:hover {
             color: black;
         }
-        }
+
     </style>
     <div class="main_page_element">
         <div class="heatmap_box">
-
+            <div id="heatmap">
+            </div>
         </div>
-
-        <canvas id="heatmapCanvas" width="320" height="320" style="border:1px solid #000000;">
-        </canvas>
 
         <ul class="reportList">
             {% for report in allReports %}
@@ -117,13 +115,20 @@
         </div>
 
     </div>
-{% endblock %}
+
+{{ heatmapArr|json_script:"heatmapArr" }}
+
+{% block script %}
+<script>const heatmapList = JSON.parse(document.getElementById('heatmapArr').textContent);</script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="{% static 'js/heatmap.js' %}"></script>
 
 <script>
-    const canvas = document.getElementById('heatmapCanvas');
-    const ctx = canvas.getContext("2d");
-    var heatmap = {{heatmapArr}};
-
-    ctx.fillStyle = "red";
-    ctx.fillRect(0, 0, 150, 75);
+    window.onload = function() {
+        const heatmapMatrix = listToMatrix(heatmapList)
+        plotHeatmap(heatmapMatrix)
+    }
 </script>
+
+{% endblock %}
+{% endblock %}

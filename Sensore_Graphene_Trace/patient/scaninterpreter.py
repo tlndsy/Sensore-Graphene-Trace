@@ -96,27 +96,27 @@ class ScanInterpreter():
 
     def createReport(self, pressureValue, xCoord, yCoord, highestScan):
         # Give a description of the pressure sensitivity
-        location = self.locateArea(self, xCoord, yCoord)
-        severity = self.checkSeverity(self, int(pressureValue))
-        recommendation = self.makeRecommendation(self, severity)
+        location = self.locateArea(xCoord, yCoord)
+        severity = self.checkSeverity(int(pressureValue))
+        recommendation = self.makeRecommendation(severity)
         report = ["", "", "", ""]
         report[0] = "The highest point of pressure on your scan is detected in the " + location + " area."
         report[1] = "This is a pressure value of " + str(pressureValue) + ", which is a " + severity + " pressure reading."
         report[2] = "This pressure value means that " + recommendation + "."
         report[3] = ("The exact coordinates of this pressure point on the scan are (" + str(xCoord) + "," + str(yCoord) +
                      "), and this happened on snapshot " + str(highestScan) + ".")
-        return report
+        return report, severity
 
 
     def runInterpreter(self, file):
-        scannedData = self.scanDataFile(self, file)
+        scannedData = self.scanDataFile(file)
 
         totalHighestValue = 0
         highestScan = 0
         endLoop = False
         scanNumber = 0
         while not endLoop:
-            currentScan = self.getData(self,scanNumber, scannedData)
+            currentScan = self.getData(scanNumber, scannedData)
 
             if currentScan == -1:
                 endLoop = True
@@ -131,23 +131,37 @@ class ScanInterpreter():
                 scanNumber += 1
 
 
-        highestScanData = self.getData(self,highestScan, scannedData)
+        highestScanData = self.getData(highestScan, scannedData)
         highestValueRow = max(highestScanData)
         highestValue = max(highestValueRow)
 
         highestXCoord = highestValueRow.index(highestValue)
         highestYCoord = highestScanData.index(highestValueRow)
 
-        report = self.createReport(self, highestValue, highestXCoord, highestYCoord, highestScan)
-        return report, highestScan
+        report, severity = self.createReport(highestValue, highestXCoord, highestYCoord, highestScan)
+
+        if severity == "Very High":
+            triggerFlag = True
+        else:
+            triggerFlag = False
+        return report, highestScan, triggerFlag
 
     # Takes the report frame and generates a heatmap
     def get_pressure_matrix(self, file, frame):
-        scannedData = self.scanDataFile(self, file)
-        frameScan = self.getData(self, frame, scannedData)
+        scannedData = self.scanDataFile(file)
+        frameScan = self.getData(frame, scannedData)
         i = 0
-        intScan = frameScan
+        intScan = []
         for line in frameScan:
-            intScan[i] = list(map(int, line))
-            i = i + 1
+            intLine = list(map(int, line))
+            for entry in intLine:
+                intScan.append(entry)
         return intScan
+
+    def generate_report(self, current_reading, checkForFlag = False):
+        report = Report(pressure_map_reading=current_reading)
+        reportContents, scanNumber, triggerFlag = self.runInterpreter(current_reading.pressure_reading)
+        report.content = "@".join(reportContents)
+        report.frame = scanNumber
+        report.save()
+        return report

@@ -102,6 +102,7 @@ def interpreterDisplay(request, reportNumber = 0):
     all_readings = (PressureMapReading.objects.filter(reading_equipment__user=user).all())
     all_readings = all_readings.order_by('timestamp')
     noOfReadings = len(all_readings)
+    interpreter = ScanInterpreter()
 
     # Check if requested report is within limits
     if reportNumber >= noOfReadings and noOfReadings > 0:
@@ -127,15 +128,11 @@ def interpreterDisplay(request, reportNumber = 0):
 
     if not Report.objects.filter(pressure_map_reading=current_reading).exists():
         # Make a new report only if one does not already exist
-        report = Report(pressure_map_reading=current_reading)
-        reportContents, scanNumber = ScanInterpreter.runInterpreter(ScanInterpreter, file)
-        report.content = "@".join(reportContents)
-        report.frame = scanNumber
-        report.save()
+        report = interpreter.generate_report(current_reading)
     else:
         report = Report.objects.filter(pressure_map_reading=current_reading).last()
 
-    frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame) # Currently not working
+    frameHeatmap = interpreter.get_pressure_matrix(file, report.frame)
     reportContents = report.content.split("@")
 
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
