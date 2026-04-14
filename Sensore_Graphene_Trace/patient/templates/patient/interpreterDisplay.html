@@ -81,8 +81,7 @@
     </style>
     <div class="main_page_element">
         <div class="heatmap_box">
-            <div id="heatmap">
-            </div>
+            <div id="heatmap"></div>
         </div>
 
         <ul class="reportList">
@@ -116,10 +115,10 @@
 
     </div>
 
-{{ heatmap|json_script:"heatmap" }}
+{{ heatmapArr|json_script:"heatmapArr" }}
 
 {% block script %}
-<script>const heatmapList = JSON.parse(document.getElementById('heatmap').textContent);</script>
+<script>const heatmapList = JSON.parse(document.getElementById('heatmapArr').textContent);</script>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script src="{% static 'js/heatmap.js' %}"></script>
 

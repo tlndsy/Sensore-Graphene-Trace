@@ -1,4 +1,5 @@
 {% extends 'clinician_layout.html' %}
+{% load static %}
 {% block title %}
     Report
 {% endblock %}
@@ -24,7 +25,7 @@
 
         .report_box {
             position: absolute;
-            top: 270px;
+            top: 470px;
             left: 10px;
             width: 535px;
             height: 250px;
@@ -53,13 +54,13 @@
 
         .button1 {
             position: absolute;
-            top: 550px;
+            top: 730px;
             left: 60px;
         }
 
         .button2 {
             position: absolute;
-            top: 550px;
+            top: 730px;
             left: 380px;
         }
 
@@ -110,7 +111,7 @@
     </style>
     <div class="main_page_element">
         <div class="heatmap_box">
-            <h1> A heatmap will go here </h1>
+            <div id="heatmap"></div>
         </div>
 
         <div class="report_box">
@@ -155,4 +156,20 @@
             {% endfor %}
         </ul>
     </div>
+
+{{ heatmapArr|json_script:"heatmapArr" }}
+
+{% block script %}
+<script>const heatmapList = JSON.parse(document.getElementById('heatmapArr').textContent);</script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="{% static 'js/heatmap.js' %}"></script>
+
+<script>
+    window.onload = function() {
+        const heatmapMatrix = listToMatrix(heatmapList)
+        plotHeatmap(heatmapMatrix)
+    }
+</script>
+
+{% endblock %}
 {% endblock %}

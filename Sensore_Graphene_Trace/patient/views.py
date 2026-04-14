@@ -105,25 +105,14 @@ def interpreterDisplay(request, reportNumber = 0):
     interpreter = ScanInterpreter()
 
     # Check if requested report is within limits
-    if reportNumber >= noOfReadings and noOfReadings > 0:
-        reportNumber = noOfReadings - 1
-    elif reportNumber < 0:
-        reportNumber = 0
+    reportNumber = interpreter.checkReportInRange(reportNumber, noOfReadings)
 
     try:
         current_reading = all_readings[reportNumber]
         file = current_reading.pressure_reading
 
     except Exception:  # If no scans found, inform user of this
-        reportContents = ["", "", "", ""]
-
-        reportContents[0] = "The report you have requested cannot be found."
-        reportContents[1] = "This could be because there are no scans on file for you, or another error."
-        reportContents[2] = "Please contact your administrator if you believe this is in error."
-
-        context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-                   "report_3": reportContents[3], "reportNumber": 0, "noOfReports": 0, "allReports": all_readings}
-
+        context = interpreter.returnEmptyPage()
         return render(request, "patient\interpreterDisplay.html", context)
 
     if not Report.objects.filter(pressure_map_reading=current_reading).exists():
@@ -137,19 +126,9 @@ def interpreterDisplay(request, reportNumber = 0):
 
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
                "report_3": reportContents[3], "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
-               "heatmap": frameHeatmap, "allReports": all_readings, "user": user}
+               "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user}
 
     return render(request, "patient\interpreterDisplay.html", context)
-
-
-def interpreterButton(request, reportNumber = 0):
-    if 'Older' in request.POST:
-        reportNumber = reportNumber
-    elif 'Newer' in request.POST and reportNumber > 1:
-        reportNumber = reportNumber - 2
-    elif 'Newest':
-        reportNumber = 0
-    return redirect("/user/patient/report/" + str(reportNumber))
 
 
 def profile(request):
