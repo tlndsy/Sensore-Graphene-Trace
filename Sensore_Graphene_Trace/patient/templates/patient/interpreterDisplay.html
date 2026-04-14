@@ -116,10 +116,10 @@
 
     </div>
 
-{{ heatmapArr|json_script:"heatmapArr" }}
+{{ heatmap|json_script:"heatmap" }}
 
 {% block script %}
-<script>const heatmapList = JSON.parse(document.getElementById('heatmapArr').textContent);</script>
+<script>const heatmapList = JSON.parse(document.getElementById('heatmap').textContent);</script>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script src="{% static 'js/heatmap.js' %}"></script>
 

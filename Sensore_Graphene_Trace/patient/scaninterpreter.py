@@ -158,10 +158,11 @@ class ScanInterpreter():
                 intScan.append(entry)
         return intScan
 
-    def generate_report(self, current_reading, checkForFlag = False):
+    def generate_report(self, current_reading):
         report = Report(pressure_map_reading=current_reading)
         reportContents, scanNumber, triggerFlag = self.runInterpreter(current_reading.pressure_reading)
         report.content = "@".join(reportContents)
         report.frame = scanNumber
+        report.flag = triggerFlag
         report.save()
         return report

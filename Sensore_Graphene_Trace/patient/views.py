@@ -137,7 +137,7 @@ def interpreterDisplay(request, reportNumber = 0):
 
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
                "report_3": reportContents[3], "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
-               "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user}
+               "heatmap": frameHeatmap, "allReports": all_readings, "user": user}
 
     return render(request, "patient\interpreterDisplay.html", context)
 

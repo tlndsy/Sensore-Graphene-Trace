@@ -219,12 +219,6 @@ class Report(models.Model):
     content = models.TextField()
     frame = models.IntegerField()
 
-    def heatmap_path(self, filename):
-        return f"reports/{self.pk}/heatmap/{filename}"
-
-    heatmap = ResizedImageField(size=[32, 32], upload_to=heatmap_path, max_length=512,
-                                        default='reports/default_heatmap.png', blank=True)
-
     class Meta:
         ordering = ["-pressure_map_reading__timestamp"]
 
