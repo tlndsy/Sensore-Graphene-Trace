@@ -120,14 +120,32 @@ class ScanInterpreter():
                      "), and this happened on snapshot " + str(highestScan) + ".")
         return report, severity
 
+    def processFrame(self, currentScan, totalHighestValue, highestValueRowIndex, highestScanIndex, frameNumber):
+        frameHighestValue = 0
+        currentRowIndex = 0
+        frameHighestRowIndex = 0
+        for row in currentScan:
+            rowHighestValue = max(row)
+            if rowHighestValue > frameHighestValue:
+                frameHighestValue = rowHighestValue
+                frameHighestRowIndex = currentRowIndex
+            currentRowIndex += 1
+
+        if frameHighestValue > totalHighestValue:
+            totalHighestValue = frameHighestValue
+            highestScanIndex = frameNumber
+            highestValueRowIndex = frameHighestRowIndex
+
+        return highestScanIndex, totalHighestValue, highestValueRowIndex
 
     def runInterpreter(self, file):
         scannedData = self.scanDataFile(file)
 
         totalHighestValue = 0
-        highestScan = 0
+        highestScanIndex = 0
         endLoop = False
         frameNumber = 0
+        highestValueRowIndex = 0
 
         while not endLoop:
             currentScan = self.getData(frameNumber, scannedData)
@@ -135,37 +153,23 @@ class ScanInterpreter():
             if currentScan == -1:
                 endLoop = True
             else:
-                frameHighestValue = 0
-                currentRowIndex = 0
-                for row in currentScan:
-                    rowHighestValue = max(row)
-                    if rowHighestValue > frameHighestValue:
-                        frameHighestValue = rowHighestValue
-                        frameHighestRowIndex = currentRowIndex
-                    currentRowIndex += 1
-
-                if frameHighestValue > totalHighestValue:
-                    totalHighestValue = frameHighestValue
-                    highestScan = frameNumber
-                    highestValueRowIndex = frameHighestRowIndex
-
+                highestScanIndex, totalHighestValue, highestValueRowIndex \
+                    = self.processFrame(currentScan, totalHighestValue, highestValueRowIndex, highestScanIndex, frameNumber)
                 frameNumber += 1
 
-
-        highestScanData = self.getData(highestScan, scannedData)
+        highestScanData = self.getData(highestScanIndex, scannedData)
         highestValueRow = highestScanData[highestValueRowIndex]
-        highestValue = totalHighestValue
 
-        highestXCoord = highestValueRow.index(highestValue)
+        highestXCoord = highestValueRow.index(totalHighestValue)
         highestYCoord = highestScanData.index(highestValueRow)
 
-        report, severity = self.createReport(highestValue, highestXCoord, highestYCoord, highestScan)
+        report, severity = self.createReport(totalHighestValue, highestXCoord, highestYCoord, highestScanIndex)
 
         if severity == "Very High":
             triggerFlag = True
         else:
             triggerFlag = False
-        return report, highestScan, triggerFlag
+        return report, highestScanIndex, triggerFlag
 
     # Takes the report frame and generates a heatmap
     def get_pressure_matrix(self, file, frame):
