@@ -9,12 +9,33 @@
 
         <h1 class="greeting">{{ user.first_name }}'s Notifications</h1>
 
-        <div class="middle-box">
-            {% for item in notifications %}
-                <div class="notification {{ item.type }}">
-                    <p>{{ item.text }}</p>
-                    <small>{{ item.timestamp }}</small>
-                </div>
+        <div class="notification-panel">
+
+            <h2 class="panel-title">Notifications</h2>
+
+            {% for group, items in notifications.items %}
+
+                {% if items %}
+                    <div class="group">
+                        <h3 class="group-heading">{{ group }}</h3>
+
+                        {% for item in items %}
+                            {% cycle 'row-light' 'row-dark' as row_colours silent %}
+
+                            <div class="notification-card {{ row_colours }} {{ item.type }}">
+
+                                <div class="notification-content">
+                                    <p class="notification-text">{{ item.text }}</p>
+                                    <span class="notification-time">{{ item.timestamp }}</span>
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                        {% resetcycle row_colours %}
+                    </div>
+                {% endif %}
 
             {% endfor %}
 

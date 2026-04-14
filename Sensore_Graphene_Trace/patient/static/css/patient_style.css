@@ -747,3 +747,102 @@ body {
 .low {background:blue;}
 .medium {background:yellow;}
 .high {background:red;}
+
+
+/* --- Notification Page --- */
+
+/* Panel container */
+.notification-panel {
+    max-width: 60vw;
+    max-height: 80vh;
+    margin: 40px auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Title */
+.panel-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #222;
+}
+
+/* Group spacing */
+.group {
+    margin-bottom: 20px;
+}
+
+/* Group headings */
+.group-heading {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #888;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Individual notification */
+.notification-card {
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+/* Alternating backgrounds */
+.row-light {
+    background-color: #fafafa;
+}
+
+.row-dark {
+    background-color: #f0f0f0;
+}
+
+/* Hover effect */
+.notification-card:hover {
+    background-color: #e9eef5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* Content layout */
+.notification-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Text */
+.notification-text {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+/* Timestamp */
+.notification-time {
+    font-size: 1rem;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* Left accent bar by type */
+.notification-card.message {
+    border-left: 4px solid #4a90e2;
+}
+
+.notification-card.pressure_alert {
+    border-left: 4px solid #e74c3c;
+}
+
+.notification-card.report {
+    border-left: 4px solid #27ae60;
+}
+.notification-card.unread {
+    font-weight: 600;
+}

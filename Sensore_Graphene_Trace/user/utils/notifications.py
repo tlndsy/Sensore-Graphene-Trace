@@ -1,4 +1,7 @@
+from django.utils import timezone
 from user.models import Message, Report
+
+from collections import OrderedDict
 
 
 def get_notification_count(user, **kwargs):
@@ -45,7 +48,7 @@ def get_notifications(user, **kwargs):
         notifications.append({
             "type": "message",
             "object": msg,
-            "text": f"New Message From {msg.sender.first_name}: {msg.content[:50]}",
+            "text": f"💬 Unread Message From {msg.sender.first_name}: {msg.content[:50]}",
             "timestamp": msg.timestamp,
         })
 
@@ -54,7 +57,7 @@ def get_notifications(user, **kwargs):
         notifications.append({
             "type": "pressure_alert",
             "object": alert,
-            "text": "⚠ Pressure alert: " + alert.pressure_map_reading.reading_equipment.custom_name,
+            "text": f"⚠️ Pressure alert: {alert.pressure_map_reading.reading_equipment.custom_name}",
             "timestamp": alert.pressure_map_reading.timestamp,
         })
 
@@ -63,11 +66,30 @@ def get_notifications(user, **kwargs):
         notifications.append({
             "type": "report",
             "object": report,
-            "text": "New report: " + report.pressure_map_reading.reading_equipment.custom_name,
+            "text": "📄 Unread report from: " + report.pressure_map_reading.reading_equipment.custom_name,
             "timestamp": report.pressure_map_reading.timestamp,
         })
 
     # Sort into single timeline
     notifications.sort(key=lambda x: x["timestamp"], reverse=True)
 
-    return notifications
+    # Group notifications by date
+    today = timezone.now().date()
+    yesterday = today - timezone.timedelta(days=1)
+
+    grouped = OrderedDict()
+
+    for n in notifications:
+        date = n["timestamp"].date()
+
+        if date == today:
+            key = "Today"
+        elif date == yesterday:
+            key = "Yesterday"
+        else:
+            key = date.strftime("%d %b %Y")
+
+        grouped.setdefault(key, []).append(n)
+
+    return grouped
+
