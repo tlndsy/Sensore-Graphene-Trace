@@ -23,18 +23,31 @@ class ScanInterpreter():
                 i = i + 1
             return scan
 
-    def getData(self, testNo, scannedData):
+    def getData(self, testNo, scannedData, convertToInt = True):
         # Retrieve a scan from the scan file. Only gives one file.
-        testScan = []
+        retrievedData = []
         i = testNo * 32
         endTest = (testNo + 1) * 32
         if len(scannedData) < endTest:
             return -1
         while i < endTest:
-            testScan.append(scannedData[i])
+            retrievedData.append(scannedData[i])
             i = i + 1
 
-        return testScan
+        if convertToInt:
+            intData = []
+            lineCount = 0
+            for line in retrievedData:
+                entryCount = 0
+                intLine = line
+                for entry in line:
+                    intLine[entryCount] = int(entry)
+                    entryCount += 1
+                intData.append(intLine)
+                lineCount = lineCount + 1
+            return intData
+        else:
+            return retrievedData
 
     def locateArea(self, x, y):
         if x < 13 and y > 10 and y < 30:  # Try to identify a specific area
@@ -114,26 +127,34 @@ class ScanInterpreter():
         totalHighestValue = 0
         highestScan = 0
         endLoop = False
-        scanNumber = 0
+        frameNumber = 0
+
         while not endLoop:
-            currentScan = self.getData(scanNumber, scannedData)
+            currentScan = self.getData(frameNumber, scannedData)
 
             if currentScan == -1:
                 endLoop = True
             else:
-                highestValueRow = max(currentScan)
-                highestValue = max(highestValueRow)
+                frameHighestValue = 0
+                currentRowIndex = 0
+                for row in currentScan:
+                    rowHighestValue = max(row)
+                    if rowHighestValue > frameHighestValue:
+                        frameHighestValue = rowHighestValue
+                        frameHighestRowIndex = currentRowIndex
+                    currentRowIndex += 1
 
-                if totalHighestValue < int(highestValue):
-                    totalHighestValue = int(highestValue)
-                    highestScan = scanNumber
+                if frameHighestValue > totalHighestValue:
+                    totalHighestValue = frameHighestValue
+                    highestScan = frameNumber
+                    highestValueRowIndex = frameHighestRowIndex
 
-                scanNumber += 1
+                frameNumber += 1
 
 
         highestScanData = self.getData(highestScan, scannedData)
-        highestValueRow = max(highestScanData)
-        highestValue = max(highestValueRow)
+        highestValueRow = highestScanData[highestValueRowIndex]
+        highestValue = totalHighestValue
 
         highestXCoord = highestValueRow.index(highestValue)
         highestYCoord = highestScanData.index(highestValueRow)
@@ -149,8 +170,7 @@ class ScanInterpreter():
     # Takes the report frame and generates a heatmap
     def get_pressure_matrix(self, file, frame):
         scannedData = self.scanDataFile(file)
-        frameScan = self.getData(frame, scannedData)
-        i = 0
+        frameScan = self.getData(frame, scannedData, False)
         intScan = []
         for line in frameScan:
             intLine = list(map(int, line))
