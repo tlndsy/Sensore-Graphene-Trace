@@ -95,53 +95,40 @@ class PatientRegisterDeviceView(BasePatientMixin, CreateView):
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
-currentPage = 0 # Stores the report the user is currently on
-def interpreterDisplay(request):
-    global currentPage
+def interpreterDisplay(request, reportNumber = 0):
     user = request.user
     from user.models import Report
 
     all_readings = (PressureMapReading.objects.filter(reading_equipment__user=user).all())
     all_readings = all_readings.order_by('timestamp')
-
     noOfReadings = len(all_readings)
+    interpreter = ScanInterpreter()
 
-    # Check if stated page is within limits
-    if currentPage < 0:
-        currentPage = 0
-    elif currentPage >= noOfReadings:
-        currentPage = noOfReadings - 1
-    print(currentPage)
-    current_reading = all_readings[currentPage]
+    # Check if requested report is within limits
+    reportNumber = interpreter.checkReportInRange(reportNumber, noOfReadings)
 
-    file = current_reading.pressure_reading
+    try:
+        current_reading = all_readings[reportNumber]
+        file = current_reading.pressure_reading
+
+    except Exception:  # If no scans found, inform user of this
+        context = interpreter.returnEmptyPage()
+        return render(request, "patient\interpreterDisplay.html", context)
+
     if not Report.objects.filter(pressure_map_reading=current_reading).exists():
         # Make a new report only if one does not already exist
-        report = Report(pressure_map_reading=current_reading)
-        reportContents, scanNumber = ScanInterpreter.runInterpreter(ScanInterpreter, file)
-        report.content = "@".join(reportContents)
-        report.frame = scanNumber
-        report.save()
+        report = interpreter.generate_report(current_reading)
     else:
         report = Report.objects.filter(pressure_map_reading=current_reading).last()
 
-    frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame) # Currently not working
+    frameHeatmap = interpreter.get_pressure_matrix(file, report.frame)
     reportContents = report.content.split("@")
 
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-               "report_3": reportContents[3], "reportNumber": currentPage+1, "noOfReports": noOfReadings,
-               "heatmap": frameHeatmap, "allReports": all_readings}
-    return render(request, "patient\interpreterDisplay.html", context)
+               "report_3": reportContents[3], "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
+               "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user}
 
-def interpreterButton(request):
-    global currentPage
-    if 'Older' in request.POST:
-        currentPage = currentPage + 1
-    elif 'Newer' in request.POST:
-        currentPage = currentPage - 1
-    elif 'Newest':
-        currentPage = 0
-    return redirect("/user/patient/report")
+    return render(request, "patient\interpreterDisplay.html", context)
 
 
 def profile(request):
@@ -153,8 +140,21 @@ def notifications(request):
 def messages(request):
     return HttpResponse("This is the patients messaging page")
 
+class PressureDataView(BasePatientMixin, TemplateView):
+    template_name = "patient/patient_view_pressure_data.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get users pressure mat information
+        latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=self.request.user).order_by('-timestamp').first())
+        if not latest_reading or not latest_reading.metrics: context["metric_data"] = empty_context()  # Return empty if no data
+        try: context["metric_data"] = process_metrics(latest_reading)
+        except Exception as e:  # Error reading pressure mat data
+            print("Error reading patient csv:", e)
+            context["metric_data"] = empty_context()
+        return context
+
 @login_required(login_url='/user/home/')
-def view_graph(request):
+def OLD_Pressure_Data_View(request):
     # Authentication
     if not request.user.groups.filter(name=constants.PATIENT).exists: return redirect("home") # Redirect users without login
     else: user = request.user # Request the correct user
@@ -162,14 +162,13 @@ def view_graph(request):
     # Get users pressure mat information
     latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).order_by('-timestamp').first())
     if not latest_reading or not latest_reading.metrics:
-        return render(request, "patientGraph.html", empty_context()) # Return empty if no data
-
+        return render(request, "patient/patient_view_pressure_data.html", empty_context()) # Return empty if no data
     try:
         metric_data = process_metrics(latest_reading)
     except Exception as e: # Error reading pressure mat data
         print("Error reading patient csv:", e)
-        return render(request, "patientGraph.html", empty_context())
-    return render(request, "patientGraph.html",{"metric_data":metric_data})
+        return render(request, "patient/patient_view_pressure_data.html", empty_context())
+    return render(request, "patient/patient_view_pressure_data.html", {"metric_data":metric_data})
 
 def process_metrics(latest_reading):
     fps = latest_reading.reading_equipment.product_info.refresh_rate  # Frames per second
@@ -186,15 +185,8 @@ def process_metrics(latest_reading):
     metrics = ["peak_pressure","mean_pressure","std_pressure","peak_pressure_index","coefficient_of_variation", "contact_area","contact_area_percent","cop_x","cop_y"]
     metrics_per_sec = df.groupby('time_sec')[metrics].mean() # Take the mean from 15 frames
     aggregated_metrics_per_sec = {metric: metrics_per_sec[metric].tolist() for metric in metrics} # Aggregate
-
     times = metrics_per_sec.index.tolist() # Store the seconds recorded
-
-    return {
-        "pressure_frames": get_all_pressure_matrix_frames(latest_reading),
-        **aggregated_metrics_per_sec,
-        "times":times,
-        "flat_pressure_matrix": get_pressure_matrix(latest_reading)
-    }
+    return {"pressure_frames": get_all_pressure_matrix_frames(latest_reading), **aggregated_metrics_per_sec,"times":times,"flat_pressure_matrix": get_pressure_matrix(latest_reading)}
     
 def empty_context():
     return {"pressure_frames":[], "peak_pressure":[],"contact_area":[],"times":[],"flat_pressure_matrix":[], "mean_pressure":[],"std_pressure":[],"contact_area_percent":[], "cop_x":[],"cop_y":[], "coefficient_of_variation":[] }

@@ -117,13 +117,31 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-SITE_ID = 2
+SITE_ID = 3
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
+AUTH_USER_MODEL = "user.User"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+LOGIN_REDIRECT_URL = "user:redirect_to_home"
+ACCOUNT_LOGIN_REDIRECT_URL = "user:redirect_to_home"
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
+# For password resets
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'sensoregraphenetrace@gmail.com'
+"""
+EMAIL_HOST = ""
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+"""
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
