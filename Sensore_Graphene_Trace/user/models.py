@@ -223,7 +223,7 @@ class Report(models.Model):
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     frame = models.IntegerField()
-    notify_user = models.BooleanField(default=False)
+    pressure_alert = models.BooleanField(default=False)
     read_receipt = models.BooleanField(default=False)
 
 
