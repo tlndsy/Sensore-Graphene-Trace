@@ -127,10 +127,11 @@ def interpreterDisplay(request, reportNumber = 0):
     frameHeatmap = interpreter.get_pressure_matrix(file, report.frame)
     reportContents = report.content.split("@")
 
+    scanTime = all_readings[reportNumber].timestamp
 
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
                "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
-               "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user}
+               "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user, "scanTime": scanTime}
 
     return render(request, "patient\interpreterDisplay.html", context)
 

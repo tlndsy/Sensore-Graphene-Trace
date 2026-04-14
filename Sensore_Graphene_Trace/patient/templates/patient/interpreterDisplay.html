@@ -23,20 +23,33 @@
 
         .report_box {
             position: absolute;
-            top: 70vh;
-            left: 1vw;
-            height: 25vh;
-            width: 45vw;
+            top: 15vh;
+            left: 35vw;
+            height: 45vh;
+            width: 35vw;
             border: 2px solid black;
             padding: 5px;
             border-radius: 25px;
+        }
+
+        .patient_name_box {
+            position: absolute;
+            top: 3vh;
+            left: 40vw;
+            width: 25vw;
+            height: 10vh;
+            border: 2px solid black;
+            padding: 5px;
+            border-radius: 15px;
+            font-size: {{user.font_size_preference}};
+            text-align: center;
         }
 
         .index_box {
             position: absolute;
             display: flex;
             top: 2vh;
-            left: 70vw;
+            left: 80vw;
             height: 15vh;
             width: 10vw;
             border: 2px solid black;
@@ -49,7 +62,7 @@
         .reportList {
             position: absolute;
             top: 20vh;
-            left: 62vw;
+            left: 72vw;
             height: 35vh;
             text-align: center;
             overflow: auto;
@@ -104,6 +117,11 @@
             <p>
                 {{ report_2 }}
             </p>
+        </div>
+
+        <div class="patient_name_box">
+            <h3>Patient Name: {{user.first_name}} {{user.last_name}}</h3>
+            <h3>Scan Date: {{scanTime}}</h3>
         </div>
 
         <div class="index_box">

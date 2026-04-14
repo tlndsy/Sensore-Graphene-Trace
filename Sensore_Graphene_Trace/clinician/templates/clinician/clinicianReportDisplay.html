@@ -20,9 +20,21 @@
             font-size: {{user.font_size_preference}};
         }
 
-        .report_box {
+        .patient_name_box {
             position: absolute;
             top: 3vh;
+            left: 40vw;
+            width: 25vw;
+            height: 10vh;
+            border: 2px solid black;
+            padding: 5px;
+            border-radius: 15px;
+            font-size: {{user.font_size_preference}};
+            text-align: center;
+        }
+        .report_box {
+            position: absolute;
+            top: 15vh;
             left: 40vw;
             width: 25vw;
             height: 40vh;
@@ -51,13 +63,13 @@
 
         .button1 {
             position: absolute;
-            top: 47vh;
+            top: 57vh;
             left: 42vw;
         }
 
         .button2 {
             position: absolute;
-            top: 47vh;
+            top: 57vh;
             left: 55vw;
         }
 
@@ -111,6 +123,11 @@
             <div id="heatmap"></div>
         </div>
 
+        <div class="patient_name_box">
+            <h3>Patient Name: {{patient.first_name}} {{patient.last_name}}</h3>
+            <h3>Scan Date: {{scanTime}}</h3>
+        </div>
+
         <div class="report_box">
             <h1> Patient Scan Report </h1>
             <p>
@@ -134,10 +151,10 @@
         </button>
 
         <ul class="reportList">
-            {% for report in allReports %}
+            {% for listReport in allReports %}
                 <li>
                     <div class="list_box">
-                        <a href="/user/clinician/report/{{forloop.counter0}}/{{patientNumber}}">Report from: {{report.timestamp}}</a>
+                        <a href="/user/clinician/report/{{forloop.counter0}}/{{patientNumber}}">Report from: {{listReport.timestamp}}</a>
                     </div>
                 </li>
             {% endfor %}

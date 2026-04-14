@@ -38,10 +38,12 @@ def reportDisplay(request, reportNumber = 0, patientNumber = 0):
         frameHeatmap = interpreter.get_pressure_matrix(file, report.frame)  # Currently not working
         reportContents = report.content.split("@")
 
+        scanTime = all_readings[reportNumber].timestamp
+
         context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
                    "report_3": reportContents[3], "reportNumber": reportNumber + 1, "noOfReports": noOfReadings,
                    "heatmapArr": frameHeatmap, "allReports": all_readings, "patientNumber": patientNumber,
-                   "listOfPatients": patientCliniciansList, "user": user}
+                   "listOfPatients": patientCliniciansList, "user": user, "patient": patient, "scanTime": scanTime}
 
     except Exception:  # If no scans found, inform user of this
         context = interpreter.returnEmptyPage()
