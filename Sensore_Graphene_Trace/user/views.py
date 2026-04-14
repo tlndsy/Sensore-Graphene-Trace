@@ -1,10 +1,14 @@
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm,PasswordResetForm
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, HttpResponse, redirect
+from django.views.generic import TemplateView
+
 from .forms import RegisterForm, LoginForm, CompleteProfileForm
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
+
+from .mixins import GroupRequiredMixin
 from .models import PasswordResetCode
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
@@ -13,6 +17,7 @@ from django.views.decorators.http import require_POST
 from user.models import Message, Conversation, User, PatientClinician
 import json
 from Sensore_Graphene_Trace import global_constants as constants
+from .utils import notifications
 
 # Create your views here.
 def login_user(request):
@@ -110,6 +115,17 @@ def complete_profile(request):
             return redirect("user:patient:home")
     else: form = CompleteProfileForm(instance=user)
     return render(request, "complete_profile.html", {"form": form})
+
+class UserNotifications(GroupRequiredMixin, TemplateView):
+    template_name = "user/user_notifications.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["num_notifications"] = notifications.get_notification_count(self.request.user)
+        context["notifications"] = notifications.get_notifications(self.request.user)
+
+        return context
 
 @login_required
 def get_messages(request, conversation_id):

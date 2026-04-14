@@ -1,6 +1,6 @@
 from django.urls import path,include
 from . import views
-from .views import complete_profile, redirect_to_home
+from .views import complete_profile, redirect_to_home, UserNotifications
 
 app_name = 'user'
 
@@ -16,5 +16,6 @@ urlpatterns = [
     path('clinician/', include("clinician.urls")),
     path("complete-profile/", complete_profile, name="complete_profile"),
     path("redirect-to-home/", redirect_to_home, name="redirect_to_home"),
+    path("notifications/", UserNotifications.as_view(), name="notifications"),
     path("logout-user/", views.logout_user, name="logout_user"),
 ]
