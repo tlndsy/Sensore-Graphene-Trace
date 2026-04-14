@@ -16,7 +16,7 @@ import tempfile, os, csv, io
 
 from Sensore_Graphene_Trace import global_constants as constants
 
-from user.models import User, Message, PressureMapReading, ReadingEquipment
+from user.models import User, Message, PressureMapReading, ReadingEquipment, ProductInfo
 from patient.utils.pressure_calculations import load_csv_frames, process_frame, calculate_contact_area_percent
 from patient.scaninterpreter import ScanInterpreter
 from .mixins import BasePatientMixin
@@ -121,11 +121,15 @@ def interpreterDisplay(request, reportNumber = 0):
     else:
         report = Report.objects.filter(pressure_map_reading=current_reading).last()
 
+    report.read_receipt = True
+    report.save()
+
     frameHeatmap = interpreter.get_pressure_matrix(file, report.frame)
     reportContents = report.content.split("@")
 
+
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-               "report_3": reportContents[3], "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
+               "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
                "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user}
 
     return render(request, "patient\interpreterDisplay.html", context)
