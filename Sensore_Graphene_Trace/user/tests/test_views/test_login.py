@@ -35,7 +35,7 @@ class UserLoginViewTests(UserTestSetupMixin):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user_home.html')
 
-    def test_admin_patient_login(self):
+    def test_valid_admin_login(self):
         self.client.login(email=self.valid_admin.email, password='Password?123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)

@@ -19,8 +19,9 @@ def login_user(request):
     login_form = LoginForm(request, data=request.POST)
     if login_form.is_valid():
         login(request, login_form.get_user()); user = request.user
-        if redirect_response := redirect_if_profile_incomplete(request): return redirect_response
-        if request.session.pop('needs_profile_completion', False): return redirect("complete_profile")
+        if redirect_response := redirect_if_profile_incomplete(request):
+            return redirect_response
+        #if request.session.pop('needs_profile_completion', False): return redirect("complete_profile")
         return redirect("user:patient:home")
     return None
 
@@ -33,31 +34,44 @@ def register_user(request):
 
 # Sends the user a verification code for their password reset
 def request_password_reset(request):
+    from random import SystemRandom
+    cryptogen = SystemRandom()
     email = request.POST.get("email")
     try: user = User.objects.get(email=email)
-    except User.DoesNotExist: return render(request, "user_home.html", {"error": "No account with that email."})
-    code = str(random.randint(100000, 999999))
-    PasswordResetCode.objects.create(user=user, code=code)
-    send_mail("Your password reset code",f"Your reset code is: {code}","sensoregraphenetrace@gmail.com",
-        [email],fail_silently=False)
-    return render(request, "user_home.html", {"reset_step": 2,"reset_email": email, "error": "No account with that email."})
+    except User.DoesNotExist:
+        return render(request, "user_home.html",
+                                            {"error": "No account with that email."})
+    # code = str(random.randint(100000, 999999)) Deterministic
+    code = str(cryptogen.randrange(100000,100000))
+    PasswordResetCode.objects.create(user=user, code=code) # https://stackoverflow.com/questions/20936993/how-can-i-create-a-random-number-that-is-cryptographically-secure-in-python
+    send_mail("Your password reset code",#Subject
+            f"Your reset code is: {code}", #Message
+              "sensoregraphenetrace@gmail.com", #From email
+        [email],fail_silently=False) # Recipient list
+    return render(request, "user_home.html",{"reset_step": 2,"reset_email": email,
+                                             "error": "No account with that email."})
 
 # Method for the user to reset their password
 def confirm_password_reset(request):
-    email = request.POST.get("email"); code = request.POST.get("code"); password = request.POST.get("password")
+    email = request.POST.get("email");
+    code = request.POST.get("code");
+    password = request.POST.get("password")
     try:
         user = User.objects.get(email=email)
         reset = PasswordResetCode.objects.filter(user=user, code=code).latest("created_at")
-        if not reset.is_valid(): raise Exception("Expired") # Checks if their code has expired
+        if not reset.is_valid():
+            raise Exception("Expired") # Checks if their code has expired
         user.password = make_password(password); user.save(); reset.delete()
         return redirect("home")
     except Exception:
-        return render(request, "user_home.html", {"error": "Invalid or expired code."})
+        return render(request, "user_home.html",
+                      {"error": "Invalid or expired code."})
 
 # Redirects the user to their correct home page based on their role upon logging in
 def redirect_to_home(request):
     if request.user.is_authenticated:
-        if redirect_response := redirect_if_profile_incomplete(request): return redirect_response # Incomplete profile
+        if redirect_response := redirect_if_profile_incomplete(request):
+            return redirect_response # Incomplete profile
         user_groups = request.user.groups.values_list("name", flat=True)
         if constants.ADMIN in user_groups: return redirect("user:administrator:home") # Admin home page
         if constants.CLINICIAN in user_groups: return redirect("user:clinician:profile") # Clinician profile
@@ -67,7 +81,8 @@ def redirect_to_home(request):
 
 # Redirects users who have registered with Google to complete their profile
 def redirect_if_profile_incomplete(request):
-    if not request.user.date_of_birth or not request.user.phone_number: return redirect("user:complete_profile")
+    if not request.user.date_of_birth or not request.user.phone_number:
+        return redirect("user:complete_profile")
     return None
 def home(request):
     if request.user.is_authenticated:
@@ -85,7 +100,6 @@ def home(request):
             return confirm_password_reset(request)
         if response:
             return response
-
     return render(request, "user_home.html", {
         "form": login_form,
         "register_form": register_form,

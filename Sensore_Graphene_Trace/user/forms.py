@@ -6,6 +6,7 @@ from django.utils.html import avoid_wrapping
 from .models import User
 from django import forms
 
+# User registration form for patients
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(max_length=255, required=True)
     first_name = forms.CharField(max_length=255, required=True)

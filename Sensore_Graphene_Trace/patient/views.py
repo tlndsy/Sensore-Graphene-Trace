@@ -169,7 +169,8 @@ class PressureDataView(BasePatientMixin, TemplateView):
 @login_required(login_url='/user/home/')
 def OLD_Pressure_Data_View(request):
     # Authentication
-    if not request.user.groups.filter(name=constants.PATIENT).exists: return redirect("home") # Redirect users without login
+    if not request.user.groups.filter(name=constants.PATIENT).exists:
+        return redirect("home") # Redirect users without login
     else: user = request.user # Request the correct user
 
     # Get users pressure mat information
@@ -208,24 +209,32 @@ def empty_context():
 def get_pressure_matrix(latest_reading):
     pressure_matrix = []
     if latest_reading.pressure_reading:
+        width = latest_reading.reading_equipment.product_info.resolution_width
+        height = latest_reading.reading_equipment.product_info.resolution_height
+        total_cells = width * height
         with latest_reading.pressure_reading.open(mode='r') as f:
             reader = csv.reader(f)
-            for row in reader: pressure_matrix.extend([float(value) for value in row])
-        pressure_matrix += [0.0] * (1024 - len(pressure_matrix))
-        pressure_matrix = pressure_matrix[:1024]
+            for row in reader:
+                pressure_matrix.extend([float(value) for value in row])
+        pressure_matrix += [0.0] * (total_cells - len(pressure_matrix))
+        pressure_matrix = pressure_matrix[:total_cells]
     return pressure_matrix
 
 # Gets all the pressure matrix frames from the most recent pressure reading file
 def get_all_pressure_matrix_frames(latest_reading):
     frames = []
-    if not latest_reading.pressure_reading: return frames
-    with latest_reading.pressure_reading.open(mode='r') as f: df = pd.read_csv(f)
+    if not latest_reading.pressure_reading:
+        return frames
+    width = latest_reading.reading_equipment.product_info.resolution_width
+    height = latest_reading.reading_equipment.product_info.resolution_height
+    with latest_reading.pressure_reading.open(mode='r') as f:
+        df = pd.read_csv(f)
     data = df.values.tolist()
-    FRAME_SIZE = 32  # Will fix
-
+    FRAME_SIZE = height
     for i in range(0, len(data), FRAME_SIZE):
         block = data[i:i + FRAME_SIZE]
-        if len(block) < FRAME_SIZE: break  # skip incomplete frame
+        if len(block) < FRAME_SIZE:
+            break  # skip incomplete frame
         frame = [val for row in block for val in row]
         frames.append(frame)
     return frames
