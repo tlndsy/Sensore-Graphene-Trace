@@ -1,23 +1,20 @@
 import datetime
 import uuid
 
-from django.utils import timezone
-
-import Sensore_Graphene_Trace.global_constants as constants
-
-from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from phonenumber_field.modelfields import PhoneNumberField
-from django.contrib.auth.models import Group, PermissionsMixin, BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.db import models, transaction
+from django.contrib.auth.models import Group, PermissionsMixin, BaseUserManager
+from django.core.exceptions import ValidationError
+from django.db import models, transaction, IntegrityError
+from django.db.models import Q
+from django.utils import timezone
 from django_resized import ResizedImageField
+from phonenumber_field.modelfields import PhoneNumberField
 from django.utils import timezone
 from django.conf import settings
 
 
 import Sensore_Graphene_Trace.global_constants as constants
+from user.utils.pair_key import generate_pair_key
 
 
 class UserManager(BaseUserManager):
@@ -65,6 +62,11 @@ class UserManager(BaseUserManager):
             **extra_fields,
         )
 
+    # Enforce use of UserManager
+    def create(self, *args, **kwargs):
+        raise RuntimeError(
+            "Use User.objects.create_user() or User.objects.create_superuser() to create users instead of User.objects.create()"
+        )
 
 # Create your models here.
 class Address(models.Model):
@@ -98,6 +100,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = PhoneNumberField(blank=True, null=True, unique=True)
     date_of_birth = models.DateField(null=True, blank=True)
 
+    personalised_threshold = models.IntegerField(default=constants.DEFAULT_PRESSURE_THRESHOLD)
+
     font_size_preference = models.IntegerField(choices=FontSize.choices, default=FontSize.MEDIUM)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, blank=True, null=True, related_name="users")
     role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.PATIENT, db_index=True)
@@ -127,6 +131,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.first_name
 
 
+
+
 class PatientClinician(models.Model):
     patient = models.ForeignKey(User, related_name='patient_relationships', on_delete=models.CASCADE)
     clinician = models.ForeignKey(User, related_name='clinician_relationships', on_delete=models.CASCADE)
@@ -140,7 +146,7 @@ class PatientClinician(models.Model):
     def clean(self):
         if not self.patient.groups.filter(name=User.Roles.PATIENT).exists():
             raise ValidationError("Selected patient is not a valid patient.")
-        if not self.clinician.groups.filter(name=User.Roles.PATIENT).exists():
+        if not self.clinician.groups.filter(name=User.Roles.CLINICIAN).exists():
             raise ValidationError("Selected clinician is not a valid clinician.")
 
     def __str__(self):
@@ -207,6 +213,8 @@ class PressureMapReading(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    processed = models.BooleanField(default=False)
+
     class Meta:
         ordering = ["-timestamp"]
 
@@ -218,6 +226,9 @@ class Report(models.Model):
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     frame = models.IntegerField()
+    pressure_alert = models.BooleanField(default=False)
+    read_receipt = models.BooleanField(default=False)
+
 
     class Meta:
         ordering = ["-pressure_map_reading__timestamp"]
@@ -226,18 +237,84 @@ class Report(models.Model):
         return f"Report belonging to {self.pressure_map_reading.reading_equipment.user}, made at {self.pressure_map_reading.timestamp}"
 
 
+class ConversationQuerySet(models.QuerySet):
+
+    def between(self, user1, user2):
+        return self.filter(participants=user1).filter(participants=user2)
+
+    def for_user(self, user):
+        return self.filter(participants=user)
+
+    def with_exact_participants(self, user1, user2):
+        return (
+            self.between(user1, user2)
+            .annotate(num_participants=models.Count("participants"))
+            .filter(num_participants=2)
+        )
+
+class ConversationManager(models.Manager.from_queryset(ConversationQuerySet)):
+
+    def create_conversation(self, user1, user2, subject=""):
+
+        if user1 == user2:
+            raise ValidationError("Users must be different.")
+
+        pair_key = generate_pair_key(user1.id, user2.id)
+
+
+        # Check PatientClinician relationship exists or user is messaging an admin
+        relationship_exists = PatientClinician.objects.filter(
+            Q(patient=user1, clinician=user2) |
+            Q(patient=user2, clinician=user1)
+        ).exists()
+
+        is_admin = (
+            any(g.name in constants.ADMIN for g in user1.groups.all()) or
+            any(g.name in constants.ADMIN for g in user2.groups.all())
+        )
+
+        if not (relationship_exists or is_admin):
+            raise ValidationError(
+                "Participants must have a valid patient-clinician relationship."
+            )
+
+        if not subject:
+            subject = f"Conversation between {user1.get_full_name()} and {user2.get_full_name()}"
+
+        conversation, created = Conversation.objects.get_or_create(
+            pair_key=pair_key,
+            subject=subject,
+        )
+        if created:
+            conversation.participants.set([user1, user2])
+        return conversation
+
+
 class Conversation(models.Model):
     subject = models.CharField(max_length=255)
     participants = models.ManyToManyField(User, related_name='conversations')
     last_message = models.ForeignKey('Message', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
 
+    pair_key = models.CharField(max_length=64, editable=False, unique=True, db_index=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = ConversationManager()
 
     class Meta:
         ordering = ['-updated_at']
 
-    def clean(self):
+    def __str__(self):
+        return self.subject or f"Conversation {self.id}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.pair_key:
+            raise RuntimeError("Direct creation of Conversation is not allowed, Use Conversation.objects.create_conversation().")
+
+        super().save(*args, **kwargs)
+
+    def clean_OLD(self):
         if self.pk:
             participants = list(self.participants.all())
 
@@ -245,7 +322,7 @@ class Conversation(models.Model):
                 raise ValidationError("Conversation must have exactly 2 participants.")
 
             user1, user2 = participants
-
+            """
             # Check PatientClinician relationship exists or user is messaging an admin
             valid = PatientClinician.objects.filter(
                 patient=user1, clinician=user2
@@ -256,12 +333,22 @@ class Conversation(models.Model):
             ).exists() or user2.groups.filter(
                 name__in=constants.ADMIN
             ).exists()
+            """
+
+            # Check PatientClinician relationship exists or user is messaging an admin
+            relationship_exists = PatientClinician.objects.filter(
+                Q(patient=user1, clinician=user2) |
+                Q(patient=user2, clinician=user1)
+            ).exists()
+            is_admin = any(g.name in constants.ADMIN for g in user1.groups.all()) or \
+                       any(g.name in constants.ADMIN for g in user2.groups.all())
+
+            valid = relationship_exists or is_admin
 
             if not valid:
                 raise ValidationError("Participants must have a valid patient-clinician relationship.")
 
-    def __str__(self):
-        return self.subject or f"Conversation {self.id}"
+
 
 
 class Message(models.Model):
@@ -299,6 +386,8 @@ class Message(models.Model):
     def clean(self):
         if not self.conversation:
             return
+
+        self.conversation.full_clean()
 
         participants = self.conversation.participants.all()
 

@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sensor Report Display</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {%  load static %}
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-
+{% extends 'clinician_layout.html' %}
+{% load static %}
+{% block title %}
+    Report
+{% endblock %}
+{% block content %}
     <style>
         .main_page_element {
             position: relative;
@@ -22,16 +19,20 @@
             height: 250px;
             border: 2px solid black;
             text-align: center;
+            border-radius: 15px;
+            font-size: {{user.font_size_preference}};
         }
 
         .report_box {
             position: absolute;
-            top: 270px;
+            top: 470px;
             left: 10px;
             width: 535px;
             height: 250px;
             border: 2px solid black;
-            padding: 5px
+            padding: 5px;
+            border-radius: 15px;
+            font-size: {{user.font_size_preference}};
         }
 
         .button {
@@ -42,6 +43,8 @@
             background-color: #008CBA;
             cursor: pointer;
             transition-duration: 0.4s;
+            border-radius: 10px;
+            font-size: {{user.font_size_preference}};
         }
 
         .button:hover {
@@ -51,48 +54,122 @@
 
         .button1 {
             position: absolute;
-            top: 550px;
+            top: 730px;
             left: 60px;
         }
 
         .button2 {
             position: absolute;
-            top: 550px;
+            top: 730px;
             left: 380px;
         }
+
+        .reportList {
+            position: absolute;
+            top: 370px;
+            left: 950px;
+            height: 250px;
+            text-align: center;
+            overflow: auto;
+            display: block;
+            font-size: {{user.font_size_preference}};
+        }
+
+        .patientList {
+            position: absolute;
+            top: 40px;
+            left: 950px;
+            height: 250px;
+            text-align: center;
+            overflow: auto;
+            display: block;
+            font-size: {{user.font_size_preference}};
+        }
+
+        /* Modify individual entries in lists */
+        .list_box {
+            position: relative;
+            width: 400px;
+            border: 2px solid black;
+            padding: 5px
+            text-align: center;
+            border-radius: 15px;
+            background-color: #008CBA;
+        }
+
+        .list_box a {
+            text-decoration: none;
+            color: white;
+        }
+
+        .list_box a:hover {
+            color: black;
+        }
+
+
+
     </style>
-</head>
-<body>
-<nav>
-    <h3 class="nav-title"> Sensore Graphene Trace </h3>
-    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
-</nav>
-<div class="main_page_element">
-    <div class="heatmap_box">
-        <h1> A heatmap will go here </h1>
+    <div class="main_page_element">
+        <div class="heatmap_box">
+            <div id="heatmap"></div>
+        </div>
+
+        <div class="report_box">
+            <h1> Patient Scan Report </h1>
+            <p>
+                {{ report_0 }}
+            </p>
+            <p>
+                {{ report_1 }}
+            </p>
+            <p>
+                {{ report_2 }}
+            </p>
+            <p>
+                {{ report_3}}
+            </p>
+        </div>
+        <button class="button button1">
+            Edit Report
+        </button>
+        <button class="button button2">
+            Approve Report
+        </button>
+
+        <ul class="reportList">
+            {% for report in allReports %}
+                <li>
+                    <div class="list_box">
+                        <a href="/user/clinician/report/{{forloop.counter0}}/{{patientNumber}}">Report from: {{report.timestamp}}</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <ul class="patientList">
+            {% for patientClinician in listOfPatients %}
+                <li>
+                    <div class="list_box">
+                        <a href="/user/clinician/report/0/{{forloop.counter0}}">Patient: {{patientClinician.patient.first_name}} {{patientClinician.patient.last_name}}</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
 
-    <div class="report_box">
-        <h1> Scan Analysis Report </h1>
-        <p>
-            {{ report_0 }}
-        </p>
-        <p>
-            {{ report_1 }}
-        </p>
-        <p>
-            {{ report_2 }}
-        </p>
-        <p>
-            {{ report_3}}
-        </p>
-    </div>
-    <button class="button button1">
-        Edit Report
-    </button>
-    <button class="button button2">
-        Approve Report
-    </button>
-</div>
-</body>
-</html>
+{{ heatmapArr|json_script:"heatmapArr" }}
+
+{% block script %}
+<script>const heatmapList = JSON.parse(document.getElementById('heatmapArr').textContent);</script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="{% static 'js/heatmap.js' %}"></script>
+
+<script>
+    window.onload = function() {
+        const heatmapMatrix = listToMatrix(heatmapList)
+        plotHeatmap(heatmapMatrix)
+    }
+</script>
+
+{% endblock %}
+{% endblock %}

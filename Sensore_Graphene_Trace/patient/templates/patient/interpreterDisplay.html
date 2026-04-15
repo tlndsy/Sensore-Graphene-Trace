@@ -1,152 +1,132 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sensor Report Display</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {%  load static %}
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-
+{% extends 'patient_layout.html' %}
+{% load static %}
+{% block title %}
+    Report
+{% endblock %}
+{% block content %}
     <style>
         .main_page_element {
             position: relative;
             height: 0;
             width: 0;
+            font-size: {{user.font_size_preference}};
         }
 
         .heatmap_box {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 750px;
-            height: 350px;
-            border: 2px solid black;
+            top: 1vh;
+            left: 1vw;
+            height: 40vh;
+            width: 30vw;
             text-align: center;
         }
 
         .report_box {
             position: absolute;
-            top: 370px;
-            left: 10px;
-            width: 750px;
-            height: 250px;
+            top: 70vh;
+            left: 1vw;
+            height: 25vh;
+            width: 45vw;
             border: 2px solid black;
-            padding: 5px
+            padding: 5px;
+            border-radius: 25px;
         }
 
         .index_box {
             position: absolute;
-            top: 50px;
-            left: 1050px;
-            width: 200px;
-            height: 120px;
+            display: flex;
+            top: 2vh;
+            left: 70vw;
+            height: 15vh;
+            width: 10vw;
             border: 2px solid black;
-            padding: 5px
+            padding: 5px;
             text-align: center;
-        }
-
-        .button {
-            border: 2px solid black;
-            text_align: center;
-            padding: 16px 32px;
-            width: 200px;
-            height: 120px;
-            font-size: 30px;
-            color: white;
-            background-color: #008CBA;
-            cursor: pointer;
-            transition-duration: 0.4s;
-        }
-
-        .button:hover {
-            background-color: white;
-            color: black;
-        }
-
-        .button1 {
-            position: absolute;
-            top: 200px;
-            left: 1050px;
-        }
-
-        .button2 {
-            position: absolute;
-            top: 350px;
-            left: 1050px;
-        }
-
-        .button3 {
-            position: absolute;
-            top: 500px;
-            left: 1050px;
+            align-items: center;
+            border-radius: 15px;
         }
 
         .reportList {
             position: absolute;
-            top: 50px;
-            left: 50px;
-            width: 650px;
+            top: 20vh;
+            left: 60vw;
+            height: 350px;
+            text-align: center;
+            overflow: auto;
+            display: block;
         }
+
+        /* Modify individual entries in lists */
+        .list_box {
+            position: relative;
+            width: 400px;
+            border: 2px solid black;
+            padding: 5px
+            text-align: center;
+            border-radius: 15px;
+            background-color: #008CBA;
+            font-size: {{user.font_size_preference}};
+        }
+
+        .list_box a {
+            text-decoration: none;
+            color: white;
+        }
+
+        .list_box a:hover {
+            color: black;
+        }
+
     </style>
-</head>
-<body>
-<nav>
-    <h3 class="nav-title"> Sensore Graphene Trace </h3>
-    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
-</nav>
-<div class="main_page_element">
-    <div class="heatmap_box">
-        {{ HeatmapGoesHere }}
+    <div class="main_page_element">
+        <div class="heatmap_box">
+            <div id="heatmap"></div>
+        </div>
+
+        <ul class="reportList">
+            {% for report in allReports %}
+                <li>
+                    <div class="list_box">
+                        <a href="/user/patient/report/{{forloop.counter0}}">Report from: {{report.timestamp}}</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div class="report_box">
+            <h1> Scan Analysis Report </h1>
+            <p>
+                {{ report_0 }}
+            </p>
+            <p>
+                {{ report_1 }}
+            </p>
+            <p>
+                {{ report_2 }}
+            </p>
+        </div>
+
+        <div class="index_box">
+            <p style="text-align: center">
+                This report is report {{ reportNumber }} out of the {{ noOfReports }} saved reports.
+            </p>
+        </div>
+
     </div>
 
-    <ul class="reportList">
-        {% for report in allReports %}
-            <li> Report from: {{report.timestamp}} </li>
-        {% endfor %}
-    </ul>
+{{ heatmapArr|json_script:"heatmapArr" }}
 
-    <div class="report_box">
-        <h1> Scan Analysis Report </h1>
-        <p style="font-size:24px">
-            {{ report_0 }}
-        </p>
-        <p style="font-size:24px">
-            {{ report_1 }}
-        </p>
-        <p style="font-size:24px">
-            {{ report_2 }}
-        </p>
-    </div>
+{% block script %}
+<script>const heatmapList = JSON.parse(document.getElementById('heatmapArr').textContent);</script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="{% static 'js/heatmap.js' %}"></script>
 
-    <div class="index_box">
-        <p style="font-size:24px; text-align: center">
-            This report is report {{ reportNumber }} out of the {{ noOfReports }} saved reports.
-        </p>
-    </div>
-
-    <form action="patient-button" method="POST">
-        {% csrf_token %}
-        <button name="Older" class="button button1">
-            Older Report
-        </button>
-        <button name="Newer" class="button button2">
-            Newer Report
-        </button>
-        <button name="Newest" class="button button3">
-            Newest Report
-        </button>
-    </form>
-</div>
-</body>
-</html>
-
-{{ heatmapList|json_script:"heatmapList" }}
 <script>
-    const heatmapList = JSON.parse(document.getElementById('heatmapList').textContent);
-
-    function list_to_matrix(flat_pressure_matrix){
-        const pressure_matrix = []; // Empty array for matrix
-        let size = Math.sqrt(flat_pressure_matrix.length) // Defines matrix size
-        for(let i = 0; i < size; i++){pressure_matrix.push(flat_pressure_matrix.slice(i*size, i*size + size))}; // Fill matrix with list values
-        return pressure_matrix}
+    window.onload = function() {
+        const heatmapMatrix = listToMatrix(heatmapList)
+        plotHeatmap(heatmapMatrix)
+    }
 </script>
+
+{% endblock %}
+{% endblock %}

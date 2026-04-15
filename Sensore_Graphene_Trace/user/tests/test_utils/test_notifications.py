@@ -1,10 +1,12 @@
 import datetime
 
 from django.test import TestCase
+from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 
-from user.models import Message, Conversation
+from user.models import Message, Conversation, PatientClinician
 from user.utils.notifications import get_notification_count, get_notifications
+from Sensore_Graphene_Trace import global_constants as constants
 
 User = get_user_model()
 
@@ -12,12 +14,18 @@ User = get_user_model()
 class NotificationUtilsTests(TestCase):
 
     def setUp(self):
+
+        self.patient_group, _ = Group.objects.get_or_create(name=constants.PATIENT)
+        self.clinician_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
+        self.admin_group, _ = Group.objects.get_or_create(name=constants.ADMIN)
+
         self.user = User.objects.create_user(
             email="testuser@test.com",
             first_name="Test",
             last_name="User1",
             password="password",
-            date_of_birth=datetime.date(2000, 5, 5)
+            date_of_birth=datetime.date(2000, 5, 5),
+            role=constants.PATIENT
         )
 
         self.other_user = User.objects.create_user(
@@ -25,14 +33,13 @@ class NotificationUtilsTests(TestCase):
             first_name="Test",
             last_name="User2",
             password="password",
-            date_of_birth=datetime.date(2000, 5, 5)
+            date_of_birth=datetime.date(2000, 5, 5),
+            role = constants.CLINICIAN
         )
 
-        self.conversation = Conversation.objects.create(
-            subject="Test Conversation"
-        )
-        self.conversation.participants.add(self.user)
-        self.conversation.participants.add(self.other_user)
+        PatientClinician.objects.create(patient=self.user, clinician=self.other_user)
+
+        self.conversation = Conversation.objects.create_conversation(self.user, self.other_user,subject="Test Conversation")
 
         # Create messages for self.user
         self.unread_msg1 = Message.objects.create(

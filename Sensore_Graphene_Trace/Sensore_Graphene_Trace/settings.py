@@ -25,7 +25,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = "user.User"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email', 'password1', 'password2*']
 
 # Application definition
 
@@ -46,8 +49,8 @@ INSTALLED_APPS = [
     'clinician',
     'patient',
     'user',
-    'django_cleanup.apps.CleanupConfig',
     "phonenumber_field",
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [

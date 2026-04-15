@@ -16,7 +16,7 @@ import tempfile, os, csv, io
 
 from Sensore_Graphene_Trace import global_constants as constants
 
-from user.models import User, Message, PressureMapReading, ReadingEquipment
+from user.models import User, Message, PressureMapReading, ReadingEquipment, ProductInfo
 from patient.utils.pressure_calculations import load_csv_frames, process_frame, calculate_contact_area_percent
 from patient.scaninterpreter import ScanInterpreter
 from .mixins import BasePatientMixin
@@ -95,53 +95,44 @@ class PatientRegisterDeviceView(BasePatientMixin, CreateView):
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
-currentPage = 0 # Stores the report the user is currently on
-def interpreterDisplay(request):
-    global currentPage
+def interpreterDisplay(request, reportNumber = 0):
     user = request.user
     from user.models import Report
 
     all_readings = (PressureMapReading.objects.filter(reading_equipment__user=user).all())
     all_readings = all_readings.order_by('timestamp')
-
     noOfReadings = len(all_readings)
+    interpreter = ScanInterpreter()
 
-    # Check if stated page is within limits
-    if currentPage < 0:
-        currentPage = 0
-    elif currentPage >= noOfReadings:
-        currentPage = noOfReadings - 1
-    print(currentPage)
-    current_reading = all_readings[currentPage]
+    # Check if requested report is within limits
+    reportNumber = interpreter.checkReportInRange(reportNumber, noOfReadings)
 
-    file = current_reading.pressure_reading
+    try:
+        current_reading = all_readings[reportNumber]
+        file = current_reading.pressure_reading
+
+    except Exception:  # If no scans found, inform user of this
+        context = interpreter.returnEmptyPage()
+        return render(request, "patient\interpreterDisplay.html", context)
+
     if not Report.objects.filter(pressure_map_reading=current_reading).exists():
         # Make a new report only if one does not already exist
-        report = Report(pressure_map_reading=current_reading)
-        reportContents, scanNumber = ScanInterpreter.runInterpreter(ScanInterpreter, file)
-        report.content = "@".join(reportContents)
-        report.frame = scanNumber
-        report.save()
+        report = interpreter.generate_report(current_reading)
     else:
         report = Report.objects.filter(pressure_map_reading=current_reading).last()
 
-    frameHeatmap = ScanInterpreter.get_pressure_matrix(ScanInterpreter, file, report.frame) # Currently not working
+    report.read_receipt = True
+    report.save()
+
+    frameHeatmap = interpreter.get_pressure_matrix(file, report.frame)
     reportContents = report.content.split("@")
 
-    context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-               "report_3": reportContents[3], "reportNumber": currentPage+1, "noOfReports": noOfReadings,
-               "heatmap": frameHeatmap, "allReports": all_readings}
-    return render(request, "patient\interpreterDisplay.html", context)
 
-def interpreterButton(request):
-    global currentPage
-    if 'Older' in request.POST:
-        currentPage = currentPage + 1
-    elif 'Newer' in request.POST:
-        currentPage = currentPage - 1
-    elif 'Newest':
-        currentPage = 0
-    return redirect("/user/patient/report")
+    context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
+               "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
+               "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user}
+
+    return render(request, "patient\interpreterDisplay.html", context)
 
 
 def profile(request):
