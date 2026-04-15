@@ -11,7 +11,7 @@
 /* Font settings */
 html {font-size: 20px;}
 body {font-size: 1rem;line-height: 1.6;color: darkslategrey;}
-h1 {font-size: 2rem; line-height: 1.25;}
+h1 {font-size: 2rem; line-height: 1.25;text-align: center;}
 h2 {font-size: 1.5rem;line-height: 1.3;}
 h3 {font-size: 1.25rem;}
 p {font-size: 1rem;}
@@ -19,11 +19,12 @@ label, .small,.options {font-size: 0.875rem;}
 
 /* Navigation panel settings */
 nav{
-    background-color: var(--DARK_BLUE);
+    background-color: var(--LIGHT_BLUE);
     position: relative;
     align-items: center;
     display: flex;
     height: 75px;
+    padding: 0 16px;
 }
 
 .nav-title{
@@ -69,17 +70,21 @@ nav{
     transform: translateX(100%);
     transition: transform 0.3s ease;
     overflow-y: auto;
+    align-items: center;
+    align-content: center;
 }
 
 .side-panel-toggle{
     width: 48px;
     height: 48px;
-    font-size: 36px;
+    font-size: 28px;
     margin-left: auto;
-    margin-right: 16px;
     background: none;
     border: none;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .side-panel-open .side-panel{
@@ -92,6 +97,27 @@ nav{
 }
 
 /* Side panel forms */
+.side-panel{
+    width: 33.333vw;
+    max-width: 1000px;
+    height: 100%;
+    padding: 16px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+    flex-shrink: 0;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+}
+.side-panel form{
+    width: 100%;
+    max-width: 500px;
+    gap: 10px;
+}
 .side-panel .field{
     display: flex;
     flex-direction: column;
@@ -156,11 +182,13 @@ nav{
 
 .slogan{
     margin-bottom:60px;
+    text-align: center;
 }
 
 .slogan h2{
     font-size:32px;
     font-weight:600;
+    text-align: center;
 }
 
 /* -------------------------------------------------- Features -------------------------------------------------------*/
@@ -179,7 +207,7 @@ nav{
     background:white;
     padding:25px;
     border-radius:14px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.05);
+    box-shadow:0 4px 20px rgba(0,0,0,0.06);
 }
 
 .feature-card h3{
@@ -209,7 +237,7 @@ nav{
 /* -------------------------------------------------- FAQ ------------------------------------------------------------*/
 .faq-container{
     max-width:900px;
-    margin-top:30px;
+    margin: 30px auto;
 }
 
 .faq-card{
@@ -225,7 +253,7 @@ nav{
     padding:18px 22px;
     font-size:1rem;
     font-weight:600;
-    text-align:left;
+    text-align:center;
     background:none;
     border:none;
     cursor:pointer;
@@ -276,11 +304,11 @@ nav{
     max-width:260px;
     padding:10px 14px;
     background:white;
-    border:1px solid #dadce0;
+    border:1px solid darkgrey;
     border-radius:6px;
     font-size:14px;
     font-weight:500;
-    color:#3c4043;
+    color:darkslategray;
     text-decoration:none;
     transition:background 0.2s ease, box-shadow 0.2s ease;
 }
@@ -291,7 +319,7 @@ nav{
 }
 
 .google-btn:hover{
-    background:#f7f8f8;
+    background: lightgray;
     box-shadow:0 1px 3px rgba(0,0,0,0.15);
 }
 
@@ -350,4 +378,14 @@ button:hover {
     align-items: center;
     height: 100vh;
     margin: 0;
+}
+
+.faq-question,
+.faq-answer {
+    color: darkslategrey;
+}
+
+.logo{
+    height: 45px;
+    width: auto;
 }

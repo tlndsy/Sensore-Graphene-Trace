@@ -1,4 +1,7 @@
-const date = times.length ? new Date(times[0]).toLocaleDateString() : "";
+
+//const date = times.length ? new Date(times[0]).toLocaleDateString() : "";
+const date = (typeof times !== "undefined" && times.length)
+  ? new Date(times[0]).toLocaleDateString() : "";
 const graph_layout = {margin: {t:1, l:50, r:1, b:50}, xaxis:{tickformat: "%H:%M", showline:true, line:{color:"#ccc"}, linewidth: 1, mirror: true}, yaxis:{title: {text: "Peak Pressure Index"}, showline:true, line:{color:"#ccc"}, linewidth: 1, mirror: true}};
 const graph_config = {responsive: true, displayModeBar: false, staticPlot: false};
 const graph_traces = [
@@ -9,8 +12,10 @@ let liveInterval = null;
 let isLive = false;
 let current_metric = "peak_pressure_index";
 let index = 0;
-const last_index = peak_pressure_index.length - 1;
+//const last_index = peak_pressure_index.length - 1;
 const metrics = {peak_pressure_index: 0, contact_area_percent: 1, coefficient_of_variation: 2};
+const last_index = (typeof peak_pressure_index !== "undefined")
+  ? peak_pressure_index.length - 1 : 0;
 
 // Graph plotting function
 function plotGraph(y,label,times){Plotly.react('graph', [{x:times, y:y, name:formatMetricName(label)}], graph_layout, graph_config);}
@@ -41,8 +46,14 @@ function showTimeRange(seconds) {
     const last_index = time_range.length - 1; updateMetrics(last_index);}
 
 function toggleLiveMode() {
-    const button = document.getElementById("live-toggle");
-    if (isLive) {clearInterval(liveInterval);isLive = false;button.textContent = "Live Mode";return;} // Turn off live mode on button press
+    //const button = document.getElementById("live-toggle");
+    const button = document.getElementById("live-toggle") || { textContent: "" };
+    if (isLive) {
+        if (liveInterval) clearInterval(liveInterval);
+        isLive = false;
+        button.textContent = "Live Mode";
+        return;
+    } // Turn off live mode on button press
 
     // Turn on live mode on button press
     isLive = true;button.textContent= "Stop Live"; index = 0;
@@ -56,3 +67,12 @@ function toggleLiveMode() {
         updateMetrics(index);
         index++;
     }, 1000);}
+
+module.exports = {
+  plotGraph,
+  showMetric,
+  formatMetricName,
+  updateMetrics,
+  showTimeRange,
+  toggleLiveMode
+};

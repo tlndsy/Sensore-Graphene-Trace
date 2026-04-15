@@ -16,3 +16,9 @@ function simulateHeatMap() {
         Plotly.react('heatmap',[{z: matrix, type:'heatmap',showscale:false}], heatmap_layout, heatmap_config);
         frame++;
     }, 1000 / 15)}
+
+module.exports = {
+  listToMatrix,
+  plotHeatmap,
+  simulateHeatMap
+};

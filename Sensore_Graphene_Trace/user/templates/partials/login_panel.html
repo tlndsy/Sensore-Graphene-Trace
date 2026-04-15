@@ -1,0 +1,38 @@
+{% load socialaccount %}
+<div id="login-panel">
+    <form method='post' class="login-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="login">
+        <h1> Login </h1>
+        <div class="field">
+            <label for="{{ form.username.id_for_label }}"> Email </label>
+            {{ form.username }}
+        </div>
+        <div class="field">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+        </div>
+        <div class="options">
+            <label>
+                <input type="checkbox" id="showPassword">
+                Show password
+            </label>
+            <button type="button" class="btn" id="open-password-reset"> Forgot password? </button>
+        </div>
+        <button type="submit">Login</button>
+        <button type="button" class="btn" id="open-register">Register</button>
+    </form>
+
+    <div class="google-auth">
+        <a href="{% provider_login_url 'google' %}" class="google-btn">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+            <span>Login with Google</span>
+        </a>
+    </div>
+    <div class="google-auth">
+        <a href="{% provider_login_url 'google' process='signup' %}" class="google-btn">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+            <span>Register with Google</span>
+        </a>
+    </div>
+</div>

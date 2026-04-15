@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{% block title %}Sensore Graphene Trace{% endblock %}</title>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+<nav>
+<img src="https://framerusercontent.com/images/bvcb26Bam4QafK4hXxNVcUU5uoU.png">
+<button class="side-panel-toggle">☰</button>
+</nav>
+
+<div class="wrapper">
+    <div class="main">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <div class="side-panel">
+        {% include "partials/login_panel.html" %}
+        {% include "partials/register_panel.html" %}
+        {% include "partials/password_reset_panel.html" %}
+        {% include "partials/password_confirm_reset_panel.html" %}
+    </div>
+</div>
+
+{% block scripts %}
+{% endblock %}
+
+</body>
+</html>
