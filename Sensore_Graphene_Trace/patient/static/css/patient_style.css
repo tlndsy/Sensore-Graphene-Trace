@@ -9,6 +9,11 @@
     --MEDIUM_BLUE: #3A93C3;
     --LIGHT_BLUE: #8EC4DE;
     --PALE_BLUE: #D1E5F0;
+    --primary: #2563eb;
+    --primary-dark: #2F67B1;
+    --light: #f8fafc;
+    --border: #e2e8f0;
+    --text: #0f172a;
 }
 
 body {
@@ -340,7 +345,6 @@ body {
     position: absolute;
     width: 322.8286437988281px;
     height: 48px;
-    line-height: auto;
     border-style: hidden;
     outline: none;
     display: flex;
@@ -358,7 +362,6 @@ body {
     position: absolute;
     width: 38.629066467285156px;
     height: 48px;
-    line-height: auto;
     border-style: hidden;
     outline: none;
     display: flex;
@@ -408,7 +411,6 @@ body {
     position: absolute;
     width: 322.8286437988281px;
     height: 48px;
-    line-height: auto;
     border-style: hidden;
     outline: none;
     display: flex;
@@ -449,7 +451,6 @@ body {
     position: absolute;
     width: 322.8286437988281px;
     height: 48px;
-    line-height: auto;
     border-style: hidden;
     outline: none;
     display: flex;
@@ -530,7 +531,6 @@ body {
     position: absolute;
     width: 125px;
     height: 48px;
-    line-height: auto;
     border-style: hidden;
     outline: none;
     display: flex;
@@ -845,4 +845,144 @@ body {
 }
 .notification-card.unread {
     font-weight: 600;
+}
+
+
+/* --- Admin Pages ---*/
+
+h1.admin {
+    margin-bottom: 1rem;
+    color: var(--primary-dark);
+}
+
+a.admin {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a.admin:hover {
+    text-decoration: underline;
+}
+
+button.admin {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button.admin:hover {
+    background: var(--primary-dark);
+}
+
+form.admin {
+    margin-bottom: 1.5rem;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+form {
+    margin-bottom: 1.5rem;
+}
+
+input, select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-right: 0.5rem;
+}
+
+button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--primary-dark);
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+thead {
+    background: var(--primary);
+    color: white;
+}
+
+th, td {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+th.resizable {
+    position: relative;
+}
+
+.th-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resize-handle {
+    width: 6px;
+    cursor: col-resize;
+    height: 100%;
+    background: transparent;
+}
+
+.resize-handle:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+tbody tr:hover {
+    background: #e0e7ff;
+}
+
+.actions a {
+    margin-right: 0.5rem;
+}
+
+.footer-links {
+    margin-top: 1rem;
+}
+
+.footer-links a {
+    margin-right: 1rem;
+    font-weight: 600;
+}
+
+.table-header {
+    color: white;
+}
+
+:root {
+
 }
