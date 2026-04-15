@@ -1,6 +1,7 @@
 from patient.views import PressureDataView
 from patient.mixins import PatientTestSetupMixin
 
+
 class PatientGetContextDataViewTests(PatientTestSetupMixin):
     def test_get_context_data_with_data(self):
         request = self.factory.get("/")

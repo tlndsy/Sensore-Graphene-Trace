@@ -9,6 +9,7 @@ from unittest.mock import patch
 from Sensore_Graphene_Trace import global_constants as constants
 from user.models import User
 
+
 # Create your tests here.
 class PatientHomeViewTests(TestCase):
 
