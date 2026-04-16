@@ -9,7 +9,6 @@ app_name = 'patient'
 
 urlpatterns = [
     path("", views.PatientHomeView.as_view(), name="home"),
-    path('upload/', views.upload_csv, name='upload_csv'),
     path("profile/", views.profile, name="profile"),
     path("view-devices/", views.PatientViewDevices.as_view(), name="viewDevices"),
     path("register-device/", views.PatientRegisterDeviceView.as_view(), name="registerDevice"),
@@ -17,7 +16,7 @@ urlpatterns = [
     path("report/", views.interpreterDisplay, name="report"),
     path("report/<int:reportNumber>", views.interpreterDisplay, name="report"),
     path("notifications/", views.notifications, name="stats"),
-    path("messages/", views.messages, name="stats"),
-    path("logout/", views.temp_logout, name="logout"),
     path("graphs/", views.PressureDataView.as_view(), name="graphs"),
+    path("messages/", views.messages, name="messages"),
+    path("logout/", views.temp_logout, name="logout"),
 ]

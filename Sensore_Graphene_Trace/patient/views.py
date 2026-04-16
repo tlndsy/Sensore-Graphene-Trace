@@ -16,7 +16,7 @@ import tempfile, os, csv, io
 
 from Sensore_Graphene_Trace import global_constants as constants
 
-from user.models import User, Message, PressureMapReading, ReadingEquipment, ProductInfo
+from user.models import User, Message, PressureMapReading, ReadingEquipment, PatientClinician, ProductInfo
 from patient.utils.pressure_calculations import load_csv_frames, process_frame, calculate_contact_area_percent
 from patient.scaninterpreter import ScanInterpreter
 from .mixins import BasePatientMixin
@@ -136,8 +136,17 @@ def interpreterDisplay(request, reportNumber = 0):
     return render(request, "patient\interpreterDisplay.html", context)
 
 
+@login_required
 def profile(request):
-    return HttpResponse("This is the patients profile page")
+    assigned_clinicians = PatientClinician.objects.filter(
+        patient=request.user
+    ).select_related('clinician')
+
+    context = {
+        'user': request.user,
+        'clinicians': assigned_clinicians,
+    }
+    return render(request, 'patient/profile.html', context)
 
 def notifications(request):
     return HttpResponse("This is the patients notification page")
@@ -237,55 +246,4 @@ def temp_logout(request):
         logout(request)
         return redirect("user:home")
 
-def upload_csv(request):
-    if request.method == 'POST' and request.FILES.get('csv_file'):
-        csv_file = request.FILES['csv_file']
-        print(f"File received: {csv_file.name}")
 
-        equipment = ReadingEquipment.objects.first()
-        print(f"Equipment: {equipment}")
-
-        if not equipment:
-            return render(request, 'patient/upload.html', {'error': 'No equipment found.'})
-
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp:
-            for chunk in csv_file.chunks():
-                tmp.write(chunk)
-            tmp_path = tmp.name
-
-        frames = load_csv_frames(tmp_path)
-        print(f"Frames loaded: {len(frames)}")
-        os.unlink(tmp_path)
-
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerow(['frame', 'peak_pressure', 'contact_area'])
-
-        results = []
-        for i, frame in enumerate(frames):
-            peak, contact = process_frame(frame)
-            writer.writerow([i + 1, peak, contact])
-            results.append((peak, contact))
-
-        csv_content = output.getvalue().encode('utf-8')
-        csv_filename = f"results_{csv_file.name}"
-
-        try:
-            reading = PressureMapReading(
-                reading_equipment=equipment,
-                peak_pressure=max(r[0] for r in results),
-                contact_area=max(r[1] for r in results),
-            )
-            reading.pressure_reading.save(
-                csv_filename,
-                ContentFile(csv_content),
-                save=True
-            )
-            print(f"Saved reading ID: {reading.id}")
-        except Exception as e:
-            print(f"ERROR saving: {e}")
-            return render(request, 'patient/upload.html', {'error': str(e)})
-
-        return render(request, 'patient/success.html', {'count': len(frames)})
-
-    return render(request, 'patient/upload.html')

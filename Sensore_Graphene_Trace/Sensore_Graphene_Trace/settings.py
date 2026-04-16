@@ -114,7 +114,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-SITE_ID = 3
+SITE_ID =3
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend'
