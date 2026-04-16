@@ -14,10 +14,9 @@ urlpatterns = [
     path("register-device/", views.PatientRegisterDeviceView.as_view(), name="registerDevice"),
     path("stats/", views.stats, name="stats"),
     path("report/", views.interpreterDisplay, name="report"),
-    path("notifications/", views.notifications, name="notifications"),
+    path("report/<int:reportNumber>", views.interpreterDisplay, name="report"),
+    path("notifications/", views.notifications, name="stats"),
+    path("graphs/", views.PressureDataView.as_view(), name="graphs"),
     path("messages/", views.messages, name="messages"),
     path("logout/", views.temp_logout, name="logout"),
-    path("graphs/", views.view_graph, name="graphs"),
-    path("report/patient-button", views.interpreterButton, name="interpreterButton"),
-
 ]

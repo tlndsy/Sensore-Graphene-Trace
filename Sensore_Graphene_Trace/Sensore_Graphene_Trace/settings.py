@@ -14,7 +14,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -26,7 +25,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = "user.User"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email', 'password1', 'password2*']
 
 # Application definition
 
@@ -47,8 +49,8 @@ INSTALLED_APPS = [
     'clinician',
     'patient',
     'user',
-    'django_cleanup.apps.CleanupConfig',
     "phonenumber_field",
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
@@ -84,7 +86,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Sensore_Graphene_Trace.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
@@ -94,7 +95,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -120,7 +120,25 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+LOGIN_REDIRECT_URL = "user:redirect_to_home"
+ACCOUNT_LOGIN_REDIRECT_URL = "user:redirect_to_home"
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
+# For password resets
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'sensoregraphenetrace@gmail.com'
+"""
+EMAIL_BACKEND = 'django.core.mail.django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = ""
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+"""
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -133,11 +151,9 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-SOCIALACCOUNT_LOGIN_ON_GET = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 

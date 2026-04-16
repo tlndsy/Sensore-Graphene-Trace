@@ -1,4 +1,4 @@
-{% extends "administrator_layout.html" %}
+{% extends "user_layout.html" %}
 {% load model_extras %}
 
 {% block title %}
@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-    <h1>{{ model_verbose_name }}</h1>
+    <h1 class="admin">{{ model_verbose_name }}</h1>
 
     <form method="get">
         <input type="text" name="q" placeholder="Search..." value="{{ search_query }}">

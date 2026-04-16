@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="complete-profile-page">
+<div class="complete-profile">
+    <h1>Complete your profile</h1>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="complete_profile">
+        <div class="field">
+            <label for="{{ form.first_name.id_for_label }}">First Name</label>
+            {{ form.first_name }}
+        </div>
+        <div class="field">
+            <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+            {{ form.last_name }}
+        </div>
+        <div class="field">
+            <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+            {{ form.phone_number }}
+        </div>
+        <div class="field">
+            <label for="{{ form.date_of_birth.id_for_label }}">Date of Birth</label>
+            {{ form.date_of_birth }}
+        </div>
+        <button type="submit">Save</button>
+    </form>
+</div>
+</body>
+</html>

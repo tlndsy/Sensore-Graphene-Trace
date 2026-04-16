@@ -1,0 +1,25 @@
+{
+  "name": "advanced-web-solutions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tlndsy/Sensore-Graphene-Trace.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tlndsy/Sensore-Graphene-Trace/issues"
+  },
+  "homepage": "https://github.com/tlndsy/Sensore-Graphene-Trace#readme",
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0"
+  }
+}
