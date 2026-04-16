@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensore Graphene Trace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load socialaccount %}
+    {%  load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+<nav>
+    <img class="logo" src="https://framerusercontent.com/images/bvcb26Bam4QafK4hXxNVcUU5uoU.png?scale-down-to=512&width=1695&height=380">
+    <h3 class="nav-title">  </h3>
+    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
+</nav>
+    <div class="wrapper">
+        <div class="main">
+            <div class="slogan">
+            <h2>Helping people do something better</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            </div>
+            <h1>What our product does</h1>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3> Real time monitoring </h3>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Continuous support</h3>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Pressure alerts</h3>
+                    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <h2>10K+</h2>
+                    <p>Users helped</p>
+                </div>
+
+                <div class="stat">
+                    <h2>24/7</h2>
+                    <p>Availability</p>
+                </div>
+
+                <div class="stat">
+                    <h2>98%</h2>
+                    <p>Success rate</p>
+                </div>
+            </div>
+
+            <div class="faq">
+            <h1>Frequently Asked Questions</h1>
+
+            <div class="faq-container">
+
+                <div class="faq-card">
+                    <button class="faq-question">What does this product do?<span class="arrow">⌄</span></button>
+                    <div class="faq-answer"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></div>
+                </div>
+
+                <div class="faq-card">
+                    <button class="faq-question">How secure is my data?<span class="arrow">⌄</span></button>
+                    <div class="faq-answer"><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></div>
+                </div>
+
+                <div class="faq-card">
+                    <button class="faq-question"> I forgot my password<span class="arrow">⌄</span></button>
+                    <div class="faq-answer">
+                        <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        </div>
+
+
+        <div class="side-panel">
+            <!-- Login Form -->
+            {% include "partials/login_panel.html" %}
+            <!-- Registration Form -->
+            {% include "partials/register_panel.html" %}
+            <!-- Request Password Reset Form -->
+            {% include "partials/password_reset_panel.html" %}
+            <!-- Password Reset Form -->
+            {% include "partials/password_confirm_reset_panel.html" %}
+        </div>
+    </div>
+<!-- Opens and closes side panel -->
+    <script>
+        document.querySelector(".side-panel-toggle").addEventListener("click", () => {
+            document.querySelector(".wrapper").classList.toggle("side-panel-open");
+        })
+    </script>
+<!-- Shows password text when box is checked -->
+    <script>
+        const toggle = document.getElementById("showPassword");
+        const password = document.getElementById("id_password");
+        toggle.addEventListener("change", () => {
+            password.type = toggle.checked ? "text" : "password";
+        })
+    </script>
+
+<!-- Switch side panel views -->
+    <script>
+        const loginPanel = document.getElementById("login-panel");
+        const registerPanel = document.getElementById("register-panel");
+        const resetPanel = document.getElementById("password-reset-panel")
+        const wrapper = document.querySelector(".wrapper");
+
+        //Open registration panel
+        document.getElementById("open-register").addEventListener("click", () => {
+            wrapper.classList.add("side-panel-open");
+            loginPanel.classList.add("hidden");
+            registerPanel.classList.remove("hidden");
+            resetPanel.classList.add("hidden");
+        })
+
+        // Open login panel
+        document.querySelectorAll(".open-login").forEach(btn => {
+            btn.addEventListener("click", () => {
+                wrapper.classList.add("side-panel-open");
+                registerPanel.classList.add("hidden");
+                loginPanel.classList.remove("hidden");
+                resetPanel.classList.add("hidden");
+                document.getElementById("password-code-panel").classList.add("hidden");
+            });
+        });
+
+        // Open password reset panel
+        document.getElementById("open-password-reset").addEventListener("click", () => {
+            wrapper.classList.add("side-panel-open");
+            registerPanel.classList.add("hidden");
+            loginPanel.classList.add("hidden");
+            resetPanel.classList.remove("hidden");
+        })
+    </script>
+
+    <!-- Toggle dropdown FAQ information -->
+    <script>
+    const faqCards = document.querySelectorAll(".faq-card");
+    faqCards.forEach(card => {
+        const button = card.querySelector(".faq-question");
+        button.addEventListener("click", () => {card.classList.toggle("active");});
+    });
+    </script>
+
+    <script>
+        const step = "{{ reset_step|default:0 }}";
+        if (step == "2") {
+            wrapper.classList.add("side-panel-open");
+            loginPanel.classList.add("hidden");
+            registerPanel.classList.add("hidden");
+            resetPanel.classList.add("hidden");
+            document.getElementById("password-code-panel").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>

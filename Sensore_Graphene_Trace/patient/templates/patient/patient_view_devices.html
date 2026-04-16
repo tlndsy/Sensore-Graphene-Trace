@@ -1,30 +1,34 @@
-{%  extends 'patient_layout.html' %}
+{% extends 'user_layout.html' %}
 
 {% block title %}
     Home
-{%  endblock %}
+{% endblock %}
 
 {% block content %}
-<div class="patient-splash">
+    <div class="patient-splash">
 
-  <h1 class="greeting">{{ user.first_name }}'s Devices</h1>
+        <h1 class="greeting">{{ user.first_name }}'s Devices</h1>
 
-  <div class="middle-box">
-      {% for device in devices %}
-        <div class="device-card">
-          <div class="device-name">Pressure Mat: {{ device.custom_name}}</div>
-          <div class="device-details">Device Type: {{ device.product_info }},<br>Serial Number: {{ device.serial_number }}</div>
-          <div class="device-bar"></div>
-          <div class="device-action"></div>
+        <div class="middle-box">
+            {% for device in devices %}
+                <div class="device-card">
+                    <div class="device-text">
+                        <div class="device-name">Pressure Mat: {{ device.custom_name }}</div>
+                        <div class="device-details">
+                            Device Type: {{ device.product_info }},<br>
+                            Serial Number: {{ device.serial_number }}
+                        </div>
+                    </div>
 
+                    <div class="device-action"></div>
+                </div>
+            {% endfor %}
+
+            <a href="/user/patient/register-device/" class="new-device-wrapper">
+                <div class="new-device-button">Register New Device</div>
+            </a>
         </div>
-      {% endfor %}
-      <a href="/user/patient/register-device/" class="new-device-wrapper">
-        <div class="new-device-button">Register New Device</div>
-      </a>
 
-  </div>
-
-</div>
+    </div>
 
 {% endblock %}

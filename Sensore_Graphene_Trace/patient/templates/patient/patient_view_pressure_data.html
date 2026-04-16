@@ -1,0 +1,95 @@
+{% extends "patient_layout.html" %}
+{% load static %}
+{% block content %}
+    <!-- Main page content -->
+    <div class="main">
+        <div class="pressure-data"> <!-- Contains key metrics from the patients pressure mat data -->
+            <div class="graph"> <!-- Graph card -->
+                <h1>Graph Data</h1>
+                <div class="graph-content"> <!-- Graph display and information -->
+                    <div class="graph-plot">
+                        <div class="tabs"> <!-- Allows user to select time range to display on the graph -->
+                            <button onclick="showTimeRange('30')">30 sec</button>
+                            <button onclick="showTimeRange('60')">1 min</button>
+                            <button onclick="showTimeRange('150')">2.5 min</button>
+                            <button onclick="showTimeRange('300')">5 min</button>
+                        </div>
+                        <div id="graph"></div> <!-- Plots graph -->
+                        <button id="live-toggle" onclick="toggleLiveMode()">Live Mode</button>
+                        <!-- toggles live simulation -->
+                    </div>
+
+                    <div class="graph-metrics"> <!-- Latest metric information (e.g., peak pressure, contact area %) -->
+                        <button onclick="showMetric('peak_pressure_index',0,'Peak Pressure Index')" id="peak-pressure">
+                            Peak Pressure Index
+                        </button>
+                        <button onclick="showMetric('contact_area_percent',1,'Contact Area Percentage')"
+                                id="contact-area">Contact Area Percentage
+                        </button>
+                        <button onclick="showMetric('coefficient_of_variation',2,'Coefficient Of Variation')"
+                                id="coefficient-of-variation">Coefficient Of Variation
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="heatmap"> <!-- Heatmap card -->
+                <h1> Heatmap </h1>
+                <div class="heatmap-content"> <!-- Heatmap display and information -->
+                    <div class="heatmap-plot">
+                        <div class="tabs">
+                            <button onclick="plotHeatmap(listToMatrix(flat_pressure_matrix))">Predicted Concerns
+                            </button>
+                        </div>
+                        <div id="heatmap"></div>
+                    </div>
+
+                    <div class="heatmap-metrics">
+
+                        <div class="heatmap-legend">
+                            <h3>Pressure Legend</h3>
+                            <div class="legend-item"><span class="low"></span> Low Pressure</div>
+                            <div class="legend-item"><span class="medium"></span> Medium Pressure</div>
+                            <div class="legend-item"><span class="high"></span> High Pressure</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ metric_data|json_script:"metric_data" }}
+    <script>const metric_data = JSON.parse(document.getElementById('metric_data').textContent);</script>
+    <script>for (const key in metric_data) {
+        window[key] = metric_data[key];
+    }</script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="{% static 'js/graph.js' %}"></script>
+    <script src="{% static 'js/heatmap.js' %}"></script>
+
+    <script>
+        window.onload = function () {
+            const pressure_matrix = listToMatrix(metric_data.flat_pressure_matrix); // Convert 1D list to 2D matrix
+            plotHeatmap(pressure_matrix); // Plot heatmap
+            simulateHeatMap(); // Simulates real-time heatmap display
+            Plotly.newPlot('graph', graph_traces, graph_layout, graph_config); // Plot graph
+            showTimeRange('300') // Sets the timeframe display of the graph to be at 5 minutes
+            updateMetrics(last_index)
+        }
+    </script>
+
+    <!-- Manage tabs -->
+    <script>
+        const tabs = document.querySelectorAll('.tabs button');
+        tabs.forEach(tab => tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }));
+        const timeTabs = document.querySelectorAll('.time-tabs button');
+        timeTabs.forEach(tab => tab.addEventListener('click', () => {
+            timeTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }));
+    </script>
+{% endblock %}

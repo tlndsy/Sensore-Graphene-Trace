@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sensor Report Display</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {%  load static %}
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-
+{% extends 'clinician_layout.html' %}
+{% block title %}
+    Report
+{% endblock %}
+{% block content %}
     <style>
         .main_page_element {
             position: relative;
@@ -16,25 +12,94 @@
 
         .profile_picture_box {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 250px;
-            height: 250px;
+            top: 1vh;
+            left: 75vw;
+            width: 20vw;
+            height: 40vh;
             border: 2px solid black;
             text-align: center;
+            border-radius: 15px;
+            overflow: auto;
+            display: block;
         }
-    </style>
-</head>
-<body>
-<nav>
-    <h3 class="nav-title"> Sensore Graphene Trace </h3>
-    <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
-</nav>
-<div class="main_page_element">
-    <div class="profile_picture_box">
-        This is a picture.
-    </div>
-</div>
 
-</body>
-</html>
+        .personal_information_box {
+            position: absolute;
+            top: 1vh;
+            left: 35vw;
+            width: 30vw;
+            height: 30vh;
+            border: 2px solid black;
+            text-align: center;
+            border-radius: 15px;
+            overflow: auto;
+            display: block;
+            font-size: {{user.font_size_preference}};
+        }
+
+        .personal_preferences_box {
+            position: absolute;
+            top: 35vh;
+            left: 35vw;
+            width: 30vw;
+            height: 30vh;
+            border: 2px solid black;
+            text-align: center;
+            border-radius: 15px;
+            overflow: auto;
+            display: block;
+            font-size: {{user.font_size_preference}};
+        }
+
+        .patient_list_box {
+            position: absolute;
+            top: 1vh;
+            left: 10vh;
+            width: 20vw;
+            height: 65vh;
+            border: 2px solid black;
+            text-align: center;
+            border-radius: 15px;
+            overflow: auto;
+            display: block;
+            font-size: {{user.font_size_preference}};
+        }
+
+        .patientListEntry {
+            list-style-type: none;
+        }
+
+    </style>
+    <div class="main_page_element">
+        <div class="profile_picture_box">
+            <h2>Profile Picture:</h2>
+            <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+        </div>
+
+        <div class="personal_information_box">
+            <h2>User Information:</h2>
+            <p>Name: {{user.first_name}} {{user.last_name}}</p>
+            <p>Email: {{user.email}}</p>
+            <p>Phone Number: {{user.phone_number}}</p>
+            <p>Date of Birth: {{user.date_of_birth}}</p>
+            <p>Address: {{user.address}}</p>
+        </div>
+
+        <div class="personal_preferences_box">
+            <h2>User Preferences:</h2>
+            <p>Font Size: {{user.font_size_preference}}px</p>
+        </div>
+
+        <div class="patient_list_box">
+            <h2>Currently Assigned Patients:</h2>
+            {% for patientClinician in listOfPatients %}
+                <a>Patient: </a>
+                <li class="patientListEntry">
+                    <a>{{patientClinician.patient.first_name}}</a>
+                    <a>{{patientClinician.patient.last_name}}</a>
+                </li>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}

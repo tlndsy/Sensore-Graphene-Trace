@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <link rel="stylesheet" href="{% static 'css/patient_style.css' %}">
+</head>
+<body>
+
+{% if user.is_authenticated and user.role == 'PATIENT' %}
+    {% include 'patient/chat_widget.html' %}
+{% endif %}
+
+<nav class="navbar">
+    <a href="/user/patient/">
+        <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">
+    </a>
+    <div class="nav-right">
+        <a href="/user/patient/profile/" class="profile-container">
+            <img src="{{ user.profile_picture.url }}" alt="Profile" class="profile-pic">
+        </a>
+        <form action="{% url 'user:patient:logout' %}" method="post">
+            {% csrf_token %}
+            <button class="logout">Log out</button>
+        </form>
+        <div class="dropdown">
+            <button class="menu-btn">☰</button>
+            <div class="dropdown-menu">
+                <a href="/user/patient/profile/">Profile</a>
+                <a href="/user/patient/view-devices/">View Devices</a>
+                <a href="/user/patient/notifications/">Notifications</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    const menuBtn = document.querySelector(".menu-btn");
+    const dropdown = document.querySelector(".dropdown");
+    menuBtn.addEventListener("click", () => dropdown.classList.toggle("open"));
+    document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target)) dropdown.classList.remove("open");
+    });
+</script>
+
+<main>
+    <h1 class="greeting">My Profile</h1>
+
+    <div class="middle-box">
+
+        <!-- Profile Header -->
+        <div style="
+            background: #2F67B1;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        ">
+            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" style="
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 3px solid white;
+                flex-shrink: 0;
+            ">
+            <div>
+                <h2 style="color:white; font-size:clamp(1.2rem,3vw,1.8rem);">
+                    {{ user.first_name }} {{ user.last_name }}
+                </h2>
+                <p style="color:rgba(255,255,255,0.8); font-size:0.95rem;">
+                    {{ user.email }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Personal Info -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+
+            <div style="background:#f1f5f9; border-radius:0.8rem; padding:1rem;">
+                <p style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">First Name</p>
+                <p style="font-size:1rem; font-weight:500;">{{ user.first_name }}</p>
+            </div>
+
+            <div style="background:#f1f5f9; border-radius:0.8rem; padding:1rem;">
+                <p style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Last Name</p>
+                <p style="font-size:1rem; font-weight:500;">{{ user.last_name }}</p>
+            </div>
+
+            <div style="background:#f1f5f9; border-radius:0.8rem; padding:1rem;">
+                <p style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Email</p>
+                <p style="font-size:1rem; font-weight:500;">{{ user.email }}</p>
+            </div>
+
+            <div style="background:#f1f5f9; border-radius:0.8rem; padding:1rem;">
+                <p style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Phone Number</p>
+                <p style="font-size:1rem; font-weight:500;">{{ user.phone_number }}</p>
+            </div>
+
+            <div style="background:#f1f5f9; border-radius:0.8rem; padding:1rem;">
+                <p style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Date of Birth</p>
+                <p style="font-size:1rem; font-weight:500;">{{ user.date_of_birth }}</p>
+            </div>
+
+            <div style="background:#f1f5f9; border-radius:0.8rem; padding:1rem;">
+                <p style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Role</p>
+                <p style="font-size:1rem; font-weight:500;">{{ user.role }}</p>
+            </div>
+
+            {% if user.address %}
+            <div style="background:#f1f5f9; border-radius:0.8rem; padding:1rem; grid-column:span 2;">
+                <p style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Address</p>
+                <p style="font-size:1rem; font-weight:500;">
+                    {{ user.address.fist_line }}
+                    {% if user.address.second_line %}, {{ user.address.second_line }}{% endif %},
+                    {{ user.address.town }}, {{ user.address.postal_code }}
+                </p>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Assigned Clinicians -->
+        <div>
+            <h3 style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:1rem;">
+                Assigned Clinicians
+            </h3>
+
+            {% if clinicians %}
+                {% for pc in clinicians %}
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:1rem;
+                    padding:1rem;
+                    border:1px solid black;
+                    border-radius:1.2rem;
+                    margin-bottom:0.8rem;
+                ">
+                    <img src="{{ pc.clinician.profile_picture.url }}" alt="Clinician" style="
+                        width:56px;
+                        height:56px;
+                        border-radius:50%;
+                        object-fit:cover;
+                        border:2px solid #2F67B1;
+                        flex-shrink:0;
+                    ">
+                    <div>
+                        <p style="font-size:1rem; font-weight:600;">
+                            {{ pc.clinician.first_name }} {{ pc.clinician.last_name }}
+                        </p>
+                        <p style="font-size:0.85rem; color:#888;">{{ pc.clinician.email }}</p>
+                    </div>
+                    <div style="margin-left:auto;">
+                        <span style="
+                            background:#2F67B1;
+                            color:white;
+                            padding:0.3rem 0.8rem;
+                            border-radius:1rem;
+                            font-size:0.8rem;
+                        ">Clinician</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="
+                    padding:2rem;
+                    text-align:center;
+                    background:#f1f5f9;
+                    border-radius:1rem;
+                    color:#888;
+                ">
+                    No clinicians assigned yet.
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</main>
+</body>
+</html>
