@@ -1,16 +1,4 @@
-import datetime
-
-from django.test import TestCase, Client
-from django.contrib.auth.models import Group
 from django.urls import reverse
-
-from allauth.socialaccount.models import SocialApp
-from django.contrib.sites.models import Site
-
-from unittest.mock import patch
-
-from Sensore_Graphene_Trace import global_constants as constants
-from user.models import User
 from user.mixins import UserTestSetupMixin
 
 
@@ -35,7 +23,7 @@ class UserLoginViewTests(UserTestSetupMixin):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user_home.html')
 
-    def test_admin_patient_login(self):
+    def test_valid_admin_login(self):
         self.client.login(email=self.valid_admin.email, password='Password?123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)

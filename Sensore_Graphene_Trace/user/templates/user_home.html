@@ -11,16 +11,16 @@
 
 <body>
 <nav>
-    <img src="https://framerusercontent.com/images/bvcb26Bam4QafK4hXxNVcUU5uoU.png?scale-down-to=512&width=1695&height=380">
+    <img class="logo" src="https://framerusercontent.com/images/bvcb26Bam4QafK4hXxNVcUU5uoU.png?scale-down-to=512&width=1695&height=380">
     <h3 class="nav-title">  </h3>
     <button class="side-panel-toggle" type="button" aria-label="menu"> ☰ </button>
 </nav>
     <div class="wrapper">
         <div class="main">
-            <section class="slogan">
+            <div class="slogan">
             <h2>Helping people do something better</h2>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-
+            </div>
             <h1>What our product does</h1>
             <div class="feature-grid">
                 <div class="feature-card">
@@ -85,120 +85,13 @@
 
         <div class="side-panel">
             <!-- Login Form -->
-            <div id="login-panel">
-                <form method='post' class="login-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="form_type" value="login">
-                    <h1> Login </h1>
-                    <div class="field">
-                        <label for="{{ form.username.id_for_label }}"> Email </label>
-                        {{ form.username }}
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.password.id_for_label }}">Password</label>
-                        {{ form.password }}
-                    </div>
-                    <div class="options">
-                        <label>
-                            <input type="checkbox" id="showPassword">
-                            Show password
-                        </label>
-                        <button type="button" class="btn" id="open-password-reset"> Forgot password? </button>
-                    </div>
-                    <button type="submit">Login</button> <!-- Will update later when page exists -->
-                    <button type="button" class="btn" id="open-register">Register</button>
-                </form>
-
-                <div class="google-auth">
-                    <a href="{% provider_login_url 'google' %}" class="google-btn">
-                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
-                        <span>Login with Google</span>
-                    </a>
-                </div>
-                <div class="google-auth">
-                    <a href="{% provider_login_url 'google' process='signup' %}" class="google-btn">
-                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
-                        <span>Register with Google</span>
-                    </a>
-                </div>
-            </div>
-
+            {% include "partials/login_panel.html" %}
             <!-- Registration Form -->
-             <div id="register-panel" class="hidden">
-                 <form method="post" class="register-form">
-                     {% csrf_token %}
-                     <input type="hidden" name="form_type" value="register">
-                     <h1> Register </h1>
-                     <div class="field">
-                        <label for="{{ form.email.id_for_label }}"> Email </label>
-                        {{ register_form.email }}
-                    </div>
-                     <div class="field">
-                        <label for="{{ form.phone_number.id_for_label }}"> Phone Number </label>
-                        {{ register_form.phone_number }}
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.password1.id_for_label }}">Password</label>
-                        {{ register_form.password1 }}
-                    </div>
-                     <div class="field">
-                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
-                        {{ register_form.password2 }}
-                    </div>
-                     <div class="field">
-                        <label for="{{ form.first_name.id_for_label }}">First Name</label>
-                        {{ register_form.first_name }}
-                    </div>
-                     <div class="field">
-                        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
-                        {{ register_form.last_name }}
-                    </div>
-                     <div class="field">
-                        <label for="{{ form.date_of_birth.id_for_label }}">Date of Birth</label>
-                        {{ register_form.date_of_birth }}
-                    </div>
-                     <button type="submit"> Create account </button>
-                     <button type="button" class="btn open-login">Return to login</button>
-                 </form>
-             </div>
-
+            {% include "partials/register_panel.html" %}
             <!-- Request Password Reset Form -->
-            <div id="password-reset-panel" class="hidden">
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="form_type" value="request_reset_code">
-                    <h1>Reset Password</h1>
-                    {% if error %}
-                        <p class="error">{{ error }}</p>
-                    {% endif %}
-                    <div class="field">
-                        <label>Email</label>
-                        <input type="email" name="email" required>
-                    </div>
-                    <button type="submit">Send Code</button>
-                </form>
-                <button type="button" class="btn open-login">Return to login</button>
-            </div>
-
+            {% include "partials/password_reset_panel.html" %}
             <!-- Password Reset Form -->
-            <div id="password-code-panel" class="hidden">
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="form_type" value="confirm_reset">
-                    <input type="hidden" name="email" value="{{ reset_email }}">
-                    <h1>Enter Reset Code</h1>
-                    <div class="field">
-                        <label>Reset Code</label>
-                        <input type="text" name="code" required>
-                    </div>
-                    <div class="field">
-                        <label>New Password</label>
-                        <input type="password" name="password" required>
-                    </div>
-                    <button type="submit">Reset Password</button>
-                </form>
-                <button type="button" class="btn open-login">Return to login</button>
-            </div>
+            {% include "partials/password_confirm_reset_panel.html" %}
         </div>
     </div>
 <!-- Opens and closes side panel -->

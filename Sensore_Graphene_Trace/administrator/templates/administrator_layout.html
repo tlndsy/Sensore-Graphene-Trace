@@ -9,11 +9,11 @@
             Sensore App
         {% endblock %}
     </title>
-    <link rel="stylesheet" href="{% static 'css/administrator_style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/patient_style.css' %}">
 </head>
 <body>
 <nav class="navbar">
-    <a href="/user/administrator/">
+    <a href="/user/redirect-to-home/">
         <img src="{{ MEDIA_URL }}SensoreLogo.png" alt="Sensore Logo" class="logo">
     </a>
 
@@ -45,7 +45,7 @@
             <button class="menu-btn">☰</button>
             <div class="dropdown-menu">
                 <a href="#">Profile</a>
-                <a href="#">Notifications</a>
+                <a href="{% url 'user:notifications' %}">Notifications</a>
                 <a href="#">Settings</a>
                 <a href="#">Support</a>
             </div>

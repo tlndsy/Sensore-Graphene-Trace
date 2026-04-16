@@ -1,16 +1,3 @@
-import datetime
-
-from django.test import TestCase, Client
-from django.contrib.auth.models import Group
-from django.urls import reverse
-
-from allauth.socialaccount.models import SocialApp
-from django.contrib.sites.models import Site
-
-from unittest.mock import patch
-
-from Sensore_Graphene_Trace import global_constants as constants
-from user.models import User
 from user.mixins import UserTestSetupMixin
 
 
