@@ -23,7 +23,8 @@ class GroupRequiredMixinTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
+        self.patient_group, _ = Group.objects.get_or_create(name=constants.PATIENT)
+        self.clinician_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
 
         self.user = User.objects.create_user(
             email="test@test.com",
@@ -57,7 +58,14 @@ class GroupRequiredMixinTests(TestCase):
         self.assertTrue(view.test_func())
 
     def test_user_in_required_group_passes(self):
-        self.user.groups.add(self.group)
+        self.user.groups.add(self.clinician_group)
+        view = self.get_view(self.user)
+
+        self.assertTrue(view.test_func())
+
+    def test_valid_user_in_multiple_groups_passes(self):
+        self.user.groups.add(self.clinician_group)
+        self.user.groups.add(self.patient_group)
         view = self.get_view(self.user)
 
         self.assertTrue(view.test_func())
@@ -71,7 +79,7 @@ class GroupRequiredMixinTests(TestCase):
         class ListGroupView(TestView):
             group_required = [constants.CLINICIAN, constants.ADMIN]
 
-        self.user.groups.add(self.group)
+        self.user.groups.add(self.clinician_group)
 
         request = self.factory.get("/")
         request.user = self.user

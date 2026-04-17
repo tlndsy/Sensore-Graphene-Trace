@@ -23,6 +23,9 @@ class GroupRequiredMixin(UserPassesTestMixin):
         if user.is_superuser:
             return True
 
+        if not self.group_required:
+            return True
+
         if isinstance(self.group_required, str):
             groups = [self.group_required]
         else:

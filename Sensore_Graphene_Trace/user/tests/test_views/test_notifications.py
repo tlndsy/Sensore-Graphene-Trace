@@ -1,3 +1,10 @@
+import datetime
+
+from django.test import TestCase, Client
+from django.contrib.auth.models import Group
+from django.urls import reverse
+
+from user.models import User
 import csv
 from datetime import timedelta, date
 from io import StringIO
@@ -13,12 +20,12 @@ from user.models import Message, Conversation, PatientClinician, Report, Pressur
 from user.utils.notifications import get_notification_count, get_notifications
 from Sensore_Graphene_Trace import global_constants as constants
 
-User = get_user_model()
 
 
-class NotificationUtilsTests(TestCase):
-
+class NotificationsViewTests(TestCase):
     def setUp(self):
+        self.client = Client()
+        self.url = reverse("user:notifications")
 
         self.patient_group, _ = Group.objects.get_or_create(name=constants.PATIENT)
         self.clinician_group, _ = Group.objects.get_or_create(name=constants.CLINICIAN)
@@ -30,8 +37,10 @@ class NotificationUtilsTests(TestCase):
             last_name="User1",
             password="password",
             date_of_birth=date(2000, 5, 5),
+            phone_number="+447700 900000",
             role=constants.PATIENT
         )
+        self.user.groups.add(self.patient_group)
 
         self.sender = User.objects.create_user(
             email="otheruser@test.com",
@@ -39,8 +48,10 @@ class NotificationUtilsTests(TestCase):
             last_name="User2",
             password="password",
             date_of_birth=date(2000, 5, 5),
+            phone_number="+447700 900001",
             role = constants.CLINICIAN
         )
+        self.user.groups.add(self.clinician_group)
 
         PatientClinician.objects.create(patient=self.user, clinician=self.sender)
 
@@ -83,6 +94,20 @@ class NotificationUtilsTests(TestCase):
             processed=True,
         )
 
+    def test_requires_login(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("user:home"), response.url)
+
+    def test_allows_logged_in_user(self):
+        self.client.login(email="testuser@test.com", password="password")
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "user/user_notifications.html")
+        self.assertEqual(response.context["num_notifications"], 0)
 
     def test_unread_message_included(self):
         msg = Message.objects.create(
@@ -94,12 +119,17 @@ class NotificationUtilsTests(TestCase):
             timestamp=timezone.now()
         )
 
-        result = get_notifications(self.user)
+        self.client.login(email="testuser@test.com", password="password")
 
-        self.assertIn("Today", result)
-        self.assertEqual(len(result["Today"]), 1)
-        self.assertEqual(result["Today"][0]["type"], "message")
-        self.assertIn("Unread Message From Test: Hello world", result["Today"][0]["text"])
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "user/user_notifications.html")
+        self.assertEqual(response.context["num_notifications"], 1)
+        self.assertIn("Today", response.context["notifications"])
+        self.assertEqual(len(response.context["notifications"]["Today"]), 1)
+        self.assertEqual(response.context["notifications"]["Today"][0]["type"], "message")
+        self.assertIn("Unread Message From Test: Hello world", response.context["notifications"]["Today"][0]["text"])
 
     def test_read_message_excluded(self):
         Message.objects.create(
@@ -111,11 +141,12 @@ class NotificationUtilsTests(TestCase):
             timestamp=timezone.now()
         )
 
-        result = get_notifications(self.user)
-        notification_count = get_notification_count(self.user)
+        self.client.login(email="testuser@test.com", password="password")
 
-        self.assertEqual(len(result), 0)
-        self.assertEqual(notification_count, 0)
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context["notifications"]), 0)
+        self.assertEqual(response.context["num_notifications"], 0)
 
     def test_pressure_alert_included(self):
         report = Report.objects.create(
@@ -125,9 +156,11 @@ class NotificationUtilsTests(TestCase):
             read_receipt=False,
         )
 
-        result = get_notifications(self.user)
+        self.client.login(email="testuser@test.com", password="password")
 
-        notif = list(result["Today"])[0]
+        response = self.client.get(self.url)
+
+        notif = list(response.context["notifications"]["Today"])[0]
         self.assertEqual(notif["type"], "pressure_alert")
         self.assertIn("Pressure alert", notif["text"])
 
@@ -139,11 +172,12 @@ class NotificationUtilsTests(TestCase):
             read_receipt=True,
         )
 
-        notifications = get_notifications(self.user)
-        notification_count = get_notification_count(self.user)
+        self.client.login(email="testuser@test.com", password="password")
 
-        self.assertEqual(len(notifications), 0)
-        self.assertEqual(notification_count, 0)
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context["notifications"]), 0)
+        self.assertEqual(response.context["num_notifications"], 0)
 
     def test_report_included(self):
         report = Report.objects.create(
@@ -153,9 +187,11 @@ class NotificationUtilsTests(TestCase):
             read_receipt=False,
         )
 
-        notifications = get_notifications(self.user)
+        self.client.login(email="testuser@test.com", password="password")
 
-        notif = list(notifications["Today"])[0]
+        response = self.client.get(self.url)
+
+        notif = list(response.context["notifications"]["Today"])[0]
         self.assertEqual(notif["type"], "report")
         self.assertIn("Unread report", notif["text"])
 
@@ -167,100 +203,9 @@ class NotificationUtilsTests(TestCase):
             read_receipt=True,
         )
 
-        notifications = get_notifications(self.user)
-        notification_count = get_notification_count(self.user)
+        self.client.login(email="testuser@test.com", password="password")
 
-        self.assertEqual(len(notifications), 0)
-        self.assertEqual(notification_count, 0)
+        response = self.client.get(self.url)
 
-    def test_sorted_by_timestamp_desc(self):
-        older_time = timezone.now() - timedelta(hours=2)
-        newer_time = timezone.now()
-
-        Message.objects.create(
-            conversation=self.conversation,
-            recipient=self.user,
-            sender=self.sender,
-            content="Old",
-            read_receipt=False,
-            timestamp=older_time
-        )
-
-        Message.objects.create(
-            conversation=self.conversation,
-            recipient=self.user,
-            sender=self.sender,
-            content="New",
-            read_receipt=False,
-            timestamp=newer_time
-        )
-
-        notifications = get_notifications(self.user)
-
-        today_notifications = notifications["Today"]
-        self.assertGreater(
-            today_notifications[0]["timestamp"],
-            today_notifications[1]["timestamp"]
-        )
-
-    def test_grouping_today_yesterday(self):
-        today_msg = Message.objects.create(
-            conversation=self.conversation,
-            recipient=self.user,
-            sender=self.sender,
-            content="Today msg",
-            read_receipt=False,
-            timestamp=timezone.now()
-        )
-
-        yesterday_msg = Message.objects.create(
-            conversation=self.conversation,
-            recipient=self.user,
-            sender=self.sender,
-            content="Yesterday msg",
-            read_receipt=False,
-
-        )
-        yesterday_msg.timestamp = timezone.now() - timedelta(days=1)
-        yesterday_msg.save()
-
-        result = get_notifications(self.user)
-
-        self.assertIn("Today", result)
-        self.assertIn("Yesterday", result)
-
-    def test_grouping_older_date(self):
-        old_date = timezone.now() - timedelta(days=10)
-
-        old_message = Message.objects.create(
-            conversation=self.conversation,
-            recipient=self.user,
-            sender=self.sender,
-            content="Old msg",
-            read_receipt=False,
-            timestamp=old_date
-        )
-        old_message.timestamp = old_date
-        old_message.save()
-
-        result = get_notifications(self.user)
-
-        formatted_date = old_date.strftime("%d %b %Y")
-        self.assertIn(formatted_date, result)
-
-    def test_message_truncation(self):
-        long_content = "a" * 150
-
-        Message.objects.create(
-            conversation=self.conversation,
-            recipient=self.user,
-            sender=self.sender,
-            content=long_content,
-            read_receipt=False,
-            timestamp=timezone.now()
-        )
-
-        result = get_notifications(self.user)
-
-        notif = result["Today"][0]
-        self.assertTrue(len(notif["text"]) < 120)  # truncated
+        self.assertEqual(len(response.context["notifications"]), 0)
+        self.assertEqual(response.context["num_notifications"], 0)

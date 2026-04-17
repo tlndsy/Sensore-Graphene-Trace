@@ -384,7 +384,7 @@ class Message(models.Model):
         self.conversation.save(update_fields=['last_message', 'updated_at'])
 
     def clean(self):
-        if not self.conversation:
+        if not self.conversation_id:
             return
 
         self.conversation.full_clean()
@@ -392,16 +392,19 @@ class Message(models.Model):
         participants = self.conversation.participants.all()
 
         # Sender must be in conversation
-        if self.sender not in participants:
-            raise ValidationError("Sender is not part of this conversation.")
+        if self.sender:
+            if self.sender not in participants:
+                raise ValidationError("Sender is not part of this conversation.")
 
         # Recipient must be in conversation
-        if self.recipient not in participants:
-            raise ValidationError("Recipient is not part of this conversation.")
+        if self.recipient:
+            if self.recipient not in participants:
+                raise ValidationError("Recipient is not part of this conversation.")
 
         # Sender and recipient must be different
-        if self.sender == self.recipient:
-            raise ValidationError("Sender and recipient cannot be the same.")
+        if self.read_receipt and self.sender:
+            if self.sender == self.recipient:
+                raise ValidationError("Sender and recipient cannot be the same.")
 
     def __str__(self):
         return f"Message from {self.sender}, to {self.recipient}, made at {self.timestamp}"

@@ -83,6 +83,12 @@ class UserModelAndManagerTests(TestCase):
 
         self.assertIn("valid patient-clinician relationship.", str(ctx.exception))
 
+    def test_invalid_conversation_between_two_patients(self):
+        with self.assertRaises(ValidationError) as ctx:
+            conversation = self.create_conversation(self.test_patient_1, self.test_patient_2)
+
+        self.assertIn("valid patient-clinician relationship.", str(ctx.exception))
+
     def test_invalid_conversation_same_user(self):
         with self.assertRaises(ValidationError) as ctx:
             conversation = self.create_conversation(self.test_patient_1, self.test_patient_1)

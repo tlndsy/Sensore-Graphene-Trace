@@ -3,6 +3,8 @@ import datetime
 from django.test import TestCase
 from django.db import IntegrityError
 from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
+
 
 from user.models import User, Message, Conversation, PatientClinician
 from Sensore_Graphene_Trace import global_constants as constants
@@ -100,3 +102,25 @@ class UserModelAndManagerTests(TestCase):
         self.test_user_2.delete()
         message.refresh_from_db()
         self.assertIsNone(message.recipient)
+
+    def test_create_message_without_conversation(self):
+        data = self.test_message_1_data.copy()
+        data.pop("conversation")
+        with self.assertRaises(ValidationError) as ctx:
+            Message.objects.create(**data)
+
+        self.assertIn('conversation', ctx.exception.message_dict)
+
+    def test_create_message_without_sender(self):
+        data = self.test_message_1_data.copy()
+        data.pop("sender")
+        with self.assertRaises(ValidationError) as ctx:
+            Message.objects.create(**data)
+        self.assertIn('sender', ctx.exception.message_dict)
+
+    def test_create_message_without_recipient(self):
+        data = self.test_message_1_data.copy()
+        data.pop("recipient")
+        with self.assertRaises(ValidationError) as ctx:
+            Message.objects.create(**data)
+        self.assertIn('recipient', ctx.exception.message_dict)
