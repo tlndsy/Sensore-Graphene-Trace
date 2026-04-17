@@ -2,6 +2,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import Group
 from django.dispatch import receiver
 
+from patient.scaninterpreter import ScanInterpreter
 from .models import User, Message, Conversation, PressureMapReading
 from .utils.metrics import process_pressure_csv
 
@@ -20,10 +21,13 @@ def update_last_message(sender, instance, created, **kwargs):
         )
 
 
-#@receiver(post_save, sender=PressureMapReading)
+@receiver(post_save, sender=PressureMapReading)
 def run_pressure_analysis(sender, instance, created, **kwargs):
 
     if not instance.processed and instance.pressure_reading:
-        print("Processing Metrics...")
-
+        # Create metrics
         process_pressure_csv(instance)
+
+        # Create report
+        report_generator = ScanInterpreter()
+        report_generator.generate_report(instance)

@@ -6,7 +6,7 @@ from user.models import PressureMapReading
 from patient.utils.pressure_calculations import load_csv_frames, process_frame
 import tempfile, os, csv, io
 
-@receiver(post_save, sender=PressureMapReading)
+#@receiver(post_save, sender=PressureMapReading)
 def process_pressure_map(sender, instance, created, **kwargs):
     # Only process newly created records that have a CSV but no metrics yet
     if created and instance.pressure_reading and not instance.metrics:
