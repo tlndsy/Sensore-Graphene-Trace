@@ -125,4 +125,4 @@ def process_pressure_csv(analysis_instance):
 
     # Mark as processed and save
     analysis_instance.processed = True
-    analysis_instance.save()
+    analysis_instance.save(update_fields=["processed", "metrics"])
