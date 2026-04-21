@@ -1,3 +1,5 @@
+<!-- Mostly a clone of patient_layout.html (which was written by contributor EuanMacLeod) -->
+<!-- -->
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
@@ -29,7 +31,7 @@
         <script>
             // Set notification badge count
             const notificationCount = {{ num_notifications }};
-            const badge = document.querySelector(".notification-badge");
+            const badge = document.querySelector("".notification-badge");
 
             badge.textContent = notificationCount;
 
@@ -48,11 +50,8 @@
             <button class="menu-btn">☰</button>
             <div class="dropdown-menu">
                 <a href="/user/clinician/profile">Profile</a>
-                <a href="/user/clinician/view-devices/">View Devices</a>
-                <a href="/user/clinician/notifications/">Notifications</a>
+                <a href="/user/notifications/">Notifications</a>
                 <a href="/user/clinician/report/">View Scan Reports</a>
-                <a href="#">Settings</a>
-                <a href="#">Support</a>
             </div>
         </div>
     </div>

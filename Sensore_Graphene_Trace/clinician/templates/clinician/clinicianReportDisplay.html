@@ -44,35 +44,6 @@
             font-size: {{user.font_size_preference}};
         }
 
-        .button {
-            border: 2px solid black;
-            text_align: center;
-            padding: 16px 32px;
-            color: white;
-            background-color: #008CBA;
-            cursor: pointer;
-            transition-duration: 0.4s;
-            border-radius: 10px;
-            font-size: {{user.font_size_preference}};
-        }
-
-        .button:hover {
-            background-color: white;
-            color: black;
-        }
-
-        .button1 {
-            position: absolute;
-            top: 57vh;
-            left: 42vw;
-        }
-
-        .button2 {
-            position: absolute;
-            top: 57vh;
-            left: 55vw;
-        }
-
         .reportList {
             position: absolute;
             top: 40vh;
@@ -143,12 +114,6 @@
                 {{ report_3}}
             </p>
         </div>
-        <button class="button button1">
-            Edit Report
-        </button>
-        <button class="button button2">
-            Approve Report
-        </button>
 
         <ul class="reportList">
             {% for listReport in allReports %}

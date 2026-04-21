@@ -154,7 +154,8 @@ class ScanInterpreter():
                 endLoop = True
             else:
                 highestScanIndex, totalHighestValue, highestValueRowIndex \
-                    = self.processFrame(currentScan, totalHighestValue, highestValueRowIndex, highestScanIndex, frameNumber)
+                    = self.processFrame(currentScan, totalHighestValue, highestValueRowIndex,
+                                        highestScanIndex, frameNumber)
                 frameNumber += 1
 
         highestScanData = self.getData(highestScanIndex, scannedData)
