@@ -15,7 +15,7 @@
                             <button onclick="showTimeRange('300')">5 min</button>
                         </div>
                         <div id="graph"></div> <!-- Plots graph -->
-                        <button id="live-toggle" onclick="toggleLiveMode()">Live Mode</button>
+                        <button class= "live-button" id="live-toggle" onclick="toggleLiveMode()">Live Mode</button>
                         <!-- toggles live simulation -->
                     </div>
 
@@ -29,29 +29,28 @@
                         <button onclick="showMetric('coefficient_of_variation',2,'Coefficient Of Variation')"
                                 id="coefficient-of-variation">Coefficient Of Variation
                         </button>
-                    </div>
-                </div>
-            </div>
 
-            <div class="heatmap"> <!-- Heatmap card -->
-                <h1> Heatmap </h1>
-                <div class="heatmap-content"> <!-- Heatmap display and information -->
-                    <div class="heatmap-plot">
-                        <div class="tabs">
-                            <button onclick="plotHeatmap(listToMatrix(flat_pressure_matrix))">Predicted Concerns
-                            </button>
-                        </div>
-                        <div id="heatmap"></div>
-                    </div>
 
-                    <div class="heatmap-metrics">
 
                         <div class="heatmap-legend">
                             <h3>Pressure Legend</h3>
-                            <div class="legend-item"><span class="low"></span> Low Pressure</div>
-                            <div class="legend-item"><span class="medium"></span> Medium Pressure</div>
-                            <div class="legend-item"><span class="high"></span> High Pressure</div>
+                            <div class="legend-item"> Low Pressure<span class="low"></span></div>
+                            <div class="legend-item"> Medium Pressure<span class="medium"></span></div>
+                            <div class="legend-item"> High Pressure<span class="high"></span></div>
                         </div>
+
+
+                    </div>
+
+                    <div class="heatmap-content"> <!-- Heatmap display and information -->
+                        <div class="heatmap-plot">
+                            <div class="tabs">
+                                <button onclick="plotHeatmap(listToMatrix(flat_pressure_matrix))">Predicted Concerns
+                                </button>
+                            </div>
+                            <div id="heatmap"></div>
+                        </div>
+
 
                     </div>
                 </div>

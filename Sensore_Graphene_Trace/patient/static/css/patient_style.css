@@ -581,22 +581,38 @@ body {
     margin-bottom: 20px;
 }
 
-.graph-content, .heatmap-content {
+.graph-content{
     display: flex;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
+.heatmap-content {
+    flex: 1;
+    min-width: 300px;
+    align-items: flex-start;
+  }
 .graph-plot{
-    flex: 2;
+    flex: 1;
 }
 .heatmap-plot{
-    flex: 0 0 400px
+    width: 100%;
+    max-width: 800px;
+    flex: 1;
 }
 .graph-metrics{
-    flex: 1;
+    flex: 0 0 250px;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    width: 300px;
+}
+
+.heatmap-legend {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
 }
 
 .heatmap-metrics{
@@ -612,6 +628,11 @@ body {
     max-height: 60vh;
 }
 
+.legend-item{
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+}
 .tabs{
     display:flex;
     margin-bottom: 0;
@@ -621,7 +642,7 @@ body {
 
 #heatmap {
     width: 100%;
-    max-width: 400px;
+    max-width: 800px;
     aspect-ratio: 1/1;
 }
 
@@ -631,7 +652,7 @@ body {
 }
 
 .tabs button{
-    background: white;
+    background: var(--MEDIUM_BLUE);
     border: 1px solid black;
     border-bottom: none;
     border-radius: 5px 5px 0 0;
@@ -645,16 +666,17 @@ body {
 .graph-metrics button{
     font-size: 1rem;
     font-weight: 500;
-    background: var(--PALE_BLUE);
-    padding: 20px;
+    background: var(--MEDIUM_BLUE);
+    padding: 10px;
     border: none;
+    max-width: 300px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     cursor: pointer;
 }
 
 .graph-metrics button:hover {
-    background: #cce0ff;
+    background: var(--DARK_BLUE);
 }
 
 .graph-metrics button.active {
@@ -667,6 +689,14 @@ body {
     padding: 5px 8px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.live-button{
+    background: var(--DARK_BLUE);
+}
+
+.live-button button:hover{
+    background: var(--DARK_BLUE);
 }
 
 /* ------------------------------------------Side panel settings -----------------------------------------------------*/
@@ -738,10 +768,9 @@ body {
 }
 
 .legend-item span{
-    display:inline-block;
-    width:15px;
-    height:15px;
-    margin-right:5px;
+    display: inline-block;
+    width: 15px;
+    height: 15px;
 }
 
 .low {background:blue;}
