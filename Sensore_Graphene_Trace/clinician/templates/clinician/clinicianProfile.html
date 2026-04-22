@@ -63,10 +63,12 @@
             overflow: auto;
             display: block;
             font-size: {{user.font_size_preference}};
+            text-decoration: none;
         }
 
         .patientListEntry {
             list-style-type: none;
+            text-decoration: none;
         }
 
     </style>
@@ -93,10 +95,10 @@
         <div class="patient_list_box">
             <h2>Currently Assigned Patients:</h2>
             {% for patientClinician in listOfPatients %}
-                <a>Patient: </a>
+                <p>Patient: </p>
                 <li class="patientListEntry">
-                    <a>{{patientClinician.patient.first_name}}</a>
-                    <a>{{patientClinician.patient.last_name}}</a>
+                    {{patientClinician.patient.first_name}}
+                    {{patientClinician.patient.last_name}}
                 </li>
             {% endfor %}
         </div>
