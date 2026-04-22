@@ -28,7 +28,7 @@ def login_user(request):
         if redirect_response := redirect_if_profile_incomplete(request):
             return redirect_response
         # if request.session.pop('needs_profile_completion', False): return redirect("complete_profile")
-        return redirect("user:patient:home")
+        return redirect_to_home(request)
     return None
 
 
