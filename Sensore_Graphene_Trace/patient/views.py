@@ -99,19 +99,23 @@ def interpreterDisplay(request, reportNumber = 0):
     user = request.user
     from user.models import Report
 
+    # Retrieve list of pressure map readings assigned to this patient
     all_readings = (PressureMapReading.objects.filter(reading_equipment__user=user).all())
     all_readings = all_readings.order_by('timestamp')
     noOfReadings = len(all_readings)
+
+    # Create instance of the ScanInterpreter class
     interpreter = ScanInterpreter()
 
     # Check if requested report is within limits
     reportNumber = interpreter.checkReportInRange(reportNumber, noOfReadings)
 
     try:
+        # Take desired pressure map reading from list of readings
         current_reading = all_readings[reportNumber]
         file = current_reading.pressure_reading
 
-    except Exception:  # If no scans found, inform user of this
+    except Exception:  # If no scans found, return error page
         context = interpreter.returnEmptyPage()
         return render(request, "patient\interpreterDisplay.html", context)
 
@@ -119,16 +123,21 @@ def interpreterDisplay(request, reportNumber = 0):
         # Make a new report only if one does not already exist
         report = interpreter.generate_report(current_reading)
     else:
+        # Retrieve report from database
         report = Report.objects.filter(pressure_map_reading=current_reading).last()
 
+    # Set report "read" flag to True
     report.read_receipt = True
     report.save()
 
+    # Retrieve heatmap and list of report contents
     frameHeatmap = interpreter.get_pressure_matrix(file, report.frame)
     reportContents = report.content.split("@")
 
+    # Retrieve time scan is made
     scanTime = all_readings[reportNumber].timestamp
 
+    # Construct context dictionary to pass into HTML page
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
                "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
                "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user, "scanTime": scanTime}
