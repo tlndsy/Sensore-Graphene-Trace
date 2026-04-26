@@ -42,6 +42,7 @@ class GroupRequiredMixin(UserPassesTestMixin):
         raise PermissionDenied("You do not have permission to access this page.")
 
 
+# Creates fake users for the unit tests
 class UserTestSetupMixin(TestCase):
     def setUp(self):
         self.client = Client()
@@ -74,6 +75,7 @@ class UserTestSetupMixin(TestCase):
         )
         self.user.groups.clear()
 
+        # Patient
         self.valid_patient = User.objects.create_user(
             email='patient@email.com',
             phone_number='+1234567890',
@@ -84,6 +86,7 @@ class UserTestSetupMixin(TestCase):
         )
         self.valid_patient.groups.add(self.patient_group)
 
+        # Clinician
         self.valid_clinician = User.objects.create_user(
             email='clinician@email.com',
             phone_number='+1234567891',
@@ -94,6 +97,7 @@ class UserTestSetupMixin(TestCase):
         )
         self.valid_clinician.groups.add(self.clinician_group)
 
+        # Admin
         self.valid_admin = User.objects.create_user(
             email='admin@email.com',
             phone_number='+1234567892',
@@ -104,6 +108,7 @@ class UserTestSetupMixin(TestCase):
         )
         self.valid_admin.groups.add(self.admin_group)
 
+        # Unregistered google user
         self.unregistered_google_user = User.objects.create_user(
             email='newgoogleuser@email.com',
             password='Password?123',
@@ -112,6 +117,7 @@ class UserTestSetupMixin(TestCase):
         )
         self.unregistered_google_user.groups.add(self.patient_group)
 
+        # Registered google user
         self.registered_google_user = User.objects.create_user(
             email='googleuser@email.com',
             password='Password?123',

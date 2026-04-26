@@ -15,7 +15,7 @@ global.Plotly = {
   extendTraces: jest.fn()
 };
 
-// Fake data
+// Testing data
 beforeEach(() => {
     jest.resetModules();
   document.body.innerHTML = `
@@ -43,24 +43,28 @@ beforeEach(() => {
 // Tests
 describe("Graph utilities", () => {
 
+  // Tests that underscores are removed from the string so that they can be presented as graph titles
   test("formatMetricName formats correctly", () => {
     expect(formatMetricName("peak_pressure_index"))
-      .toBe("peak pressure");
+      .toBe("peak pressure index");
     expect(formatMetricName("contact_area_percent"))
       .toBe("contact area percent");
   });
 
+  // Tests that Plotly.react gets called to plot the graph once
   test("plotGraph calls Plotly.react", () => {
     plotGraph([1, 2, 3], "peak_pressure_index", times);
     expect(Plotly.react).toHaveBeenCalledTimes(1);
   });
 
+  // Tests that the metrics update on the graph when the showMetric() function is called
   test("showMetric updates Plotly visibility and layout", () => {
     showMetric("peak_pressure_index", 0, "peak_pressure_index");
     expect(Plotly.restyle).toHaveBeenCalled();
     expect(Plotly.relayout).toHaveBeenCalledWith("graph", { "yaxis.title.text": "peak pressure" });
   });
 
+  // Tests that metrics are displayed correctly to the user upon updateMetrics() being called
   test("updateMetrics updates DOM values correctly", () => {
     updateMetrics(1);
     expect(document.getElementById("peak-pressure").textContent)
@@ -71,11 +75,13 @@ describe("Graph utilities", () => {
       .toBe("Coefficient of variation: 6.60%");
   });
 
+  // Tests that the user can customise the length of data they are displayed by time
   test("showTimeRange filters data and calls Plotly.react", () => {
     showTimeRange(1000);
     expect(Plotly.react).toHaveBeenCalled();
   });
 
+  // Tests that live mode begins displaying the user's live graph data and it updates each second
   test("toggleLiveMode starts and updates graph", () => {
     jest.useFakeTimers();
     const button = document.getElementById("live-toggle");
@@ -86,6 +92,7 @@ describe("Graph utilities", () => {
     jest.useRealTimers();
   });
 
+  // Tests that the user can pause their live data when pressing the stop live mode button
   test("toggleLiveMode stops live mode when toggled again", () => {
     const button = document.getElementById("live-toggle");
     toggleLiveMode(); // start

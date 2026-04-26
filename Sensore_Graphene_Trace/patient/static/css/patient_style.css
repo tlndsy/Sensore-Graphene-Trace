@@ -642,7 +642,7 @@ body {
 
 #heatmap {
     width: 100%;
-    max-width: 800px;
+    max-width: 400px;
     aspect-ratio: 1/1;
 }
 

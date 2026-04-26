@@ -1,3 +1,5 @@
+import random
+
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordResetForm
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, HttpResponse, redirect
@@ -19,15 +21,15 @@ from Sensore_Graphene_Trace import global_constants as constants
 from .utils import notifications
 
 
-# Create your views here.
+# Method to login the user
 def login_user(request):
     login_form = LoginForm(request, data=request.POST)
     if login_form.is_valid():
         login(request, login_form.get_user())
         user = request.user
+        # Redirect users who haven't completed their profile (e.g., new google users)
         if redirect_response := redirect_if_profile_incomplete(request):
             return redirect_response
-        # if request.session.pop('needs_profile_completion', False): return redirect("complete_profile")
         return redirect_to_home(request)
     return None
 
@@ -44,16 +46,17 @@ def register_user(request):
 def request_password_reset(request):
     from random import SystemRandom
     cryptogen = SystemRandom()
+    # Get the users email
     email = request.POST.get("email")
     try:
         user = User.objects.get(email=email)
-    except User.DoesNotExist:
+    except User.DoesNotExist:  # User doesn't exist
         return render(request, "user_home.html",
                       {"error": "No account with that email."})
-    # code = str(random.randint(100000, 999999)) Deterministic
-    code = str(cryptogen.randrange(100000, 100000))
+    code = str(random.randint(100000, 999999))  # Generate a random 6 digit code
+    # code = str(cryptogen.randrange(100000, 100000))
     PasswordResetCode.objects.create(user=user,
-                                     code=code)  # https://stackoverflow.com/questions/20936993/how-can-i-create-a-random-number-that-is-cryptographically-secure-in-python
+                                     code=code)  # Add to db
     send_mail("Your password reset code",  # Subject
               f"Your reset code is: {code}",  # Message
               "sensoregraphenetrace@gmail.com",  # From email
@@ -101,12 +104,16 @@ def redirect_if_profile_incomplete(request):
     return None
 
 
+# Patient home pahe
 def home(request):
     if request.user.is_authenticated:
+        # Checks if user needs to complete their profile
         if redirect_response := redirect_if_profile_incomplete(request): return redirect_response
+    # Specifies forms
     login_form = LoginForm()
     register_form = RegisterForm()
     reset_password_form = PasswordResetForm()
+    # Checks which form is posting
     if request.method == "POST":
         form_type = request.POST.get("form_type")
         if form_type == "login":
@@ -126,27 +133,31 @@ def home(request):
     })
 
 
+# Registers user
 def register(request):
     return render(request, "register.html", {})
 
 
+# Logs out the user
 def logout_user(request):
     logout(request)
-    request.session.flush()
+    request.session.flush()  # Flushes user session
     return redirect('user:home')
 
 
+# Complete profile page
 @login_required
 def complete_profile(request):
     user = request.user
     if request.method == "POST":
         form = CompleteProfileForm(request.POST, instance=user)
-        if form.is_valid():
+        if form.is_valid(): # Only change page if the form is valid
             form.save()
             return redirect("user:patient:home")
     else:
         form = CompleteProfileForm(instance=user)
     return render(request, "complete_profile.html", {"form": form})
+
 
 class UserNotifications(GroupRequiredMixin, TemplateView):
     template_name = "user/user_notifications.html"
@@ -158,6 +169,7 @@ class UserNotifications(GroupRequiredMixin, TemplateView):
         context["notifications"] = notifications.get_notifications(self.request.user)
 
         return context
+
 
 @login_required
 def get_messages(request, conversation_id):
@@ -175,10 +187,10 @@ def get_messages(request, conversation_id):
         'is_me': m.sender == request.user,
         # Report attachment
         'report': {
-    'id': m.pressure_map_reading.id,
-    'timestamp': m.pressure_map_reading.timestamp.strftime('%Y-%m-%d %H:%M'),
-    'metrics_url': m.pressure_map_reading.metrics.url if m.pressure_map_reading.metrics else None,
-    } if m.pressure_map_reading else None,
+            'id': m.pressure_map_reading.id,
+            'timestamp': m.pressure_map_reading.timestamp.strftime('%Y-%m-%d %H:%M'),
+            'metrics_url': m.pressure_map_reading.metrics.url if m.pressure_map_reading.metrics else None,
+        } if m.pressure_map_reading else None,
         # File attachment
         'attachment': m.attachment.url if m.attachment else None,
     } for m in messages]
@@ -313,6 +325,7 @@ def unread_count(request):
         read_receipt=False
     ).count()
     return JsonResponse({'count': count})
+
 
 @login_required
 def clinician_conversations(request):

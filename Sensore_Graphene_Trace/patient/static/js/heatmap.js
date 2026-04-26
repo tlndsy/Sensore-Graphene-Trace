@@ -35,6 +35,7 @@ function simulateHeatMap() {
     }, 1000 / 15)
 }
 
+// Export for testing
 module.exports = {
     listToMatrix,
     plotHeatmap,

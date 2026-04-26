@@ -1,5 +1,6 @@
-//const date = times.length ? new Date(times[0]).toLocaleDateString() : "";
 const date = (typeof times !== "undefined" && times.length) ? new Date(times[0]).toLocaleDateString() : "";
+
+// Presets for plotting the graph
 const graph_layout = {
     margin: {t: 1, l: 50, r: 1, b: 50},
     xaxis: {tickformat: "%H:%M", showline: true, line: {color: "#ccc"}, linewidth: 1, mirror: true},
@@ -17,7 +18,6 @@ let liveInterval = null;
 let isLive = false;
 let current_metric = "peak_pressure_index";
 let index = 0;
-//const last_index = peak_pressure_index.length - 1;
 const metrics = {peak_pressure_index: 0, contact_area_percent: 1, coefficient_of_variation: 2};
 const last_index = (typeof peak_pressure_index !== "undefined") ? peak_pressure_index.length - 1 : 0;
 
@@ -26,6 +26,7 @@ function plotGraph(y, label, times) {
     Plotly.react('graph', [{x: times, y: y, name: formatMetricName(label)}], graph_layout, graph_config);
 }
 
+// Displays the metric on the graph that the user selects with a button press
 function showMetric(metric, index, label) {
     current_metric = metric;
     Plotly.restyle('graph', {visible: [false, false, false]});
@@ -33,10 +34,12 @@ function showMetric(metric, index, label) {
     Plotly.relayout('graph', {'yaxis.title.text': formatMetricName(label)});
 }
 
+// For removing underscores from titles and replacing them with spaces
 function formatMetricName(metric) {
     return metric.replace(/_/g, " ").replace("index", "").trim();
-} // For titles
+}
 
+// Updates the metric value on the switch metric buttons
 function updateMetrics(index) {
     document.getElementById("peak-pressure").textContent = `Peak pressure: ${peak_pressure_index[index].toFixed(2)}`;
     document.getElementById("contact-area").textContent = `Contact area: ${contact_area_percent[index].toFixed(2)}%`;
@@ -68,15 +71,16 @@ function showTimeRange(seconds) {
     updateMetrics(last_index);
 }
 
+// Used to simulate real time display of the users metrics on the graph
 function toggleLiveMode() {
-    //const button = document.getElementById("live-toggle");
+    // Turn off live mode on button press
     const button = document.getElementById("live-toggle") || {textContent: ""};
     if (isLive) {
         if (liveInterval) clearInterval(liveInterval);
         isLive = false;
         button.textContent = "Live Mode";
         return;
-    } // Turn off live mode on button press
+    }
 
     // Turn on live mode on button press
     isLive = true;
@@ -87,6 +91,7 @@ function toggleLiveMode() {
     }));
     Plotly.react('graph', graph_traces, graph_layout, graph_config);
 
+    // Runs until the file ends, updates one second at a time
     liveInterval = setInterval(() => {
         if (index >= peak_pressure_index.length) {
             clearInterval(liveInterval);
@@ -102,6 +107,7 @@ function toggleLiveMode() {
     }, 1000);
 }
 
+// Export for test functions
 module.exports = {
     plotGraph, showMetric, formatMetricName, updateMetrics, showTimeRange, toggleLiveMode
 };

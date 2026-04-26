@@ -26,9 +26,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = "user.User"
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email', 'password1', 'password2*']
 
 # Application definition
 
@@ -42,7 +39,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.google',  # Google signup and login
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'administrator',
@@ -114,12 +111,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-SITE_ID = 4
-
+SITE_ID = 5
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend'
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
+
+# The default signup method is username, so this needs to be changes to email
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
@@ -127,9 +125,11 @@ LOGIN_REDIRECT_URL = "user:redirect_to_home"
 ACCOUNT_LOGIN_REDIRECT_URL = "user:redirect_to_home"
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
-# For password resets
+# For password resets using the console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'sensoregraphenetrace@gmail.com'
+
+# For password resets if we were to set up an email host
 """
 EMAIL_BACKEND = 'django.core.mail.django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = ""

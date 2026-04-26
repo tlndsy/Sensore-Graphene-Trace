@@ -30,6 +30,8 @@ class BasePatientMixin(GroupRequiredMixin):
         context["num_notifications"] = notifications.get_notification_count(self.request.user)
         return context
 
+
+# Mixin for setting up test users and data for the pressure data tests
 class PatientTestSetupMixin(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -46,6 +48,7 @@ class PatientTestSetupMixin(TestCase):
         )
         self.patient.groups.add(self.patient_group)
 
+        # Device
         self.product = ProductInfo.objects.create(
             model="Dave",
             manufacturer="Sensore",
@@ -54,24 +57,27 @@ class PatientTestSetupMixin(TestCase):
             refresh_rate=60
         )
 
+        # Device type
         self.equipment = ReadingEquipment.objects.create(
             product_info=self.product,
             serial_number="ABC123",
             user=self.patient
         )
 
-        #  Pressure map reading and metrics
+        #  Pressure map metrics
         self.metrics_file = SimpleUploadedFile(
             "metrics.json",
             b'{"test": "data"}',
             content_type="application/json"
         )
 
+        # Pressure map reading
         self.reading = PressureMapReading.objects.create(
             reading_equipment=self.equipment,
             metrics=self.metrics_file
         )
 
+    # CSV creator
     def create_csv_file(self, rows):
         content = "\n".join(",".join(str(v) for v in row) for row in rows)
         return SimpleUploadedFile(

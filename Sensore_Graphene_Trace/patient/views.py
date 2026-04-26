@@ -1,26 +1,22 @@
 # patient/views.py
-from datetime import timedelta
-
-from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 import numpy as np
-from django.utils import timezone
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, TemplateView
 
 import pandas as pd
-import tempfile, os, csv, io
+import csv
 
 from Sensore_Graphene_Trace import global_constants as constants
 
-from user.models import User, Message, PressureMapReading, ReadingEquipment, PatientClinician, ProductInfo
-from patient.utils.pressure_calculations import load_csv_frames, process_frame, calculate_contact_area_percent
+from user.models import Message, PressureMapReading, ReadingEquipment, PatientClinician
 from patient.scaninterpreter import ScanInterpreter
 from .mixins import BasePatientMixin
 from . import forms
+
 
 # Create your views here.
 @login_required(login_url='/user/home/')
@@ -37,8 +33,10 @@ def patient_home_OLD(request):
 
     return render(request, 'patient/patient_home.html', context)
 
+
 class PatientHomeView(BasePatientMixin, TemplateView):
     template_name = "patient/patient_home.html"
+
 
 @login_required(login_url='/user/home/')
 def view_devices_OLD(request):
@@ -53,6 +51,7 @@ def view_devices_OLD(request):
     context = {"devices": devices, "num_notifications": num_notifications}
     return render(request, 'patient/patient_view_devices.html', context)
 
+
 class PatientViewDevices(BasePatientMixin, TemplateView):
     template_name = "patient/patient_view_devices.html"
 
@@ -62,6 +61,7 @@ class PatientViewDevices(BasePatientMixin, TemplateView):
         context["devices"] = ReadingEquipment.objects.filter(user=self.request.user)
 
         return context
+
 
 @login_required(login_url='/user/home/')
 def register_device_OLD(request):
@@ -83,6 +83,7 @@ def register_device_OLD(request):
     context = {"form": form, "user": user, "num_notifications": num_notifications}
     return render(request, 'patient/patient_register_device.html', context)
 
+
 class PatientRegisterDeviceView(BasePatientMixin, CreateView):
     form_class = forms.RegisterDevice
     template_name = "patient/patient_register_device.html"
@@ -92,10 +93,12 @@ class PatientRegisterDeviceView(BasePatientMixin, CreateView):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
+
 def stats(request):
     return HttpResponse("This is the patients stats page (e.g., graph, heatmap")
 
-def interpreterDisplay(request, reportNumber = 0):
+
+def interpreterDisplay(request, reportNumber=0):
     user = request.user
     from user.models import Report
 
@@ -130,7 +133,7 @@ def interpreterDisplay(request, reportNumber = 0):
     scanTime = all_readings[reportNumber].timestamp
 
     context = {"report_0": reportContents[0], "report_1": reportContents[1], "report_2": reportContents[2],
-               "reportNumber": reportNumber+1, "noOfReports": noOfReadings,
+               "reportNumber": reportNumber + 1, "noOfReports": noOfReadings,
                "heatmapArr": frameHeatmap, "allReports": all_readings, "user": user, "scanTime": scanTime}
 
     return render(request, "patient\interpreterDisplay.html", context)
@@ -148,43 +151,56 @@ def profile(request):
     }
     return render(request, 'patient/profile.html', context)
 
+
 def notifications(request):
     return HttpResponse("This is the patients notification page")
+
 
 def messages(request):
     return HttpResponse("This is the patients messaging page")
 
+
+# For displaying the users pressure data on the view_pressure_data page
 class PressureDataView(BasePatientMixin, TemplateView):
     template_name = "patient/patient_view_pressure_data.html"
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Get users pressure mat information
-        latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=self.request.user).order_by('-timestamp').first())
-        if not latest_reading or not latest_reading.metrics: context["metric_data"] = empty_context()  # Return empty if no data
-        try: context["metric_data"] = process_metrics(latest_reading)
+        latest_reading = (
+            PressureMapReading.objects.filter(reading_equipment__user=self.request.user).order_by('-timestamp').first())
+        if not latest_reading or not latest_reading.metrics: context[
+            "metric_data"] = empty_context()  # Return empty if no data
+        try:
+            context["metric_data"] = process_metrics(latest_reading)
         except Exception as e:  # Error reading pressure mat data
             print("Error reading patient csv:", e)
             context["metric_data"] = empty_context()
         return context
 
+
+# Old method for getting the users pressure data
 @login_required(login_url='/user/home/')
 def OLD_Pressure_Data_View(request):
     # Authentication
     if not request.user.groups.filter(name=constants.PATIENT).exists:
-        return redirect("home") # Redirect users without login
-    else: user = request.user # Request the correct user
+        return redirect("home")  # Redirect users without login
+    else:
+        user = request.user  # Request the correct user
 
     # Get users pressure mat information
     latest_reading = (PressureMapReading.objects.filter(reading_equipment__user=user).order_by('-timestamp').first())
     if not latest_reading or not latest_reading.metrics:
-        return render(request, "patient/patient_view_pressure_data.html", empty_context()) # Return empty if no data
+        return render(request, "patient/patient_view_pressure_data.html", empty_context())  # Return empty if no data
     try:
         metric_data = process_metrics(latest_reading)
-    except Exception as e: # Error reading pressure mat data
+    except Exception as e:  # Error reading pressure mat data
         print("Error reading patient csv:", e)
         return render(request, "patient/patient_view_pressure_data.html", empty_context())
-    return render(request, "patient/patient_view_pressure_data.html", {"metric_data":metric_data})
+    return render(request, "patient/patient_view_pressure_data.html", {"metric_data": metric_data})
 
+
+# Method for converting the users pressure metrics into lists in second by second format for program efficiency
 def process_metrics(latest_reading):
     fps = latest_reading.reading_equipment.product_info.refresh_rate  # Frames per second
     start_time = latest_reading.timestamp
@@ -197,19 +213,28 @@ def process_metrics(latest_reading):
     df['time'] = pd.to_datetime(start_time) + pd.to_timedelta(df['second'], unit='s')
     df['time_sec'] = df['time'].dt.floor('s')
 
-    metrics = ["peak_pressure","mean_pressure","std_pressure","peak_pressure_index","coefficient_of_variation", "contact_area","contact_area_percent","cop_x","cop_y"]
-    metrics_per_sec = df.groupby('time_sec')[metrics].mean() # Take the mean from 15 frames
-    aggregated_metrics_per_sec = {metric: metrics_per_sec[metric].tolist() for metric in metrics} # Aggregate
-    times = metrics_per_sec.index.tolist() # Store the seconds recorded
-    return {"pressure_frames": get_all_pressure_matrix_frames(latest_reading), **aggregated_metrics_per_sec,"times":times,"flat_pressure_matrix": get_pressure_matrix(latest_reading)}
-    
+    metrics = ["peak_pressure", "mean_pressure", "std_pressure", "peak_pressure_index", "coefficient_of_variation",
+               "contact_area", "contact_area_percent", "cop_x", "cop_y"]
+    metrics_per_sec = df.groupby('time_sec')[metrics].mean()  # Take the mean from 15 frames
+    # Convert to lists for JSON
+    aggregated_metrics_per_sec = {metric: metrics_per_sec[metric].tolist() for metric in metrics}  # Aggregate
+    times = metrics_per_sec.index.tolist()  # Store the seconds recorded
+    return {"pressure_frames": get_all_pressure_matrix_frames(latest_reading), **aggregated_metrics_per_sec,
+            "times": times, "flat_pressure_matrix": get_pressure_matrix(latest_reading)}
+
+
+# Method to prevent program failure if there is no pressure data to display, returns an empty context to the page
 def empty_context():
-    return {"pressure_frames":[], "peak_pressure":[],"contact_area":[],"times":[],"flat_pressure_matrix":[], "mean_pressure":[],"std_pressure":[],"contact_area_percent":[], "cop_x":[],"cop_y":[], "coefficient_of_variation":[] }
+    return {"pressure_frames": [], "peak_pressure": [], "contact_area": [], "times": [], "flat_pressure_matrix": [],
+            "mean_pressure": [], "std_pressure": [], "contact_area_percent": [], "cop_x": [], "cop_y": [],
+            "coefficient_of_variation": []}
+
 
 # Takes the latest reading and converts the pressure data into a list
 def get_pressure_matrix(latest_reading):
     pressure_matrix = []
     if latest_reading.pressure_reading:
+        # Uses the users device to specify the size of the matrix
         width = latest_reading.reading_equipment.product_info.resolution_width
         height = latest_reading.reading_equipment.product_info.resolution_height
         total_cells = width * height
@@ -218,26 +243,28 @@ def get_pressure_matrix(latest_reading):
             for row in reader:
                 pressure_matrix.extend([float(value) for value in row])
         pressure_matrix += [0.0] * (total_cells - len(pressure_matrix))
-        pressure_matrix = pressure_matrix[:total_cells]
+        pressure_matrix = pressure_matrix[:total_cells]  # Returns as a list for JSON
     return pressure_matrix
+
 
 # Gets all the pressure matrix frames from the most recent pressure reading file
 def get_all_pressure_matrix_frames(latest_reading):
     frames = []
     if not latest_reading.pressure_reading:
         return frames
+    # Uses the users device to specify the size of the matrix
     width = latest_reading.reading_equipment.product_info.resolution_width
     height = latest_reading.reading_equipment.product_info.resolution_height
     with latest_reading.pressure_reading.open(mode='r') as f:
         df = pd.read_csv(f)
     data = df.values.tolist()
-    FRAME_SIZE = height
+    FRAME_SIZE = height # Should have been amended to incorporate width and height for non-square devices
     for i in range(0, len(data), FRAME_SIZE):
         block = data[i:i + FRAME_SIZE]
         if len(block) < FRAME_SIZE:
             break  # skip incomplete frame
         frame = [val for row in block for val in row]
-        frames.append(frame)
+        frames.append(frame)  # Return as a list for JSON
     return frames
 
 
@@ -245,5 +272,3 @@ def temp_logout(request):
     if request.method == 'POST':
         logout(request)
         return redirect("user:home")
-
-

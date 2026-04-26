@@ -15,7 +15,7 @@
                             <button onclick="showTimeRange('300')">5 min</button>
                         </div>
                         <div id="graph"></div> <!-- Plots graph -->
-                        <button class= "live-button" id="live-toggle" onclick="toggleLiveMode()">Live Mode</button>
+                        <button class="live-button" id="live-toggle" onclick="toggleLiveMode()">Live Mode</button>
                         <!-- toggles live simulation -->
                     </div>
 
@@ -30,8 +30,6 @@
                                 id="coefficient-of-variation">Coefficient Of Variation
                         </button>
 
-
-
                         <div class="heatmap-legend">
                             <h3>Pressure Legend</h3>
                             <div class="legend-item"> Low Pressure<span class="low"></span></div>
@@ -39,34 +37,29 @@
                             <div class="legend-item"> High Pressure<span class="high"></span></div>
                         </div>
 
-
                     </div>
 
                     <div class="heatmap-content"> <!-- Heatmap display and information -->
-                        <div class="heatmap-plot">
-                            <div class="tabs">
-                                <button onclick="plotHeatmap(listToMatrix(flat_pressure_matrix))">Predicted Concerns
-                                </button>
-                            </div>
-                            <div id="heatmap"></div>
-                        </div>
-
-
+                        <div id="heatmap"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
+    </div>
+    <!-- Gets metric data from the view -->
     {{ metric_data|json_script:"metric_data" }}
     <script>const metric_data = JSON.parse(document.getElementById('metric_data').textContent);</script>
     <script>for (const key in metric_data) {
         window[key] = metric_data[key];
     }</script>
+
+    <!-- Plotly is used for plotting the graph and the heatmap -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="{% static 'js/graph.js' %}"></script>
     <script src="{% static 'js/heatmap.js' %}"></script>
 
+    <!-- Calls when the page is loaded -->
     <script>
         window.onload = function () {
             const pressure_matrix = listToMatrix(metric_data.flat_pressure_matrix); // Convert 1D list to 2D matrix
@@ -80,11 +73,13 @@
 
     <!-- Manage tabs -->
     <script>
+        // Any tab
         const tabs = document.querySelectorAll('.tabs button');
         tabs.forEach(tab => tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
         }));
+        // For graph timeframes
         const timeTabs = document.querySelectorAll('.time-tabs button');
         timeTabs.forEach(tab => tab.addEventListener('click', () => {
             timeTabs.forEach(t => t.classList.remove('active'));
