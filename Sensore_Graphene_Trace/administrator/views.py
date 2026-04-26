@@ -7,6 +7,7 @@ from django.views.generic import ListView, UpdateView, CreateView, TemplateView,
 from django.db.models import Q
 from django.db.models.fields.related import ForeignKey
 
+from user.utils import notifications
 from .mixins import BaseGenericModelMixin, BaseAdminMixin
 
 
@@ -78,9 +79,11 @@ class GenericListView(BaseGenericModelMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # Get all fields of selected model
         fields = self.model._meta.fields
         filters = []
 
+        # Format fields into context dictionary
         for field in fields:
             if isinstance(field, ForeignKey):
                 related_model = field.remote_field.model
@@ -119,6 +122,7 @@ class GenericCreateView(BaseGenericModelMixin, CreateView):
         return modelform_factory(self.model, fields="__all__")
 
     def get_success_url(self):
+        # return to list view
         return reverse_lazy(
             "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],
@@ -133,6 +137,7 @@ class GenericUpdateView(BaseGenericModelMixin, UpdateView):
         return modelform_factory(self.model, exclude=["password"])
 
     def get_success_url(self):
+        # return to list view
         return reverse_lazy(
             "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],
@@ -145,10 +150,12 @@ class AdminPasswordChangeView(PasswordChangeView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["num_notifications"] = notifications.get_notification_count(self.request.user)
         context['user_pk'] = self.kwargs.get('pk')
         return context
 
     def get_success_url(self):
+        # Return to user update form
         return reverse_lazy(
             "user:administrator:generic_update",
             args=[
@@ -164,6 +171,7 @@ class GenericDeleteView(BaseGenericModelMixin, DeleteView):
     permission_action = "delete"
 
     def get_success_url(self):
+        # Return to list view
         return reverse_lazy(
             "user:administrator:generic_list",
             args=[self.model._meta.app_label, self.model._meta.model_name],

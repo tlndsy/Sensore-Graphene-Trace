@@ -4,9 +4,9 @@ from django.test import TestCase
 from django.db import IntegrityError
 
 from user.models import ReadingEquipment, User, ProductInfo, PressureMapReading
+from unittest.mock import patch
 
-
-class UserModelAndManagerTests(TestCase):
+class PressureMapReadingTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             email="user@test.com",
@@ -37,17 +37,20 @@ class UserModelAndManagerTests(TestCase):
             "metrics": "path/to/metrics/file"
         }
 
-    def test_create_pressure_map_reading(self):
+    @patch("user.signals.process_pressure_csv")
+    def test_create_pressure_map_reading(self, mock_process_pressure_csv):
         pressure_map_reading = PressureMapReading.objects.create(**self.pressure_map_reading_data)
         self.assertEqual(pressure_map_reading.reading_equipment, self.reading_equipment)
         self.assertEqual(pressure_map_reading.pressure_reading, "path/to/pressure/reading/file")
         self.assertEqual(pressure_map_reading.metrics, "path/to/metrics/file")
 
-    def test_timestamp_auto_now_add(self):
+    @patch("user.signals.process_pressure_csv")
+    def test_timestamp_auto_now_add(self, mock_process_pressure_csv):
         pressure_map_reading = PressureMapReading.objects.create(**self.pressure_map_reading_data)
         self.assertIsNotNone(pressure_map_reading.timestamp)
 
-    def test_pressure_reading_path_generation(self):
+    @patch("user.signals.process_pressure_csv")
+    def test_pressure_reading_path_generation(self, mock_process_pressure_csv):
         pressure_map_reading = PressureMapReading.objects.create(**self.pressure_map_reading_data)
 
         path = pressure_map_reading.pressure_reading_path("dummy.csv")
@@ -55,7 +58,8 @@ class UserModelAndManagerTests(TestCase):
 
         self.assertEqual(path, expected_path)
 
-    def test_reading_equipment_set_to_null_on_delete(self):
+    @patch("user.signals.process_pressure_csv")
+    def test_reading_equipment_set_to_null_on_delete(self, mock_process_pressure_csv):
         pressure_map_reading = PressureMapReading.objects.create(**self.pressure_map_reading_data)
         self.reading_equipment.delete()
         pressure_map_reading.refresh_from_db()

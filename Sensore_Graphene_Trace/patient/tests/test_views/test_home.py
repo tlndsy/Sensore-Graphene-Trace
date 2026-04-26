@@ -89,7 +89,7 @@ class PatientHomeViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "patient/patient_home.html")
-        self.assertTemplateUsed(response, "patient_layout.html")
+        self.assertTemplateUsed(response, "user_layout.html")
         self.assertEqual(response.context["num_notifications"], 5)
 
     def test_allows_admin_user(self):

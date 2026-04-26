@@ -121,7 +121,7 @@ class AdminGenericDeleteViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "administrator/generic_create.html")
-        self.assertTemplateUsed(response, "administrator_layout.html")
+        self.assertTemplateUsed(response, "user_layout.html")
         self.assertEqual(response.context["num_notifications"], 3)
 
     def test_allows_superuser(self):

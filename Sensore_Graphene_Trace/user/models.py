@@ -18,8 +18,10 @@ from user.utils.pair_key import generate_pair_key
 
 
 class UserManager(BaseUserManager):
+    # Process creation as a transaction so database can be rolled back if any validation fails
     @transaction.atomic
     def create_user(self, email, password=None, **extra_fields):
+        # Check Required fields
         if not email:
             raise ValueError("The Email field must be set")
         if not extra_fields.get("first_name"):
@@ -38,7 +40,7 @@ class UserManager(BaseUserManager):
             **extra_fields,
         )
         if password:
-            user.set_password(password)
+            user.set_password(password) # Hash password
         else:
             user.set_unusable_password()
         user.save(using=self._db)
@@ -56,6 +58,7 @@ class UserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
 
+        # Call create user with new values
         return self.create_user(
             email=email,
             password=password,
@@ -75,23 +78,26 @@ class Address(models.Model):
     town = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
 
+    # Address string representation
     def __str__(self):
         return f"{self.first_line}, {self.postal_code}"
 
-
+# User class inherits from Django's AbstractBaseUser
 class User(AbstractBaseUser, PermissionsMixin):
+    # For role choice
     class Roles(models.TextChoices):
         ADMIN = "ADMIN", "Admin"
         CLINICIAN = "CLINICIAN", "Clinician"
         PATIENT = "PATIENT", "Patient"
 
+    # For font size choice
     class FontSize(models.IntegerChoices):
         SMALL = constants.SMALL_FONT_SIZE, "Small"
         MEDIUM = constants.MEDIUM_FONT_SIZE, "Medium"
         LARGE = constants.LARGE_FONT_SIZE, "Large"
 
     class Meta:
-        ordering = ["-date_joined"]
+        ordering = ["-date_joined"] # order by newest users first
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(max_length=255, unique=True)
@@ -117,12 +123,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False, db_index=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 
+    # use UserManager to create objects
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ["first_name", "last_name"]# ,"date_of_birth"]
 
     def __str__(self):
         return f"{self.email} - ({self.get_full_name()})"
+
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip()
@@ -139,11 +147,13 @@ class PatientClinician(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        # Relationship cannot already exist between same patient and clinician
         constraints = [
             models.UniqueConstraint(fields=['patient', 'clinician'], name='unique_patient_clinician')
         ]
 
     def clean(self):
+        # Check users belong to correct groups
         if not self.patient.groups.filter(name=User.Roles.PATIENT).exists():
             raise ValidationError("Selected patient is not a valid patient.")
         if not self.clinician.groups.filter(name=User.Roles.CLINICIAN).exists():
@@ -187,9 +197,10 @@ class ReadingEquipment(models.Model):
         return f"{self.product_info.model} - {self.serial_number}"
 
     class Meta:
-        ordering = ["-user__date_joined"]
+        ordering = ["-user__date_joined"] # Order by users account age
 
     def save(self, *args, **kwargs):
+        # Set name to default if none provided
         if not self.custom_name:
             self.custom_name = self.get_default_device_name()
         super().save(*args, **kwargs)
@@ -216,7 +227,7 @@ class PressureMapReading(models.Model):
     processed = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ["-timestamp"]
+        ordering = ["-timestamp"] # Order by most recent readings first
 
     def __str__(self):
         return f"Reading of: {self.reading_equipment.user}, taken at {self.timestamp}"
@@ -231,21 +242,22 @@ class Report(models.Model):
 
 
     class Meta:
-        ordering = ["-pressure_map_reading__timestamp"]
+        ordering = ["-pressure_map_reading__timestamp"] # Order by most recent reports
 
     def __str__(self):
         return f"Report belonging to {self.pressure_map_reading.reading_equipment.user}, made at {self.pressure_map_reading.timestamp}"
 
 
 class ConversationQuerySet(models.QuerySet):
+    # Queries to help find conversations
 
-    def between(self, user1, user2):
+    def between(self, user1, user2): # Conversations containing two users
         return self.filter(participants=user1).filter(participants=user2)
 
-    def for_user(self, user):
+    def for_user(self, user): # All Conversations a user is in
         return self.filter(participants=user)
 
-    def with_exact_participants(self, user1, user2):
+    def with_exact_participants(self, user1, user2): # Conversations with only these two users
         return (
             self.between(user1, user2)
             .annotate(num_participants=models.Count("participants"))
@@ -256,9 +268,11 @@ class ConversationManager(models.Manager.from_queryset(ConversationQuerySet)):
 
     def create_conversation(self, user1, user2, subject=""):
 
+        # Users must be different
         if user1 == user2:
             raise ValidationError("Users must be different.")
 
+        # Generate hash for users
         pair_key = generate_pair_key(user1.id, user2.id)
 
 
@@ -278,9 +292,11 @@ class ConversationManager(models.Manager.from_queryset(ConversationQuerySet)):
                 "Participants must have a valid patient-clinician relationship."
             )
 
+        # Autogenerate subject if one is not provided
         if not subject:
             subject = f"Conversation between {user1.get_full_name()} and {user2.get_full_name()}"
 
+        # Create and save object
         conversation, created = Conversation.objects.get_or_create(
             pair_key=pair_key,
             subject=subject,
@@ -295,20 +311,21 @@ class Conversation(models.Model):
     participants = models.ManyToManyField(User, related_name='conversations')
     last_message = models.ForeignKey('Message', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
 
-    pair_key = models.CharField(max_length=64, editable=False, unique=True, db_index=True)
+    pair_key = models.CharField(max_length=64, editable=False, unique=True, db_index=True) # Hash for identifying unique conversations
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    objects = ConversationManager()
+    objects = ConversationManager() # Use conversation manager
 
     class Meta:
-        ordering = ['-updated_at']
+        ordering = ['-updated_at'] # Order my most recently updated conversation
 
     def __str__(self):
         return self.subject or f"Conversation {self.id}"
 
     def save(self, *args, **kwargs):
+        # Enforce use of conversation manager
         if not self.pk and not self.pair_key:
             raise RuntimeError("Direct creation of Conversation is not allowed, Use Conversation.objects.create_conversation().")
 
@@ -349,15 +366,13 @@ class Conversation(models.Model):
                 raise ValidationError("Participants must have a valid patient-clinician relationship.")
 
 
-
-
 class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='sent_messages')
     recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='received_messages')
     pressure_map_reading = models.ForeignKey(PressureMapReading, on_delete=models.SET_NULL, blank=True, null=True)
 
-    def attachment_path(self, filename):
+    def attachment_path(self, filename): # Generate file path for attached files
         sender_id = self.sender.id if self.sender else "unknown"
         conversation_id = self.conversation.id if self.conversation else "unknown"
         return f"users/{sender_id}/conversation_{conversation_id}/sent_items/{filename}"
@@ -383,7 +398,7 @@ class Message(models.Model):
         self.conversation.last_message = self
         self.conversation.save(update_fields=['last_message', 'updated_at'])
 
-    def clean(self):
+    def clean(self): # Validate message
         if not self.conversation_id:
             return
 
