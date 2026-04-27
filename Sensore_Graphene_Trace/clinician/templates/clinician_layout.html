@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="{% static 'css/patient_style.css' %}">
 </head>
 <body>
-{% if user.is_authenticated and user.role == 'AddClinicianHere' %}
-    {% include 'clinician/chat_widget.html' %}
+{% if user.is_authenticated and user.role == 'CLINICIAN' %}
+    {% include 'patient/chat_widget.html' %}
 {% endif %}
 <nav class="navbar">
     <a href="/user/clinician/">

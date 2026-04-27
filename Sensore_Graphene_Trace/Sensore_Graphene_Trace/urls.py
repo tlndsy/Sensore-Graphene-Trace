@@ -38,4 +38,5 @@ urlpatterns = [
     path("complete-profile/", complete_profile, name="complete_profile"),
     path("accounts/profile/", lambda request: redirect("user:patient:home")),
 
+
 ]

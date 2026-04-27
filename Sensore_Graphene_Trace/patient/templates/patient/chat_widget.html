@@ -141,76 +141,78 @@
         }
     }
 
-    function loadClinicianList() {
-        fetch("/user/clinicians/")
-            .then(r => r.json())
-            .then(data => {
-                const list = document.getElementById('clinician-list');
-                list.innerHTML = '';
+function loadClinicianList() {
+    const url = "{{ user.role }}" === "CLINICIAN"
+        ? "/user/clinician/conversations/"  // gets patient list
+        : "/user/clinicians/";              // gets clinician list
 
-                if (!data.clinicians || data.clinicians.length === 0) {
-                    list.innerHTML = '<p style="text-align:center;color:red;padding:32px;">No clinician assigned yet.</p>';
-                    return;
-                }
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            const list = document.getElementById('clinician-list');
+            list.innerHTML = '';
 
-                // If only one clinician skip list and open directly
-                if (data.clinicians.length === 1) {
-                    openChat(data.clinicians[0].id, data.clinicians[0].name);
-                    return;
-                }
+            const people = data.clinicians || data.patients;
+            const headerTitle = "{{ user.role }}" === "CLINICIAN"
+                ? "My Patients"
+                : "My Clinicians";
 
-                data.clinicians.forEach(c => {
-                    const item = document.createElement('div');
-                    item.style.cssText = `
-                        padding:14px 16px;
-                        border-bottom:1px solid #e0e0e0;
-                        cursor:pointer;
-                        display:flex;
-                        justify-content:space-between;
-                        align-items:center;
-                        background:white;
-                    `;
-                    item.innerHTML = `
-                        <div>
-                            <div style="font-size:15px;font-weight:500;color:#333;">${c.name}</div>
-                            <div style="font-size:12px;color:#888;">${c.email}</div>
-                        </div>
-                        ${c.unread > 0
-                            ? `<span style="background:red;color:white;border-radius:50%;width:20px;height:20px;font-size:11px;display:flex;align-items:center;justify-content:center;">${c.unread}</span>`
-                            : ''
-                        }
-                    `;
-                    item.onclick = () => openChat(c.id, c.name);
-                    list.appendChild(item);
-                });
-            })
-            .catch(err => {
-                document.getElementById('clinician-list').innerHTML =
-                    '<p style="text-align:center;color:red;padding:32px;">Could not load clinicians.</p>';
+            document.getElementById('chat-header-title').textContent = headerTitle;
+
+            if (!people || people.length === 0) {
+                list.innerHTML = '<p style="text-align:center;color:red;padding:32px;">No patients assigned yet.</p>';
+                return;
+            }
+
+            if (people.length === 1) {
+                openChat(people[0].id || people[0].user_id, people[0].name);
+                return;
+            }
+
+            people.forEach(p => {
+                const item = document.createElement('div');
+                item.style.cssText = `padding:14px 16px;border-bottom:0.5px solid #e0e0e0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:white;`;
+                item.innerHTML = `
+                    <div>
+                        <div style="font-size:15px;font-weight:500;color:#333;">${p.name}</div>
+                        <div style="font-size:12px;color:#888;">${p.email || ''}</div>
+                    </div>
+                    ${(p.unread > 0) ? `<span style="background:red;color:white;border-radius:50%;width:20px;height:20px;font-size:11px;display:flex;align-items:center;justify-content:center;">${p.unread}</span>` : ''}
+                `;
+                item.onclick = () => openChat(p.id || p.user_id, p.name);
+                list.appendChild(item);
             });
-    }
+        })
+        .catch(() => {
+            document.getElementById('clinician-list').innerHTML =
+                '<p style="text-align:center;color:red;padding:32px;">Could not load.</p>';
+        });
+}
 
-    function openChat(clinicianId, clinicianName) {
-        document.getElementById('clinician-list').style.display = 'none';
-        document.getElementById('chat-messages').style.display = 'flex';
-        document.getElementById('chat-input-area').style.display = 'flex';
-        document.getElementById('chat-header-title').innerHTML =
-            `<span onclick="backToList()" style="cursor:pointer;margin-right:8px;">←</span> ${clinicianName}`;
+function openChat(personId, personName) {
+    document.getElementById('clinician-list').style.display = 'none';
+    document.getElementById('chat-messages').style.display = 'flex';
+    document.getElementById('chat-input-area').style.display = 'flex';
+    document.getElementById('chat-header-title').innerHTML =
+        `<span onclick="backToList()" style="cursor:pointer;margin-right:8px;">←</span> ${personName}`;
 
-        fetch(`/user/conversation/?clinician_id=${clinicianId}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) {
-                    document.getElementById('chat-messages').innerHTML =
-                        `<p style="color:red;text-align:center;">${data.error}</p>`;
-                    return;
-                }
-                conversationId = data.conversation_id;
-                loadMessages();
-                clearInterval(pollInterval);
-                pollInterval = setInterval(loadMessages, 5000);
-            });
-    }
+    const isClinician = "{{ user.role }}" === "CLINICIAN";
+    const param = isClinician ? `patient_id=${personId}` : `clinician_id=${personId}`;
+
+    fetch(`/user/conversation/?${param}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('chat-messages').innerHTML =
+                    `<p style="color:red;text-align:center;">${data.error}</p>`;
+                return;
+            }
+            conversationId = data.conversation_id;
+            loadMessages();
+            clearInterval(pollInterval);
+            pollInterval = setInterval(loadMessages, 5000);
+        });
+}
 
     function backToList() {
         clearInterval(pollInterval);

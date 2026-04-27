@@ -1,7 +1,6 @@
 # clinician/urls.py
 from django.urls import path
 from . import views
-
 from django.urls import path
 from . import views
 
@@ -13,4 +12,5 @@ urlpatterns = [
     path("profile/", views.displayProfile, name="profile"),
 
     path("logout/", views.tempLogout, name="logout"), #Doesn't work currently!
+
 ]

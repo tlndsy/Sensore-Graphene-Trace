@@ -20,4 +20,5 @@ urlpatterns = [
     path("notifications/", UserNotifications.as_view(), name="notifications"),
     path("logout-user/", views.logout_user, name="logout_user"),
     path('reports/', views.get_patient_reports, name='get_patient_reports'),
+    path('clinician/conversations/', views.clinician_conversations, name='clinician_conversations'),
 ]

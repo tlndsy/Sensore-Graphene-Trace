@@ -221,17 +221,16 @@ def get_or_create_conversation(request):
             if clinician_id:
                 other_user = User.objects.get(id=clinician_id)
             else:
-                # fallback to first assigned clinician
                 patient_clinician = PatientClinician.objects.filter(
-                    patient=request.user  # ← fixed
+                    patient=request.user
                 ).select_related('clinician').first()
 
                 if not patient_clinician:
                     return JsonResponse({'error': 'No clinician assigned'})
 
-                other_user = patient_clinician.clinician  # ← fixed
+                other_user = patient_clinician.clinician
 
-        # Find existing conversation between these two users
+        # Find existing conversation first
         conversation = Conversation.objects.filter(
             participants=request.user
         ).filter(
@@ -239,11 +238,11 @@ def get_or_create_conversation(request):
         ).first()
 
         if not conversation:
-            conversation = Conversation.objects.create(
-                subject=f"Chat between {request.user.first_name} and {other_user.first_name}"
+            # Use the custom manager with correct signature
+            conversation = Conversation.objects.create_conversation(
+                user1=request.user,
+                user2=other_user,
             )
-            # ← add both users as participants
-            conversation.participants.add(request.user, other_user)
 
         return JsonResponse({
             'conversation_id': conversation.id,
@@ -252,6 +251,7 @@ def get_or_create_conversation(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
 
 
 @login_required
@@ -314,6 +314,7 @@ def unread_count(request):
     ).count()
     return JsonResponse({'count': count})
 
+
 @login_required
 def clinician_conversations(request):
     assigned_patients = PatientClinician.objects.filter(
@@ -325,6 +326,7 @@ def clinician_conversations(request):
             {
                 'name': f"{p.patient.first_name} {p.patient.last_name}",
                 'user_id': str(p.patient.id),
+                'email': p.patient.email,
                 'unread': Message.objects.filter(
                     recipient=request.user,
                     sender=p.patient,
